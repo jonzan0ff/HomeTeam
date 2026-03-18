@@ -1,40 +1,37 @@
-# Kanban Project
+# Hockey Games Project
 
 ## Business Requirements
 
-- An MVP of a Kanban style Project Management application as a web app  
-- The web app should only have 1 board
-- The board has fixed 5 columns that can be renamed  
-- Each card has a title and details only
-- Drag and drop interface to move cards between columns
-- Add a new card to a column; delete an existing card
-- No more functionality: no archive, no search/filter. Keep it simple.
+- An MVP of a Hockey Games application with a MAC widget
+- The widget will list washintong capitals games that are streaming on Hulu, Paramount, Amazon, Peacock, ESPN+, HBO, Apple TV, or Netflix.
+- The widget will show the date, time, and streaming service for each game.
+- The widget will show the score of the game if it is in progress.
+- The widget will show the result of the game if it is completed.
 - The priority is a slick, professional, gorgeous UI/UX with very simple features
-- The app should open with dummy data populated for the single board
+- The widget should be updated daily to show the next 3 games
+-The widget should be updated every 5 minutes IF the current game if it is in progress
+-The app should have a the ability to expand to show all upcoming games
+-The app should have a the ability to add a game to google calendar 
+
 
 ## Technical Details
 
-- Implemented as a modern NextJS app, client rendered
-- The NextJS app should be created in a subdirectory `frontend`
-- No persistence
+- Implemented as a native macOS SwiftUI app with a WidgetKit extension
+- The app should be created in a subdirectory `macos`
 - No user management for the MVP
 - Use popular libraries
 - As simple as possible but with an elegant UI
 
 ## Color Scheme
 
-- Accent Yellow: `#ecad0a` - accent lines, highlights
-- Blue Primary: `#209dd7` - links, key sections
-- Purple Secondary: `#753991` - submit buttons, important actions
-- Dark Navy: `#032147` - main headings
-- Gray Text: `#888888` - supporting text, labels
+- Use MAC widget defaults
 
 ## Strategy
 
 1. Write plan with success criteria for each phase to be checked off. Include project scaffolding, including .gitignore, and rigorous unit testing.
 2. Execute the plan ensuring all critiera are met
-3. Carry out extensive integration testing with Playwright or similar, fixing defects
-4. Only complete when the MVP is finished and tested, with the server running and ready for the user
+3. Carry out extensive native integration testing and widget registration validation, fixing defects
+4. Only complete when the MVP is finished and tested, with the app and widget ready for the user
 
 ## Coding standards
 

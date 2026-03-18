@@ -1,0 +1,68 @@
+name: CapsWidget
+options:
+  deploymentTarget:
+    macOS: '14.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.10'
+    PRODUCT_NAME: CapsWidget
+packages: {}
+targets:
+  CapsWidgetApp:
+    type: application
+    platform: macOS
+    sources:
+      - CapsWidgetApp
+      - Shared
+    info:
+      path: Config/CapsWidgetApp-Info.plist
+      properties:
+        LSMultipleInstancesProhibited: true
+    entitlements:
+      path: Config/CapsWidgetApp.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.capswidget
+        PRODUCT_MODULE_NAME: CapsWidgetApp
+        DEVELOPMENT_TEAM: Q4MZVR4MU5
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: Apple Development
+        CODE_SIGN_IDENTITY[sdk=macosx*]: Apple Development
+        CODE_SIGN_ENTITLEMENTS: Config/CapsWidgetApp.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - target: CapsWidgetExtension
+        embed: true
+  CapsWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - CapsWidgetExtension
+      - Shared
+    info:
+      path: Config/CapsWidgetExtension-Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).CapsWidgetBundle
+    entitlements:
+      path: Config/CapsWidgetExtension.entitlements
+    settings:
+      base:
+        PRODUCT_NAME: CapsWidgetExtension
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.capswidget.extension
+        PRODUCT_MODULE_NAME: CapsWidgetExtension
+        DEVELOPMENT_TEAM: Q4MZVR4MU5
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: Apple Development
+        CODE_SIGN_IDENTITY[sdk=macosx*]: Apple Development
+        CODE_SIGN_ENTITLEMENTS: Config/CapsWidgetExtension.entitlements
+        SKIP_INSTALL: true
+schemes:
+  CapsWidget:
+    build:
+      targets:
+        CapsWidgetApp: all
+        CapsWidgetExtension: all
+    run:
+      config: Debug
