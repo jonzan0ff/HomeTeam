@@ -2,3 +2,7 @@
 macos/CapsWidget.xcodeproj
 macos/*.xcworkspace
 macos/**/DerivedData
+macos/artifacts/
+
+**/xcuserdata/
+**/UserInterfaceState.xcuserstate
