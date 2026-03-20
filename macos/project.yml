@@ -1,68 +1,116 @@
-name: CapsWidget
+name: HomeTeam
 options:
   deploymentTarget:
     macOS: '14.0'
 settings:
   base:
     SWIFT_VERSION: '5.10'
-    PRODUCT_NAME: CapsWidget
+    PRODUCT_NAME: HomeTeam
 packages: {}
 targets:
-  CapsWidgetApp:
+  HomeTeamApp:
     type: application
     platform: macOS
     sources:
-      - CapsWidgetApp
+      - HomeTeamApp
       - Shared
     info:
-      path: Config/CapsWidgetApp-Info.plist
+      path: Config/HomeTeamApp-Info.plist
       properties:
         LSMultipleInstancesProhibited: true
     entitlements:
-      path: Config/CapsWidgetApp.entitlements
+      path: Config/HomeTeamApp.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.capswidget
-        PRODUCT_MODULE_NAME: CapsWidgetApp
+        PRODUCT_NAME: HomeTeam
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.hometeam
+        PRODUCT_MODULE_NAME: HomeTeamApp
         DEVELOPMENT_TEAM: Q4MZVR4MU5
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: Apple Development
         CODE_SIGN_IDENTITY[sdk=macosx*]: Apple Development
-        CODE_SIGN_ENTITLEMENTS: Config/CapsWidgetApp.entitlements
+        CODE_SIGN_ENTITLEMENTS: Config/HomeTeamApp.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
-      - target: CapsWidgetExtension
+      - target: HomeTeamWidgetExtension
         embed: true
-  CapsWidgetExtension:
+
+  HomeTeamWidgetExtension:
     type: app-extension
     platform: macOS
     sources:
-      - CapsWidgetExtension
+      - HomeTeamExtension
       - Shared
     info:
-      path: Config/CapsWidgetExtension-Info.plist
+      path: Config/HomeTeamWidgetExtension-Info.plist
       properties:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).CapsWidgetBundle
     entitlements:
-      path: Config/CapsWidgetExtension.entitlements
+      path: Config/HomeTeamWidgetExtension.entitlements
     settings:
       base:
-        PRODUCT_NAME: CapsWidgetExtension
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.capswidget.extension
-        PRODUCT_MODULE_NAME: CapsWidgetExtension
+        PRODUCT_NAME: HomeTeamWidgetExtension
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.hometeam.widget
+        PRODUCT_MODULE_NAME: HomeTeamWidgetExtension
         DEVELOPMENT_TEAM: Q4MZVR4MU5
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: Apple Development
         CODE_SIGN_IDENTITY[sdk=macosx*]: Apple Development
-        CODE_SIGN_ENTITLEMENTS: Config/CapsWidgetExtension.entitlements
+        CODE_SIGN_ENTITLEMENTS: Config/HomeTeamWidgetExtension.entitlements
         SKIP_INSTALL: true
+
+  HomeTeamTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.hometeam.tests
+        PRODUCT_NAME: HomeTeamTests
+        GENERATE_INFOPLIST_FILE: true
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+
+  HomeTeamUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests
+    dependencies:
+      - target: HomeTeamApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.hometeam.uitests
+        PRODUCT_NAME: HomeTeamUITests
+        GENERATE_INFOPLIST_FILE: true
+        TEST_TARGET_NAME: HomeTeamApp
+        DEVELOPMENT_TEAM: Q4MZVR4MU5
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: Apple Development
+
 schemes:
-  CapsWidget:
+  HomeTeam:
     build:
       targets:
-        CapsWidgetApp: all
-        CapsWidgetExtension: all
+        HomeTeamApp: all
+        HomeTeamWidgetExtension: all
+    test:
+      config: Debug
+      targets:
+        - HomeTeamTests
     run:
       config: Debug
+
+  HomeTeamUIQA:
+    build:
+      targets:
+        HomeTeamApp: all
+        HomeTeamWidgetExtension: all
+    test:
+      config: Debug
+      targets:
+        - HomeTeamTests

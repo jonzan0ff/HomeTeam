@@ -1,0 +1,66 @@
+name: HomeTeam Regression Telemetry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "macos/**"
+      - "qa/**"
+      - ".github/workflows/qa-regression-telemetry.yml"
+  schedule:
+    - cron: "0 10 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  collect-and-persist:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Widget Snapshot QA
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh macos/artifacts/widgetqa
+
+      - name: Frontend Snapshot QA
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/qa_frontend_ui.sh
+
+      - name: Collect Test Telemetry
+        run: |
+          set -euo pipefail
+          RESULT_BUNDLE_LIST="$(mktemp)"
+          find /private/tmp /tmp -maxdepth 1 -type d \( -name 'HomeTeamUIQA_*.xcresult' -o -name 'HomeTeamWidgetSnapshot_*.xcresult' \) 2>/dev/null | sort -u > "$RESULT_BUNDLE_LIST"
+
+          if [[ ! -s "$RESULT_BUNDLE_LIST" ]]; then
+            echo "FAIL: No xcresult bundles found."
+            exit 1
+          fi
+
+          RESULT_BUNDLES=()
+          while IFS= read -r bundle; do
+            RESULT_BUNDLES+=("$bundle")
+          done < "$RESULT_BUNDLE_LIST"
+
+          macos/scripts/collect_test_telemetry.sh qa/telemetry/current "${RESULT_BUNDLES[@]}"
+
+      - name: Persist Telemetry History
+        env:
+          QA_HISTORY_COMMIT_MESSAGE: "qa: append telemetry run ${{ github.run_id }}"
+        run: |
+          set -euo pipefail
+          macos/scripts/persist_test_history.sh qa/telemetry/current qa-history
+
+      - name: Upload Run Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hometeam-regression-telemetry-${{ github.run_id }}
+          path: |
+            qa/telemetry/current
+            macos/artifacts/widgetqa
+            macos/artifacts/uiqa
+          if-no-files-found: warn

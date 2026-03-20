@@ -62,12 +62,6 @@ struct TeamWidgetEntityQuery: EntityStringQuery {
   }
 }
 
-struct TeamWidgetEntityOptionsProvider: DynamicOptionsProvider {
-  func results() async throws -> [TeamWidgetEntity] {
-    TeamWidgetEntityQuery.prioritizedEntities(from: TeamWidgetEntityQuery.teamsForWidgetConfiguration())
-  }
-}
-
 struct HomeTeamWidgetIntent: WidgetConfigurationIntent {
   static var title: LocalizedStringResource = "HomeTeam Widget"
   static var description = IntentDescription("Choose one team or driver for this widget instance.")
@@ -75,7 +69,7 @@ struct HomeTeamWidgetIntent: WidgetConfigurationIntent {
     Summary("Pick \(\.$team)")
   }
 
-  @Parameter(title: "Favorite", optionsProvider: TeamWidgetEntityOptionsProvider())
+  @Parameter(title: "Favorite")
   var team: TeamWidgetEntity?
 
   var resolvedTeam: TeamDefinition {

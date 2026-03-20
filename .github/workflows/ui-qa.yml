@@ -1,0 +1,32 @@
+name: HomeTeam UI QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "macos/**"
+      - ".github/workflows/ui-qa.yml"
+
+jobs:
+  snapshot-qa:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Widget Snapshot QA
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh macos/artifacts/widgetqa
+
+      - name: Frontend Snapshot QA
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/qa_frontend_ui.sh
+
+      - name: Upload QA Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hometeam-ui-qa-artifacts
+          path: |
+            macos/artifacts/widgetqa
+            macos/artifacts/uiqa
+            /tmp/HomeTeamUIQA_*.xcresult
+            /tmp/HomeTeamWidgetSnapshot_*.xcresult
+          if-no-files-found: warn

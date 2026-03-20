@@ -1,4 +1,4 @@
-# Caps Widget macOS Shell
+# HomeTeam macOS Shell
 
 This directory scaffolds a native macOS app + WidgetKit extension for local-first use.
 
@@ -10,18 +10,28 @@ This directory scaffolds a native macOS app + WidgetKit extension for local-firs
 ```bash
 cd macos
 ./tools/xcodegen generate
-open CapsWidget.xcodeproj
+open HomeTeam.xcodeproj
 ```
 
 ## First run checklist
 1. In Xcode, set your Team for both targets.
 2. Keep **Automatically manage signing** enabled.
-3. Build and run `CapsWidgetApp`.
+3. Build and run `HomeTeamApp`.
 4. In app Settings, enable **Open at Login**.
 
-## Dock icon (Capitals logo)
-1. Save a square dark-compatible Capitals logo as:
-   - `macos/assets/caps_logo_dark.png`
+## QA modes
+- CI-first (no local prompts): GitHub Actions workflow `HomeTeam UI QA`
+  - Runs widget + frontend snapshot QA on a GitHub-hosted macOS runner and uploads artifacts.
+- Regression history + test-retirement candidates: GitHub Actions workflow `HomeTeam Regression Telemetry`
+  - Appends test telemetry to `qa-history` branch and regenerates candidate reports from `qa/test-retirement-policy.json`.
+- Local QA scripts are blocked by default to avoid macOS cross-app privacy prompts.
+  - Developer override only: `HOMETEAM_QA_ALLOW_LOCAL_XCODEBUILD=1 ./scripts/qa_frontend_ui.sh`
+  - Desktop UI automation (`HomeTeamUITests`) is disabled in `qa_frontend_ui.sh`.
+
+## Dock icon
+1. Save a square dark-compatible logo as either:
+   - `Assets/Logo.png` (preferred)
+   - `macos/assets/Logo.png` (fallback)
 2. Generate app icon sizes:
 ```bash
 ./scripts/generate_appicon.sh

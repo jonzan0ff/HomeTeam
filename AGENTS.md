@@ -1,4 +1,4 @@
-# HomeTeam Project
+w# HomeTeam Project
 
 ## Purpose
 Single source of truth for product scope, engineering standards, and QA gates for the HomeTeam macOS app + widget.
@@ -153,10 +153,5 @@ Time spent, complexity, or frustration are never `Blocked`; those are `Failed` u
 2. Keep it simple - NEVER over-engineer, ALWAYS simplify, NO unnecessary defensive programming. No extra features - focus on simplicity.
 3. Be concise. Keep README minimal. IMPORTANT: no emojis ever
 
-## Delivery Protocol
-For each requested batch of work, report:
-1. `Done`
-2. `Failed`
-3. `Blocked`
 
 Keep each item explicit and requirement-mapped so missing work is obvious.
