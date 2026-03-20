@@ -1,7 +1,7 @@
 import XCTest
 final class ScheduleClientNetworkSmokeTests: XCTestCase {
   private var shouldRunNetworkTests: Bool {
-    ProcessInfo.processInfo.environment["HOMETEAM_RUN_NETWORK_TESTS"] != "0"
+    ProcessInfo.processInfo.environment["HOMETEAM_RUN_NETWORK_TESTS"] == "1"
   }
 
   func testMotoGPFetchForMarcMarquezDoesNotThrow() async throws {

@@ -656,8 +656,9 @@ final class WidgetSnapshotArtifactTests: XCTestCase {
   private let largeCanvasSize = CGSize(width: 364, height: 382)
   private let requiredSports: [SupportedSport] = [.nhl, .mlb, .nfl, .nba, .mls, .premierLeague, .f1, .motogp]
 
+  /// Live ESPN/API + snapshot generation; opt-in so `xcodebuild test` without env vars stays deterministic.
   private var shouldRunLiveNetworkQA: Bool {
-    ProcessInfo.processInfo.environment["HOMETEAM_RUN_NETWORK_TESTS"] != "0"
+    ProcessInfo.processInfo.environment["HOMETEAM_RUN_NETWORK_TESTS"] == "1"
   }
 
   private var snapshotMode: SnapshotMode {
@@ -677,8 +678,9 @@ final class WidgetSnapshotArtifactTests: XCTestCase {
   @MainActor
   func testGenerateWidgetSnapshotArtifacts() async throws {
     guard shouldRunLiveNetworkQA else {
-      XCTFail("Widget snapshot QA requires live data. Set HOMETEAM_RUN_NETWORK_TESTS=1.")
-      return
+      throw XCTSkip(
+        "Widget snapshot QA requires live network. Set HOMETEAM_RUN_NETWORK_TESTS=1 or run macos/scripts/capture_widget_screenshot.sh."
+      )
     }
 
     RuntimeIssueCenter.clear()
