@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "EA341EAD-689D-4131-AD6C-58C6EB98143C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-racing-medium_0_B9671326-79DC-42F3-A8D0-5F4B5B765AC4.png",
+        "timestamp" : 1773943118.611
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "99EF66B4-02AB-4E32-964A-CACC4A778D8D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-team-medium_0_A3CA5728-615E-4F27-BE92-D9C6656B3F18.png",
+        "timestamp" : 1773943118.6
+      }
+    ],
+    "testIdentifier" : "WidgetSnapshotArtifactTests/testGenerateWidgetSnapshotArtifacts()",
+    "testIdentifierURL" : "test://com.apple.xcode/HomeTeam/HomeTeamTests/WidgetSnapshotArtifactTests/testGenerateWidgetSnapshotArtifacts"
+  }
+]

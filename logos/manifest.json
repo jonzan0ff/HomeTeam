@@ -1,0 +1,1153 @@
+{
+  "generated": "2026-03-25T19:38:19.173474+00:00",
+  "teams": {
+    "nhl:25": {
+      "status": "ok",
+      "file": "teams/nhl_25.png",
+      "source": "espn-dark",
+      "size_bytes": 93337
+    },
+    "nhl:1": {
+      "status": "ok",
+      "file": "teams/nhl_1.png",
+      "source": "espn-dark",
+      "size_bytes": 41807
+    },
+    "nhl:2": {
+      "status": "ok",
+      "file": "teams/nhl_2.png",
+      "source": "espn-dark",
+      "size_bytes": 79044
+    },
+    "nhl:3": {
+      "status": "ok",
+      "file": "teams/nhl_3.png",
+      "source": "espn-dark",
+      "size_bytes": 48610
+    },
+    "nhl:7": {
+      "status": "ok",
+      "file": "teams/nhl_7.png",
+      "source": "espn-dark",
+      "size_bytes": 55295
+    },
+    "nhl:4": {
+      "status": "ok",
+      "file": "teams/nhl_4.png",
+      "source": "espn-dark",
+      "size_bytes": 147868
+    },
+    "nhl:17": {
+      "status": "ok",
+      "file": "teams/nhl_17.png",
+      "source": "espn-dark",
+      "size_bytes": 114803
+    },
+    "nhl:29": {
+      "status": "ok",
+      "file": "teams/nhl_29.png",
+      "source": "espn-dark",
+      "size_bytes": 105229
+    },
+    "nhl:9": {
+      "status": "ok",
+      "file": "teams/nhl_9.png",
+      "source": "espn-dark",
+      "size_bytes": 44186
+    },
+    "nhl:5": {
+      "status": "ok",
+      "file": "teams/nhl_5.png",
+      "source": "espn-dark",
+      "size_bytes": 31358
+    },
+    "nhl:6": {
+      "status": "ok",
+      "file": "teams/nhl_6.png",
+      "source": "espn-dark",
+      "size_bytes": 65581
+    },
+    "nhl:26": {
+      "status": "ok",
+      "file": "teams/nhl_26.png",
+      "source": "espn-dark",
+      "size_bytes": 27484
+    },
+    "nhl:8": {
+      "status": "ok",
+      "file": "teams/nhl_8.png",
+      "source": "espn-dark",
+      "size_bytes": 73519
+    },
+    "nhl:30": {
+      "status": "ok",
+      "file": "teams/nhl_30.png",
+      "source": "espn-dark",
+      "size_bytes": 56295
+    },
+    "nhl:10": {
+      "status": "ok",
+      "file": "teams/nhl_10.png",
+      "source": "espn-dark",
+      "size_bytes": 62621
+    },
+    "nhl:27": {
+      "status": "ok",
+      "file": "teams/nhl_27.png",
+      "source": "espn-dark",
+      "size_bytes": 77098
+    },
+    "nhl:11": {
+      "status": "ok",
+      "file": "teams/nhl_11.png",
+      "source": "espn-dark",
+      "size_bytes": 55606
+    },
+    "nhl:12": {
+      "status": "ok",
+      "file": "teams/nhl_12.png",
+      "source": "espn-dark",
+      "size_bytes": 87735
+    },
+    "nhl:13": {
+      "status": "ok",
+      "file": "teams/nhl_13.png",
+      "source": "espn-dark",
+      "size_bytes": 77274
+    },
+    "nhl:14": {
+      "status": "ok",
+      "file": "teams/nhl_14.png",
+      "source": "espn-dark",
+      "size_bytes": 94797
+    },
+    "nhl:15": {
+      "status": "ok",
+      "file": "teams/nhl_15.png",
+      "source": "espn-dark",
+      "size_bytes": 26132
+    },
+    "nhl:16": {
+      "status": "ok",
+      "file": "teams/nhl_16.png",
+      "source": "espn-dark",
+      "size_bytes": 66416
+    },
+    "nhl:28": {
+      "status": "ok",
+      "file": "teams/nhl_28.png",
+      "source": "espn-dark",
+      "size_bytes": 65268
+    },
+    "nhl:19": {
+      "status": "ok",
+      "file": "teams/nhl_19.png",
+      "source": "espn-dark",
+      "size_bytes": 58714
+    },
+    "nhl:20": {
+      "status": "ok",
+      "file": "teams/nhl_20.png",
+      "source": "espn-dark",
+      "size_bytes": 19633
+    },
+    "nhl:21": {
+      "status": "ok",
+      "file": "teams/nhl_21.png",
+      "source": "espn-dark",
+      "size_bytes": 51792
+    },
+    "nhl:18": {
+      "status": "ok",
+      "file": "teams/nhl_18.png",
+      "source": "espn-dark",
+      "size_bytes": 111668
+    },
+    "nhl:37": {
+      "status": "ok",
+      "file": "teams/nhl_37.png",
+      "source": "espn-dark",
+      "size_bytes": 55705
+    },
+    "nhl:22": {
+      "status": "ok",
+      "file": "teams/nhl_22.png",
+      "source": "espn-dark",
+      "size_bytes": 29541
+    },
+    "nhl:53": {
+      "status": "ok",
+      "file": "teams/nhl_53.png",
+      "source": "espn-dark",
+      "size_bytes": 69657
+    },
+    "nhl:23": {
+      "status": "ok",
+      "file": "teams/nhl_23.png",
+      "source": "espn-dark",
+      "size_bytes": 70067
+    },
+    "mlb:1": {
+      "status": "ok",
+      "file": "teams/mlb_1.png",
+      "source": "espn-dark",
+      "size_bytes": 46237
+    },
+    "mlb:2": {
+      "status": "ok",
+      "file": "teams/mlb_2.png",
+      "source": "espn-dark",
+      "size_bytes": 38034
+    },
+    "mlb:3": {
+      "status": "ok",
+      "file": "teams/mlb_3.png",
+      "source": "espn-dark",
+      "size_bytes": 48052
+    },
+    "mlb:4": {
+      "status": "ok",
+      "file": "teams/mlb_4.png",
+      "source": "espn-dark",
+      "size_bytes": 24153
+    },
+    "mlb:5": {
+      "status": "ok",
+      "file": "teams/mlb_5.png",
+      "source": "espn-dark",
+      "size_bytes": 15649
+    },
+    "mlb:6": {
+      "status": "ok",
+      "file": "teams/mlb_6.png",
+      "source": "espn-dark",
+      "size_bytes": 64184
+    },
+    "mlb:7": {
+      "status": "ok",
+      "file": "teams/mlb_7.png",
+      "source": "espn-dark",
+      "size_bytes": 187463
+    },
+    "mlb:8": {
+      "status": "ok",
+      "file": "teams/mlb_8.png",
+      "source": "espn-dark",
+      "size_bytes": 54504
+    },
+    "mlb:9": {
+      "status": "ok",
+      "file": "teams/mlb_9.png",
+      "source": "espn-dark",
+      "size_bytes": 24132
+    },
+    "mlb:10": {
+      "status": "ok",
+      "file": "teams/mlb_10.png",
+      "source": "espn-dark",
+      "size_bytes": 20100
+    },
+    "mlb:11": {
+      "status": "ok",
+      "file": "teams/mlb_11.png",
+      "source": "espn-dark",
+      "size_bytes": 16979
+    },
+    "mlb:12": {
+      "status": "ok",
+      "file": "teams/mlb_12.png",
+      "source": "espn-dark",
+      "size_bytes": 80199
+    },
+    "mlb:13": {
+      "status": "ok",
+      "file": "teams/mlb_13.png",
+      "source": "espn-dark",
+      "size_bytes": 17789
+    },
+    "mlb:14": {
+      "status": "ok",
+      "file": "teams/mlb_14.png",
+      "source": "espn-dark",
+      "size_bytes": 18100
+    },
+    "mlb:15": {
+      "status": "ok",
+      "file": "teams/mlb_15.png",
+      "source": "espn-dark",
+      "size_bytes": 45523
+    },
+    "mlb:16": {
+      "status": "ok",
+      "file": "teams/mlb_16.png",
+      "source": "espn-dark",
+      "size_bytes": 56069
+    },
+    "mlb:17": {
+      "status": "ok",
+      "file": "teams/mlb_17.png",
+      "source": "espn-dark",
+      "size_bytes": 15985
+    },
+    "mlb:18": {
+      "status": "ok",
+      "file": "teams/mlb_18.png",
+      "source": "espn-dark",
+      "size_bytes": 56094
+    },
+    "mlb:19": {
+      "status": "ok",
+      "file": "teams/mlb_19.png",
+      "source": "espn-dark",
+      "size_bytes": 23353
+    },
+    "mlb:20": {
+      "status": "ok",
+      "file": "teams/mlb_20.png",
+      "source": "espn-dark",
+      "size_bytes": 34144
+    },
+    "mlb:21": {
+      "status": "ok",
+      "file": "teams/mlb_21.png",
+      "source": "espn-dark",
+      "size_bytes": 8876
+    },
+    "mlb:22": {
+      "status": "ok",
+      "file": "teams/mlb_22.png",
+      "source": "espn-dark",
+      "size_bytes": 81265
+    },
+    "mlb:23": {
+      "status": "ok",
+      "file": "teams/mlb_23.png",
+      "source": "espn-dark",
+      "size_bytes": 48378
+    },
+    "mlb:24": {
+      "status": "ok",
+      "file": "teams/mlb_24.png",
+      "source": "espn-dark",
+      "size_bytes": 51849
+    },
+    "mlb:25": {
+      "status": "ok",
+      "file": "teams/mlb_25.png",
+      "source": "espn-dark",
+      "size_bytes": 10366
+    },
+    "mlb:26": {
+      "status": "ok",
+      "file": "teams/mlb_26.png",
+      "source": "espn-dark",
+      "size_bytes": 10438
+    },
+    "mlb:27": {
+      "status": "ok",
+      "file": "teams/mlb_27.png",
+      "source": "espn-dark",
+      "size_bytes": 9783
+    },
+    "mlb:28": {
+      "status": "ok",
+      "file": "teams/mlb_28.png",
+      "source": "espn-dark",
+      "size_bytes": 12565
+    },
+    "mlb:29": {
+      "status": "ok",
+      "file": "teams/mlb_29.png",
+      "source": "espn-dark",
+      "size_bytes": 34063
+    },
+    "mlb:30": {
+      "status": "ok",
+      "file": "teams/mlb_30.png",
+      "source": "espn-dark",
+      "size_bytes": 49733
+    },
+    "nfl:1": {
+      "status": "ok",
+      "file": "teams/nfl_1.png",
+      "source": "espn-dark",
+      "size_bytes": 51781
+    },
+    "nfl:2": {
+      "status": "ok",
+      "file": "teams/nfl_2.png",
+      "source": "espn-dark",
+      "size_bytes": 38004
+    },
+    "nfl:3": {
+      "status": "ok",
+      "file": "teams/nfl_3.png",
+      "source": "espn-dark",
+      "size_bytes": 93593
+    },
+    "nfl:4": {
+      "status": "ok",
+      "file": "teams/nfl_4.png",
+      "source": "espn-dark",
+      "size_bytes": 26628
+    },
+    "nfl:5": {
+      "status": "ok",
+      "file": "teams/nfl_5.png",
+      "source": "espn-dark",
+      "size_bytes": 94482
+    },
+    "nfl:6": {
+      "status": "ok",
+      "file": "teams/nfl_6.png",
+      "source": "espn-dark",
+      "size_bytes": 42815
+    },
+    "nfl:7": {
+      "status": "ok",
+      "file": "teams/nfl_7.png",
+      "source": "espn-dark",
+      "size_bytes": 19724
+    },
+    "nfl:8": {
+      "status": "ok",
+      "file": "teams/nfl_8.png",
+      "source": "espn-dark",
+      "size_bytes": 57465
+    },
+    "nfl:9": {
+      "status": "ok",
+      "file": "teams/nfl_9.png",
+      "source": "espn-dark",
+      "size_bytes": 280114
+    },
+    "nfl:10": {
+      "status": "ok",
+      "file": "teams/nfl_10.png",
+      "source": "espn-dark",
+      "size_bytes": 50732
+    },
+    "nfl:11": {
+      "status": "ok",
+      "file": "teams/nfl_11.png",
+      "source": "espn-dark",
+      "size_bytes": 42083
+    },
+    "nfl:12": {
+      "status": "ok",
+      "file": "teams/nfl_12.png",
+      "source": "espn-dark",
+      "size_bytes": 40228
+    },
+    "nfl:13": {
+      "status": "ok",
+      "file": "teams/nfl_13.png",
+      "source": "espn-dark",
+      "size_bytes": 491105
+    },
+    "nfl:14": {
+      "status": "ok",
+      "file": "teams/nfl_14.png",
+      "source": "espn-dark",
+      "size_bytes": 46113
+    },
+    "nfl:15": {
+      "status": "ok",
+      "file": "teams/nfl_15.png",
+      "source": "espn-dark",
+      "size_bytes": 64408
+    },
+    "nfl:16": {
+      "status": "ok",
+      "file": "teams/nfl_16.png",
+      "source": "espn-dark",
+      "size_bytes": 84904
+    },
+    "nfl:17": {
+      "status": "ok",
+      "file": "teams/nfl_17.png",
+      "source": "espn-dark",
+      "size_bytes": 32083
+    },
+    "nfl:18": {
+      "status": "ok",
+      "file": "teams/nfl_18.png",
+      "source": "espn-dark",
+      "size_bytes": 52016
+    },
+    "nfl:19": {
+      "status": "ok",
+      "file": "teams/nfl_19.png",
+      "source": "espn-dark",
+      "size_bytes": 17757
+    },
+    "nfl:20": {
+      "status": "ok",
+      "file": "teams/nfl_20.png",
+      "source": "espn-dark",
+      "size_bytes": 134814
+    },
+    "nfl:21": {
+      "status": "ok",
+      "file": "teams/nfl_21.png",
+      "source": "espn-dark",
+      "size_bytes": 70332
+    },
+    "nfl:22": {
+      "status": "ok",
+      "file": "teams/nfl_22.png",
+      "source": "espn-dark",
+      "size_bytes": 41994
+    },
+    "nfl:23": {
+      "status": "ok",
+      "file": "teams/nfl_23.png",
+      "source": "espn-dark",
+      "size_bytes": 56620
+    },
+    "nfl:24": {
+      "status": "ok",
+      "file": "teams/nfl_24.png",
+      "source": "espn-dark",
+      "size_bytes": 32850
+    },
+    "nfl:25": {
+      "status": "ok",
+      "file": "teams/nfl_25.png",
+      "source": "espn-dark",
+      "size_bytes": 48699
+    },
+    "nfl:26": {
+      "status": "ok",
+      "file": "teams/nfl_26.png",
+      "source": "espn-dark",
+      "size_bytes": 32081
+    },
+    "nfl:27": {
+      "status": "ok",
+      "file": "teams/nfl_27.png",
+      "source": "espn-dark",
+      "size_bytes": 96110
+    },
+    "nfl:28": {
+      "status": "ok",
+      "file": "teams/nfl_28.png",
+      "source": "espn-dark",
+      "size_bytes": 30416
+    },
+    "nfl:29": {
+      "status": "ok",
+      "file": "teams/nfl_29.png",
+      "source": "espn-dark",
+      "size_bytes": 36636
+    },
+    "nfl:30": {
+      "status": "ok",
+      "file": "teams/nfl_30.png",
+      "source": "espn-dark",
+      "size_bytes": 78814
+    },
+    "nfl:33": {
+      "status": "ok",
+      "file": "teams/nfl_33.png",
+      "source": "espn-dark",
+      "size_bytes": 55985
+    },
+    "nfl:34": {
+      "status": "ok",
+      "file": "teams/nfl_34.png",
+      "source": "espn-dark",
+      "size_bytes": 35767
+    },
+    "nba:1": {
+      "status": "ok",
+      "file": "teams/nba_1.png",
+      "source": "espn-dark",
+      "size_bytes": 44138
+    },
+    "nba:2": {
+      "status": "ok",
+      "file": "teams/nba_2.png",
+      "source": "espn-dark",
+      "size_bytes": 45561
+    },
+    "nba:3": {
+      "status": "ok",
+      "file": "teams/nba_3.png",
+      "source": "espn-dark",
+      "size_bytes": 65947
+    },
+    "nba:4": {
+      "status": "ok",
+      "file": "teams/nba_4.png",
+      "source": "espn-dark",
+      "size_bytes": 51667
+    },
+    "nba:5": {
+      "status": "ok",
+      "file": "teams/nba_5.png",
+      "source": "espn-dark",
+      "size_bytes": 37308
+    },
+    "nba:6": {
+      "status": "ok",
+      "file": "teams/nba_6.png",
+      "source": "espn-dark",
+      "size_bytes": 83889
+    },
+    "nba:7": {
+      "status": "ok",
+      "file": "teams/nba_7.png",
+      "source": "espn-dark",
+      "size_bytes": 81056
+    },
+    "nba:8": {
+      "status": "ok",
+      "file": "teams/nba_8.png",
+      "source": "espn-dark",
+      "size_bytes": 76673
+    },
+    "nba:9": {
+      "status": "ok",
+      "file": "teams/nba_9.png",
+      "source": "espn-dark",
+      "size_bytes": 82070
+    },
+    "nba:10": {
+      "status": "ok",
+      "file": "teams/nba_10.png",
+      "source": "espn-dark",
+      "size_bytes": 14758
+    },
+    "nba:11": {
+      "status": "ok",
+      "file": "teams/nba_11.png",
+      "source": "espn-dark",
+      "size_bytes": 58101
+    },
+    "nba:12": {
+      "status": "ok",
+      "file": "teams/nba_12.png",
+      "source": "espn-dark",
+      "size_bytes": 60835
+    },
+    "nba:13": {
+      "status": "ok",
+      "file": "teams/nba_13.png",
+      "source": "espn-dark",
+      "size_bytes": 64550
+    },
+    "nba:14": {
+      "status": "ok",
+      "file": "teams/nba_14.png",
+      "source": "espn-dark",
+      "size_bytes": 71654
+    },
+    "nba:15": {
+      "status": "ok",
+      "file": "teams/nba_15.png",
+      "source": "espn-dark",
+      "size_bytes": 55105
+    },
+    "nba:16": {
+      "status": "ok",
+      "file": "teams/nba_16.png",
+      "source": "espn-dark",
+      "size_bytes": 74663
+    },
+    "nba:17": {
+      "status": "ok",
+      "file": "teams/nba_17.png",
+      "source": "espn-dark",
+      "size_bytes": 94014
+    },
+    "nba:18": {
+      "status": "ok",
+      "file": "teams/nba_18.png",
+      "source": "espn-dark",
+      "size_bytes": 38184
+    },
+    "nba:19": {
+      "status": "ok",
+      "file": "teams/nba_19.png",
+      "source": "espn-dark",
+      "size_bytes": 98474
+    },
+    "nba:20": {
+      "status": "ok",
+      "file": "teams/nba_20.png",
+      "source": "espn-dark",
+      "size_bytes": 71926
+    },
+    "nba:21": {
+      "status": "ok",
+      "file": "teams/nba_21.png",
+      "source": "espn-dark",
+      "size_bytes": 27185
+    },
+    "nba:22": {
+      "status": "ok",
+      "file": "teams/nba_22.png",
+      "source": "espn-dark",
+      "size_bytes": 40162
+    },
+    "nba:23": {
+      "status": "ok",
+      "file": "teams/nba_23.png",
+      "source": "espn-dark",
+      "size_bytes": 62286
+    },
+    "nba:24": {
+      "status": "ok",
+      "file": "teams/nba_24.png",
+      "source": "espn-dark",
+      "size_bytes": 42990
+    },
+    "nba:25": {
+      "status": "ok",
+      "file": "teams/nba_25.png",
+      "source": "espn-dark",
+      "size_bytes": 40623
+    },
+    "nba:26": {
+      "status": "ok",
+      "file": "teams/nba_26.png",
+      "source": "espn-dark",
+      "size_bytes": 66389
+    },
+    "nba:27": {
+      "status": "ok",
+      "file": "teams/nba_27.png",
+      "source": "espn-dark (abbrev: utah)",
+      "size_bytes": 10102
+    },
+    "nba:28": {
+      "status": "ok",
+      "file": "teams/nba_28.png",
+      "source": "espn-dark",
+      "size_bytes": 65691
+    },
+    "nba:29": {
+      "status": "ok",
+      "file": "teams/nba_29.png",
+      "source": "espn-dark",
+      "size_bytes": 23371
+    },
+    "mls:18418": {
+      "status": "ok",
+      "file": "teams/mls_18418.png",
+      "source": "espn-api",
+      "size_bytes": 111212
+    },
+    "mls:20906": {
+      "status": "ok",
+      "file": "teams/mls_20906.png",
+      "source": "espn-api",
+      "size_bytes": 47316
+    },
+    "mls:9720": {
+      "status": "ok",
+      "file": "teams/mls_9720.png",
+      "source": "espn-api",
+      "size_bytes": 102401
+    },
+    "mls:21300": {
+      "status": "ok",
+      "file": "teams/mls_21300.png",
+      "source": "espn-api",
+      "size_bytes": 77561
+    },
+    "mls:182": {
+      "status": "ok",
+      "file": "teams/mls_182.png",
+      "source": "espn-api",
+      "size_bytes": 48903
+    },
+    "mls:184": {
+      "status": "ok",
+      "file": "teams/mls_184.png",
+      "source": "espn-api",
+      "size_bytes": 32677
+    },
+    "mls:183": {
+      "status": "ok",
+      "file": "teams/mls_183.png",
+      "source": "espn-api",
+      "size_bytes": 21338
+    },
+    "mls:193": {
+      "status": "ok",
+      "file": "teams/mls_193.png",
+      "source": "espn-api",
+      "size_bytes": 45806
+    },
+    "mls:18267": {
+      "status": "ok",
+      "file": "teams/mls_18267.png",
+      "source": "espn-api",
+      "size_bytes": 69054
+    },
+    "mls:185": {
+      "status": "ok",
+      "file": "teams/mls_185.png",
+      "source": "espn-api",
+      "size_bytes": 69547
+    },
+    "mls:6077": {
+      "status": "ok",
+      "file": "teams/mls_6077.png",
+      "source": "espn-api",
+      "size_bytes": 48547
+    },
+    "mls:20232": {
+      "status": "ok",
+      "file": "teams/mls_20232.png",
+      "source": "espn-api",
+      "size_bytes": 106376
+    },
+    "mls:187": {
+      "status": "ok",
+      "file": "teams/mls_187.png",
+      "source": "espn-api",
+      "size_bytes": 28066
+    },
+    "mls:18966": {
+      "status": "ok",
+      "file": "teams/mls_18966.png",
+      "source": "espn-api",
+      "size_bytes": 70496
+    },
+    "mls:17362": {
+      "status": "ok",
+      "file": "teams/mls_17362.png",
+      "source": "espn-api",
+      "size_bytes": 53074
+    },
+    "mls:18986": {
+      "status": "ok",
+      "file": "teams/mls_18986.png",
+      "source": "espn-api",
+      "size_bytes": 20788
+    },
+    "mls:189": {
+      "status": "ok",
+      "file": "teams/mls_189.png",
+      "source": "espn-api",
+      "size_bytes": 115609
+    },
+    "mls:17606": {
+      "status": "ok",
+      "file": "teams/mls_17606.png",
+      "source": "espn-api",
+      "size_bytes": 135728
+    },
+    "mls:12011": {
+      "status": "ok",
+      "file": "teams/mls_12011.png",
+      "source": "espn-api",
+      "size_bytes": 63019
+    },
+    "mls:10739": {
+      "status": "ok",
+      "file": "teams/mls_10739.png",
+      "source": "espn-api",
+      "size_bytes": 104501
+    },
+    "mls:9723": {
+      "status": "ok",
+      "file": "teams/mls_9723.png",
+      "source": "espn-api",
+      "size_bytes": 64375
+    },
+    "mls:4771": {
+      "status": "ok",
+      "file": "teams/mls_4771.png",
+      "source": "espn-api",
+      "size_bytes": 54838
+    },
+    "mls:190": {
+      "status": "ok",
+      "file": "teams/mls_190.png",
+      "source": "espn-api",
+      "size_bytes": 85009
+    },
+    "mls:22529": {
+      "status": "ok",
+      "file": "teams/mls_22529.png",
+      "source": "espn-api",
+      "size_bytes": 102913
+    },
+    "mls:191": {
+      "status": "ok",
+      "file": "teams/mls_191.png",
+      "source": "espn-api",
+      "size_bytes": 52164
+    },
+    "mls:9726": {
+      "status": "ok",
+      "file": "teams/mls_9726.png",
+      "source": "espn-api",
+      "size_bytes": 55362
+    },
+    "mls:186": {
+      "status": "ok",
+      "file": "teams/mls_186.png",
+      "source": "espn-api",
+      "size_bytes": 33277
+    },
+    "mls:21812": {
+      "status": "ok",
+      "file": "teams/mls_21812.png",
+      "source": "espn-api",
+      "size_bytes": 49236
+    },
+    "mls:7318": {
+      "status": "ok",
+      "file": "teams/mls_7318.png",
+      "source": "espn-api",
+      "size_bytes": 66190
+    },
+    "mls:9727": {
+      "status": "ok",
+      "file": "teams/mls_9727.png",
+      "source": "espn-api",
+      "size_bytes": 68215
+    },
+    "premierLeague:349": {
+      "status": "ok",
+      "file": "teams/premierLeague_349.png",
+      "source": "espn-api",
+      "size_bytes": 61133
+    },
+    "premierLeague:359": {
+      "status": "ok",
+      "file": "teams/premierLeague_359.png",
+      "source": "espn-api",
+      "size_bytes": 36280
+    },
+    "premierLeague:362": {
+      "status": "ok",
+      "file": "teams/premierLeague_362.png",
+      "source": "espn-api",
+      "size_bytes": 78018
+    },
+    "premierLeague:337": {
+      "status": "ok",
+      "file": "teams/premierLeague_337.png",
+      "source": "espn-api",
+      "size_bytes": 121058
+    },
+    "premierLeague:331": {
+      "status": "ok",
+      "file": "teams/premierLeague_331.png",
+      "source": "espn-api",
+      "size_bytes": 76439
+    },
+    "premierLeague:379": {
+      "status": "ok",
+      "file": "teams/premierLeague_379.png",
+      "source": "espn-api",
+      "size_bytes": 49386
+    },
+    "premierLeague:363": {
+      "status": "ok",
+      "file": "teams/premierLeague_363.png",
+      "source": "espn-api",
+      "size_bytes": 59969
+    },
+    "premierLeague:384": {
+      "status": "ok",
+      "file": "teams/premierLeague_384.png",
+      "source": "espn-api",
+      "size_bytes": 80572
+    },
+    "premierLeague:368": {
+      "status": "ok",
+      "file": "teams/premierLeague_368.png",
+      "source": "espn-api",
+      "size_bytes": 146091
+    },
+    "premierLeague:370": {
+      "status": "ok",
+      "file": "teams/premierLeague_370.png",
+      "source": "espn-api",
+      "size_bytes": 16696
+    },
+    "premierLeague:357": {
+      "status": "ok",
+      "file": "teams/premierLeague_357.png",
+      "source": "espn-api",
+      "size_bytes": 237612
+    },
+    "premierLeague:364": {
+      "status": "ok",
+      "file": "teams/premierLeague_364.png",
+      "source": "espn-api",
+      "size_bytes": 25833
+    },
+    "premierLeague:382": {
+      "status": "ok",
+      "file": "teams/premierLeague_382.png",
+      "source": "espn-api",
+      "size_bytes": 130387
+    },
+    "premierLeague:360": {
+      "status": "ok",
+      "file": "teams/premierLeague_360.png",
+      "source": "espn-api",
+      "size_bytes": 73159
+    },
+    "premierLeague:361": {
+      "status": "ok",
+      "file": "teams/premierLeague_361.png",
+      "source": "espn-api",
+      "size_bytes": 203286
+    },
+    "premierLeague:393": {
+      "status": "ok",
+      "file": "teams/premierLeague_393.png",
+      "source": "espn-api",
+      "size_bytes": 20043
+    },
+    "premierLeague:366": {
+      "status": "ok",
+      "file": "teams/premierLeague_366.png",
+      "source": "espn-api",
+      "size_bytes": 53898
+    },
+    "premierLeague:367": {
+      "status": "ok",
+      "file": "teams/premierLeague_367.png",
+      "source": "espn-api",
+      "size_bytes": 25978
+    },
+    "premierLeague:371": {
+      "status": "ok",
+      "file": "teams/premierLeague_371.png",
+      "source": "espn-api",
+      "size_bytes": 89392
+    },
+    "premierLeague:380": {
+      "status": "ok",
+      "file": "teams/premierLeague_380.png",
+      "source": "espn-api",
+      "size_bytes": 41913
+    },
+    "f1:106842": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Ferrari official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Ferrari_in_Formula_One"
+    },
+    "f1:106892": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from McLaren official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/McLaren_in_Formula_One"
+    },
+    "f1:106893": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Mercedes official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Mercedes_in_Formula_One"
+    },
+    "f1:106921": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Red Bull official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Red_Bull_in_Formula_One"
+    },
+    "f1:106922": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Alpine official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Alpine_in_Formula_One"
+    },
+    "f1:123986": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Aston Martin official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+    },
+    "f1:111427": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Haas official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Haas_in_Formula_One"
+    },
+    "f1:106967": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Williams official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Williams_in_Formula_One"
+    },
+    "f1:123988": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Racing Bulls official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Racing_Bulls_in_Formula_One"
+    },
+    "f1:132212": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Audi official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Audi_in_Formula_One"
+    },
+    "f1:132211": {
+      "status": "manual-needed",
+      "reason": "ESPN CDN has no racing constructor logos. Source from Cadillac official press kit or Wikipedia SVG.",
+      "suggested_source": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One"
+    }
+  },
+  "streaming": {
+    "espn-plus": {
+      "status": "manual-needed",
+      "reason": "HTTP 404",
+      "suggested_source": "https://brandfetch.com/espn.com \u2014 white variant"
+    },
+    "hulu": {
+      "status": "manual-needed",
+      "reason": "HTTP 404",
+      "suggested_source": "https://press.hulu.com \u2014 white/green logo"
+    },
+    "hulu-tv": {
+      "status": "manual-needed",
+      "reason": "HTTP 404",
+      "suggested_source": "Same as hulu"
+    },
+    "paramount": {
+      "status": "manual-needed",
+      "reason": "HTTP 429",
+      "suggested_source": "https://www.paramount.com/brand"
+    },
+    "amazon": {
+      "status": "manual-needed",
+      "reason": "HTTP 429",
+      "suggested_source": "https://advertising.amazon.com/library/guides/logo-usage"
+    },
+    "peacock": {
+      "status": "manual-needed",
+      "reason": "HTTP 429",
+      "suggested_source": "https://www.peacocktv.com/about"
+    },
+    "hbo": {
+      "status": "manual-needed",
+      "reason": "HTTP 429",
+      "suggested_source": "https://www.max.com/press"
+    },
+    "youtube-tv": {
+      "status": "manual-needed",
+      "reason": "HTTP 429",
+      "suggested_source": "https://www.youtube.com/about/brand-resources/"
+    },
+    "netflix": {
+      "status": "ok",
+      "file": "streaming/netflix.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/200px-Netflix_2015_logo.svg.png",
+      "size_bytes": 2183
+    },
+    "apple-tv": {
+      "status": "uses-sf-symbol",
+      "symbol": "applelogo",
+      "note": "Rendered in-app via SF Symbols, no PNG file"
+    }
+  },
+  "summary": {
+    "teams_ok": 172,
+    "teams_manual_needed": 11,
+    "teams_missing": 0,
+    "streaming_ok": 1,
+    "streaming_manual_needed": 8,
+    "streaming_skipped": 1
+  }
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "444AC569-8696-49B2-B2F3-031FEB248732.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-motogp-large_0_49B240A7-054F-4725-AF3D-907649600752.png",
+        "timestamp" : 1773955760.842
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "6B749CEC-6FCD-4F03-8688-88A1FBDAA0F3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-f1-large_0_653BB73B-DF91-4CE8-AEEC-A5ED116F4CD8.png",
+        "timestamp" : 1773955760.814
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "A61A1F7E-D394-46F9-BE8F-0928061C33B9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-premierleague-large_0_4379694C-CA5E-45CA-A412-CBCB66F9EABA.png",
+        "timestamp" : 1773955760.779
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "00185363-1BF1-4554-BF6A-4850440F8A2B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-mls-large_0_CF44BDCF-09A5-4A44-B3B7-258224BB8533.png",
+        "timestamp" : 1773955760.742
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "DF39ACC6-32B9-44BC-B1F2-DF85B1BEED8C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-nba-large_0_289B6135-AFF9-4DF3-880F-FD585EADE53C.png",
+        "timestamp" : 1773955760.708
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "1473D96B-79DB-430D-BB6C-33DDFB9B25B4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-nfl-large_0_387D2903-FBFF-4C4C-892E-F0943DD28EE5.png",
+        "timestamp" : 1773955760.657
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "10E13371-3603-4482-BD0B-28E6857DAD65.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-mlb-large_0_2C8869FA-0289-431D-AE40-84DBAF61A6AC.png",
+        "timestamp" : 1773955760.618
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008142-000225C80209401C",
+        "deviceName" : "My Mac",
+        "exportedFileName" : "1FDB36C8-E3E2-4E47-92CE-970340104F94.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "widget-nhl-large_0_8D18A67B-83C9-4F32-98CE-9DA03616756A.png",
+        "timestamp" : 1773955760.566
+      }
+    ],
+    "testIdentifier" : "WidgetSnapshotArtifactTests/testGenerateWidgetSnapshotArtifacts()",
+    "testIdentifierURL" : "test://com.apple.xcode/HomeTeam/HomeTeamTests/WidgetSnapshotArtifactTests/testGenerateWidgetSnapshotArtifacts"
+  }
+]

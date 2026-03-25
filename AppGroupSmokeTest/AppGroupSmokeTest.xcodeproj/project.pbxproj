@@ -1,0 +1,374 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3EEFBA5F5E8CDE712E9A2DCA /* SmokeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29D882C3D299C8E0554A9F70 /* SmokeWidget.swift */; };
+		4FA4DB0F500C9B9F796BA3A8 /* SmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DF12A5CF54F0B14B994382 /* SmokeApp.swift */; };
+		56CEC66F695764D17F987B7C /* SmokeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */; };
+		84DA9F5A3CA2575F52A6B213 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */; };
+		EBE8F9AE9D760432B1245BC9 /* AppGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494FAB48F854B77F83FA446B /* AppGroupTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		746DFAB3799D662D083B0DA3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1722B97D79FFDF8A676404EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5DF54D6362360AF69AB93FB;
+			remoteInfo = SmokeApp;
+		};
+		E04EA484C9495EE40C417D16 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1722B97D79FFDF8A676404EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5DF54D6362360AF69AB93FB;
+			remoteInfo = SmokeApp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		29D882C3D299C8E0554A9F70 /* SmokeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeWidget.swift; sourceTree = "<group>"; };
+		3B287CB8A738BE9BF61506BF /* SmokeWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeWidget.entitlements; sourceTree = "<group>"; };
+		494FAB48F854B77F83FA446B /* AppGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupTests.swift; sourceTree = "<group>"; };
+		63F2C3781B6B4B9DD91B5D23 /* SmokeTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeTests.entitlements; sourceTree = "<group>"; };
+		682E58AA7030C7B060CF3078 /* SmokeApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeApp.entitlements; sourceTree = "<group>"; };
+		69DF12A5CF54F0B14B994382 /* SmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeApp.swift; sourceTree = "<group>"; };
+		86DED762A572EF3E39B534A3 /* SmokeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8EBEB5787BB8AA181EF4AF36 /* SmokeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SmokeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeWidgetBundle.swift; sourceTree = "<group>"; };
+		E65308B1242A36EEB2B1C96B /* SmokeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmokeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		096F886D93AFDEA1726A4961 /* SmokeWidget */ = {
+			isa = PBXGroup;
+			children = (
+				3B287CB8A738BE9BF61506BF /* SmokeWidget.entitlements */,
+				29D882C3D299C8E0554A9F70 /* SmokeWidget.swift */,
+				B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */,
+			);
+			path = SmokeWidget;
+			sourceTree = "<group>";
+		};
+		A547705E2308A77744C167D9 /* SmokeTests */ = {
+			isa = PBXGroup;
+			children = (
+				494FAB48F854B77F83FA446B /* AppGroupTests.swift */,
+				63F2C3781B6B4B9DD91B5D23 /* SmokeTests.entitlements */,
+			);
+			path = SmokeTests;
+			sourceTree = "<group>";
+		};
+		B8C9612DC214D322F4CBC5B4 /* SmokeApp */ = {
+			isa = PBXGroup;
+			children = (
+				A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */,
+				682E58AA7030C7B060CF3078 /* SmokeApp.entitlements */,
+				69DF12A5CF54F0B14B994382 /* SmokeApp.swift */,
+			);
+			path = SmokeApp;
+			sourceTree = "<group>";
+		};
+		C0B7C52B567CDAB430CA85FA = {
+			isa = PBXGroup;
+			children = (
+				B8C9612DC214D322F4CBC5B4 /* SmokeApp */,
+				A547705E2308A77744C167D9 /* SmokeTests */,
+				096F886D93AFDEA1726A4961 /* SmokeWidget */,
+				DD7A66E3E846030215D35CC9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DD7A66E3E846030215D35CC9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E65308B1242A36EEB2B1C96B /* SmokeApp.app */,
+				86DED762A572EF3E39B534A3 /* SmokeTests.xctest */,
+				8EBEB5787BB8AA181EF4AF36 /* SmokeWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5049CC660ACFE06773C6AC92 /* SmokeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 33969A77F04029FB99041E92 /* Build configuration list for PBXNativeTarget "SmokeTests" */;
+			buildPhases = (
+				10272F34CF8DEA1659F47FC9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				448C16DD4697391D395BE6B3 /* PBXTargetDependency */,
+			);
+			name = SmokeTests;
+			packageProductDependencies = (
+			);
+			productName = SmokeTests;
+			productReference = 86DED762A572EF3E39B534A3 /* SmokeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		537748DF15D708B74ADB5371 /* SmokeWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C25411881FF04B5441A35B6 /* Build configuration list for PBXNativeTarget "SmokeWidget" */;
+			buildPhases = (
+				BE95D0C3C13526EDFABC4840 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2E59432FC3C6F0AE64844E5D /* PBXTargetDependency */,
+			);
+			name = SmokeWidget;
+			packageProductDependencies = (
+			);
+			productName = SmokeWidget;
+			productReference = 8EBEB5787BB8AA181EF4AF36 /* SmokeWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A5DF54D6362360AF69AB93FB /* SmokeApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6B65EDF4734F3451CAA04AAD /* Build configuration list for PBXNativeTarget "SmokeApp" */;
+			buildPhases = (
+				FEB7E2BC5D9F6CD6600A601B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SmokeApp;
+			packageProductDependencies = (
+			);
+			productName = SmokeApp;
+			productReference = E65308B1242A36EEB2B1C96B /* SmokeApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1722B97D79FFDF8A676404EB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					5049CC660ACFE06773C6AC92 = {
+						ProvisioningStyle = Automatic;
+					};
+					537748DF15D708B74ADB5371 = {
+						ProvisioningStyle = Automatic;
+					};
+					A5DF54D6362360AF69AB93FB = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 9C54D4F1A2AE32B44627A360 /* Build configuration list for PBXProject "AppGroupSmokeTest" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C0B7C52B567CDAB430CA85FA;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DD7A66E3E846030215D35CC9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A5DF54D6362360AF69AB93FB /* SmokeApp */,
+				5049CC660ACFE06773C6AC92 /* SmokeTests */,
+				537748DF15D708B74ADB5371 /* SmokeWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		10272F34CF8DEA1659F47FC9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EBE8F9AE9D760432B1245BC9 /* AppGroupTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE95D0C3C13526EDFABC4840 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3EEFBA5F5E8CDE712E9A2DCA /* SmokeWidget.swift in Sources */,
+				56CEC66F695764D17F987B7C /* SmokeWidgetBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FEB7E2BC5D9F6CD6600A601B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84DA9F5A3CA2575F52A6B213 /* ContentView.swift in Sources */,
+				4FA4DB0F500C9B9F796BA3A8 /* SmokeApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2E59432FC3C6F0AE64844E5D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5DF54D6362360AF69AB93FB /* SmokeApp */;
+			targetProxy = 746DFAB3799D662D083B0DA3 /* PBXContainerItemProxy */;
+		};
+		448C16DD4697391D395BE6B3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5DF54D6362360AF69AB93FB /* SmokeApp */;
+			targetProxy = E04EA484C9495EE40C417D16 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		029FCDFDDF4CDF0D018B75AE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeTests/SmokeTests.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeTests/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smoketests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeApp.app/Contents/MacOS/SmokeApp";
+			};
+			name = Debug;
+		};
+		3229F50C0D48D3760C910CB0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		38915D771EE420708865F8C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeApp/SmokeApp.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeApp/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp;
+			};
+			name = Release;
+		};
+		48BFDABD01F81FE4D8B25217 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeWidget/SmokeWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeWidget/Info.plist;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp.widget;
+			};
+			name = Release;
+		};
+		4944549CF8D450F50C6EE2FE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeApp/SmokeApp.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeApp/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp;
+			};
+			name = Debug;
+		};
+		4A72EAD71BBA17EAF7A5B74E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		60AE239BF0B6C91844FF98CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeTests/SmokeTests.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeTests/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smoketests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeApp.app/Contents/MacOS/SmokeApp";
+			};
+			name = Release;
+		};
+		7019E659F7018D074B90A836 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SmokeWidget/SmokeWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmokeWidget/Info.plist;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp.widget;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		33969A77F04029FB99041E92 /* Build configuration list for PBXNativeTarget "SmokeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				029FCDFDDF4CDF0D018B75AE /* Debug */,
+				60AE239BF0B6C91844FF98CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6B65EDF4734F3451CAA04AAD /* Build configuration list for PBXNativeTarget "SmokeApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4944549CF8D450F50C6EE2FE /* Debug */,
+				38915D771EE420708865F8C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7C25411881FF04B5441A35B6 /* Build configuration list for PBXNativeTarget "SmokeWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7019E659F7018D074B90A836 /* Debug */,
+				48BFDABD01F81FE4D8B25217 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9C54D4F1A2AE32B44627A360 /* Build configuration list for PBXProject "AppGroupSmokeTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3229F50C0D48D3760C910CB0 /* Debug */,
+				4A72EAD71BBA17EAF7A5B74E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1722B97D79FFDF8A676404EB /* Project object */;
+}

@@ -30,3 +30,22 @@ jobs:
             /tmp/HomeTeamUIQA_*.xcresult
             /tmp/HomeTeamWidgetSnapshot_*.xcresult
           if-no-files-found: warn
+
+  # XCTest UI bundle: launches the app (Accessibility). Requires valid code signing on the runner.
+  ui-tests:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: HomeTeamUITests
+        run: CI=true HOMETEAM_QA_ALLOW_LOCAL_XCODEBUILD=1 macos/scripts/qa_ui_tests.sh
+
+      - name: Upload UI test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hometeam-ui-tests-xcresult
+          path: /tmp/HomeTeamDerivedUITests/Logs/Test/*.xcresult
+          if-no-files-found: warn
