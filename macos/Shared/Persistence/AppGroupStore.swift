@@ -13,6 +13,21 @@ enum AppGroupStore {
   static let settingsFilename  = "app_settings.json"
   // MARK: ScheduleSnapshot (written by app, read by widget)
   static let snapshotFilename  = "schedule_snapshot.json"
+  // MARK: Logos (written by app during refresh, read by widget synchronously)
+  static let logosDirname      = "logos"
+
+  static var logosDirectoryURL: URL? {
+    guard let container = containerURL else { return nil }
+    let dir = container.appendingPathComponent(logosDirname)
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    return dir
+  }
+
+  /// Returns the on-disk URL for a team logo. Returns nil for racing sports (no logo).
+  static func logoFileURL(sport: SupportedSport, espnTeamID: String) -> URL? {
+    guard !sport.isRacing, !espnTeamID.isEmpty else { return nil }
+    return logosDirectoryURL?.appendingPathComponent("\(sport.rawValue)_\(espnTeamID).png")
+  }
 
   // MARK: Helpers
 

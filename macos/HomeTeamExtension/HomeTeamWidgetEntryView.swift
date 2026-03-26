@@ -68,23 +68,24 @@ private struct TeamHeader: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      if let url = team.logoURL {
-        AsyncImage(url: url) { image in
-          image.resizable().aspectRatio(contentMode: .fit)
-        } placeholder: {
-          Circle()
-            .fill(isFullColor ? Color.white.opacity(0.15) : Color.primary.opacity(0.12))
-            .overlay(
-              Text(String(team.abbreviation.prefix(1)).uppercased())
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(isFullColor ? Color.white.opacity(0.7) : Color.primary.opacity(0.7))
-            )
-        }
-        .frame(width: 30, height: 30)
-      } else {
+      if let nsImage = AppGroupStore.logoFileURL(sport: team.sport, espnTeamID: team.espnTeamID)
+          .flatMap({ NSImage(contentsOf: $0) }) {
+        Image(nsImage: nsImage)
+          .resizable().aspectRatio(contentMode: .fit)
+          .frame(width: 30, height: 30)
+      } else if team.sport.isRacing {
         Image(systemName: team.sport.systemImageName)
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isFullColor ? Color.white.opacity(0.75) : Color.primary.opacity(0.75))
+          .frame(width: 30, height: 30)
+      } else {
+        Circle()
+          .fill(isFullColor ? Color.white.opacity(0.15) : Color.primary.opacity(0.12))
+          .overlay(
+            Text(String(team.abbreviation.prefix(1)).uppercased())
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(isFullColor ? Color.white.opacity(0.7) : Color.primary.opacity(0.7))
+          )
           .frame(width: 30, height: 30)
       }
 
@@ -198,9 +199,9 @@ private struct GameCard: View {
     return record ?? ""
   }
 
-  private func teamLogoURL(espnTeamID: String) -> URL? {
-    guard !espnTeamID.isEmpty, !game.sport.isRacing else { return nil }
-    return URL(string: "https://jonzan0ff.github.io/HomeTeam/logos/teams/\(game.sport.rawValue)_\(espnTeamID).png")
+  private func teamLogoImage(espnTeamID: String) -> NSImage? {
+    AppGroupStore.logoFileURL(sport: game.sport, espnTeamID: espnTeamID)
+      .flatMap { NSImage(contentsOf: $0) }
   }
 
   private func formattedRaceName(_ name: String) -> String {
@@ -260,7 +261,7 @@ private struct GameCard: View {
               abbrev: game.awayTeamAbbrev,
               trailing: trailingValue(score: game.awayScore, record: game.awayRecord),
               isLeader: awayLeads,
-              logoURL: teamLogoURL(espnTeamID: game.awayTeamID),
+              logoImage: teamLogoImage(espnTeamID: game.awayTeamID),
               isFullColor: isFullColor
             )
           }
@@ -269,7 +270,7 @@ private struct GameCard: View {
               abbrev: game.homeTeamAbbrev,
               trailing: trailingValue(score: game.homeScore, record: game.homeRecord),
               isLeader: homeLeads,
-              logoURL: teamLogoURL(espnTeamID: game.homeTeamID),
+              logoImage: teamLogoImage(espnTeamID: game.homeTeamID),
               isFullColor: isFullColor
             )
           }
@@ -305,21 +306,24 @@ private struct TeamRow: View {
   let abbrev: String
   let trailing: String
   let isLeader: Bool
-  let logoURL: URL?
+  let logoImage: NSImage?
   let isFullColor: Bool
 
   var body: some View {
     HStack(spacing: 5) {
-      AsyncImage(url: logoURL) { image in
-        image.resizable().aspectRatio(contentMode: .fit)
-      } placeholder: {
-        Circle()
-          .fill(isFullColor ? Color.white.opacity(0.18) : Color.primary.opacity(0.14))
-          .overlay(
-            Text(String(abbrev.prefix(1)).uppercased())
-              .font(.system(size: 7, weight: .bold))
-              .foregroundStyle(isFullColor ? Color.white.opacity(0.92) : Color.primary.opacity(0.8))
-          )
+      Group {
+        if let nsImage = logoImage {
+          Image(nsImage: nsImage)
+            .resizable().aspectRatio(contentMode: .fit)
+        } else {
+          Circle()
+            .fill(isFullColor ? Color.white.opacity(0.18) : Color.primary.opacity(0.14))
+            .overlay(
+              Text(String(abbrev.prefix(1)).uppercased())
+                .font(.system(size: 7, weight: .bold))
+                .foregroundStyle(isFullColor ? Color.white.opacity(0.92) : Color.primary.opacity(0.8))
+            )
+        }
       }
       .frame(width: 14, height: 14)
       .clipShape(Circle())

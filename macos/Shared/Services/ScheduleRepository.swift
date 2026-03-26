@@ -70,13 +70,14 @@ final class ScheduleRepository: ObservableObject {
     }
 
     do {
-      // Fetch games and standings in parallel
+      // Fetch games, standings, and logos in parallel
       async let gamesResult = fetchAll(for: favorites)
       async let summariesResult = fetchAllStandings(for: favorites)
       let (games, summaries) = try await (gamesResult, summariesResult)
       let newSnapshot = ScheduleSnapshot(games: games, fetchedAt: Date(), teamSummaries: summaries)
       let merged = snapshotStore.snapshot.mergingNondestructively(with: newSnapshot)
       snapshotStore.save(merged)
+      await prefetchLogos(for: merged.games)
       WidgetCenter.shared.reloadAllTimelines()
     } catch {
       lastError = error
@@ -160,6 +161,41 @@ final class ScheduleRepository: ObservableObject {
     let unique = Array(Dictionary(grouping: all, by: \.id).compactMap(\.value.first))
     if unique.isEmpty, let e = fetchError { throw e }
     return unique
+  }
+
+  private func prefetchLogos(for games: [HomeTeamGame]) async {
+    // Collect unique (sport, espnTeamID) pairs that don't already have a cached logo
+    var seen = Set<String>()
+    var needed: [(SupportedSport, String)] = []
+    for game in games {
+      guard !game.sport.isRacing else { continue }
+      for teamID in [game.homeTeamID, game.awayTeamID] where !teamID.isEmpty {
+        let key = "\(game.sport.rawValue)_\(teamID)"
+        guard seen.insert(key).inserted else { continue }
+        if let dest = AppGroupStore.logoFileURL(sport: game.sport, espnTeamID: teamID),
+           !FileManager.default.fileExists(atPath: dest.path) {
+          needed.append((game.sport, teamID))
+        }
+      }
+    }
+    guard !needed.isEmpty else { return }
+    print("[ScheduleRepository] logo prefetch: \(needed.count) missing logo(s)")
+    await withTaskGroup(of: Void.self) { group in
+      for (sport, teamID) in needed {
+        group.addTask {
+          guard let dest = AppGroupStore.logoFileURL(sport: sport, espnTeamID: teamID),
+                let src = URL(string: "https://jonzan0ff.github.io/HomeTeam/logos/teams/\(sport.rawValue)_\(teamID).png")
+          else { return }
+          do {
+            let (data, response) = try await URLSession.shared.data(from: src)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+            try data.write(to: dest, options: .atomic)
+          } catch {
+            // Non-fatal: logo fetch failures never block schedule data
+          }
+        }
+      }
+    }
   }
 
   private func fetch(sport: SupportedSport, teamID: String) async throws -> [HomeTeamGame] {
