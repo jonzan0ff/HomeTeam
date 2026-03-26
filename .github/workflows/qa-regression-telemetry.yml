@@ -2,13 +2,6 @@ name: HomeTeam Regression Telemetry
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "macos/**"
-      - "qa/**"
-      - ".github/workflows/qa-regression-telemetry.yml"
   schedule:
     - cron: "0 10 * * 1"
 
