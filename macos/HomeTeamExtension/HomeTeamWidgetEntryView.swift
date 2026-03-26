@@ -473,26 +473,28 @@ private struct ServiceBadge: View {
     return Color(red: 0.25, green: 0.25, blue: 0.28)  // dark neutral — readable on both light and dark
   }
 
-  // In dark mode: white pill + colored text — survives OS-level desaturation when widget is dimmed.
-  // In light mode: colored pill + white text — standard appearance.
-  private var bgColor: Color { isDark ? Color.white : badgeColor }
-  private var fgColor: Color { isDark ? badgeColor : .white.opacity(0.96) }
+  // Always: white pill + colored text. Survives OS-level desaturation in both light and dark modes.
+  // Light mode: add a colored stroke so the white pill is visible against the light widget background.
 
   var body: some View {
     HStack(spacing: 3) {
       if upper.contains("APPLE") {
         Image(systemName: "appletv")
           .font(.system(size: 7))
-          .foregroundStyle(fgColor)
+          .foregroundStyle(badgeColor)
       }
       Text(label)
         .font(.system(size: label.count > 8 ? 6.8 : 7.5, weight: .black, design: .rounded))
-        .foregroundStyle(fgColor)
+        .foregroundStyle(badgeColor)
         .lineLimit(1)
     }
     .padding(.horizontal, 3)
     .padding(.vertical, 1)
-    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(bgColor))
+    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Color.white))
+    .overlay(
+      RoundedRectangle(cornerRadius: 4, style: .continuous)
+        .stroke(badgeColor.opacity(isDark ? 0 : 0.55), lineWidth: 0.75)
+    )
   }
 }
 

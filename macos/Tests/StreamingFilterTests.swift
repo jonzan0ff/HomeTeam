@@ -604,33 +604,34 @@ final class TeamCatalogIntegrityTests: XCTestCase {
 
   // MARK: NHL known ESPN IDs (cross-referenced against ESPN CDN / download_logos.py)
 
+  // ESPN schedule + standings APIs both use these IDs — verified via live API curl.
   func test_nhl_washingtonCapitals_espnTeamID() {
     let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Capitals" }
     XCTAssertNotNil(team)
-    XCTAssertEqual(team?.espnTeamID, "22",
-      "Washington Capitals ESPN ID is 22, not 23. 23 = Seattle Kraken.")
+    XCTAssertEqual(team?.espnTeamID, "23",
+      "Washington Capitals ESPN ID is 23 (schedule + standings API confirmed).")
   }
 
   func test_nhl_seattleKraken_espnTeamID() {
     let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Kraken" }
     XCTAssertNotNil(team)
-    XCTAssertEqual(team?.espnTeamID, "23",
-      "Seattle Kraken ESPN ID is 23.")
+    XCTAssertEqual(team?.espnTeamID, "124292",
+      "Seattle Kraken ESPN ID is 124292 (expansion team, not a low integer).")
   }
 
   func test_nhl_vancouverCanucks_espnTeamID() {
     let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Canucks" }
-    XCTAssertEqual(team?.espnTeamID, "18")
+    XCTAssertEqual(team?.espnTeamID, "22")
   }
 
   func test_nhl_sanJoseSharks_espnTeamID() {
     let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Sharks" }
-    XCTAssertEqual(team?.espnTeamID, "28")
+    XCTAssertEqual(team?.espnTeamID, "18")
   }
 
   func test_nhl_winnipegJets_espnTeamID() {
     let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Jets" }
-    XCTAssertEqual(team?.espnTeamID, "53")
+    XCTAssertEqual(team?.espnTeamID, "28")
   }
 
   // No two NHL teams should map to the same ESPN ID.
