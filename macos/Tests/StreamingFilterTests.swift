@@ -40,8 +40,32 @@ final class StreamingFilterTests: XCTestCase {
   }
 
   func test_canonicalKey_max_catchesTNT() {
-    // TNT sports content streams on Max
     XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "TNT"), "max")
+  }
+
+  func test_canonicalKey_max_catchesHBO() {
+    // ESPN returns "HBO" as a standalone network name for some NHL/NBA games
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "HBO"), "max")
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "HBO Max"), "max")
+  }
+
+  func test_canonicalKey_max_catchesTNTSlashHBO() {
+    // ESPN returns compound "TNT/HBO" for Washington Capitals and other NHL/NBA games
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "TNT/HBO"), "max")
+  }
+
+  func test_canonicalKey_max_catchesTruTV() {
+    // TruTV carries overflow Max/TNT sports content
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "TruTV"), "max")
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "truTV"), "max")
+    XCTAssertEqual(StreamingServiceMatcher.canonicalKey(for: "TrueTV"), "max")
+  }
+
+  func test_isMatch_max_selected_catchesTNTSlashHBO() {
+    // If user selects Max, "TNT/HBO" game must pass the streaming filter
+    let selected: Set<String> = ["max"]
+    XCTAssertTrue(StreamingServiceMatcher.isMatch(rawName: "TNT/HBO", selectedKeys: selected),
+      "TNT/HBO compound network name must match when user has Max selected")
   }
 
   func test_canonicalKey_unknown_returnsNil() {
@@ -474,6 +498,34 @@ final class CompactRaceNameTests: XCTestCase {
   func test_empty_returnsEmpty() {
     XCTAssertEqual(GameFormatters.compactRaceName(from: ""), "")
   }
+
+  // ESPNRacingParser.normalizedName() pre-converts "Grand Prix" → "GP" before
+  // compactRaceName receives the string. These cases must be handled separately.
+  func test_gpOf_reordered() {
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "GP of Monaco"), "Monaco GP")
+  }
+
+  func test_gpOf_withSponsorPrefix_reordered() {
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "MotoGP GP of Spain"), "Spain GP")
+  }
+
+  // Sponsor prefix stripping for already-compact "X GP" format (4+ words only).
+  // 3-word inputs like "Aramco Japanese GP" are ambiguous — could be "2-word city + GP" (e.g. "São Paulo GP").
+  // We only strip when there are 4+ words so multi-word city names are never corrupted.
+  func test_sponsorPrefix_fourWords_alreadyGP_stripped() {
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "Qatar Airways Australian GP"), "Australian GP")
+  }
+
+  func test_sãoPaulo_unchanged() {
+    // "São Paulo" is a two-word city — 3-word input must NOT be stripped to "Paulo GP"
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "São Paulo GP"), "São Paulo GP")
+  }
+
+  func test_unitedStates_returnsAmericasGP() {
+    // US race is at Circuit of the Americas — hard-coded override
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "United States Grand Prix"), "Americas GP")
+    XCTAssertEqual(GameFormatters.compactRaceName(from: "Formula 1 United States Grand Prix 2025"), "Americas GP")
+  }
 }
 
 // MARK: - compactLiveStatus
@@ -528,5 +580,165 @@ final class AppGroupStoreTests: XCTestCase {
     try AppGroupStore.write(original, to: "test_settings.json")
     let loaded = try AppGroupStore.read(AppSettings.self, from: "test_settings.json")
     XCTAssertEqual(original, loaded)
+  }
+
+  // MotoGP has no logos — logoFileURL must return nil regardless of App Group availability.
+  func test_logoFileURL_motoGP_alwaysNil() {
+    XCTAssertNil(AppGroupStore.logoFileURL(sport: .motoGP, espnTeamID: "motogp_ducati_lenovo"),
+      "MotoGP has no logos; logoFileURL must always return nil for MotoGP")
+  }
+
+  // Empty espnTeamID must always return nil regardless of sport.
+  func test_logoFileURL_emptyEspnTeamID_alwaysNil() {
+    XCTAssertNil(AppGroupStore.logoFileURL(sport: .nhl, espnTeamID: ""))
+    XCTAssertNil(AppGroupStore.logoFileURL(sport: .f1, espnTeamID: ""))
+  }
+}
+
+// MARK: - TeamCatalog integrity
+// These tests catch espnTeamID mismatches and missing catalog entries.
+// The NHL bugs (WSH/SEA/VAN/SJ/WPG wrong IDs) and missing Kick Sauber
+// would all have been caught by tests in this class.
+
+final class TeamCatalogIntegrityTests: XCTestCase {
+
+  // MARK: NHL known ESPN IDs (cross-referenced against ESPN CDN / download_logos.py)
+
+  func test_nhl_washingtonCapitals_espnTeamID() {
+    let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Capitals" }
+    XCTAssertNotNil(team)
+    XCTAssertEqual(team?.espnTeamID, "22",
+      "Washington Capitals ESPN ID is 22, not 23. 23 = Seattle Kraken.")
+  }
+
+  func test_nhl_seattleKraken_espnTeamID() {
+    let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Kraken" }
+    XCTAssertNotNil(team)
+    XCTAssertEqual(team?.espnTeamID, "23",
+      "Seattle Kraken ESPN ID is 23.")
+  }
+
+  func test_nhl_vancouverCanucks_espnTeamID() {
+    let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Canucks" }
+    XCTAssertEqual(team?.espnTeamID, "18")
+  }
+
+  func test_nhl_sanJoseSharks_espnTeamID() {
+    let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Sharks" }
+    XCTAssertEqual(team?.espnTeamID, "28")
+  }
+
+  func test_nhl_winnipegJets_espnTeamID() {
+    let team = TeamCatalog.all.first { $0.sport == .nhl && $0.name == "Jets" }
+    XCTAssertEqual(team?.espnTeamID, "53")
+  }
+
+  // No two NHL teams should map to the same ESPN ID.
+  func test_nhl_espnTeamIDs_areUnique() {
+    let nhlIDs = TeamCatalog.all
+      .filter { $0.sport == .nhl }
+      .map { $0.espnTeamID }
+    let unique = Set(nhlIDs)
+    XCTAssertEqual(nhlIDs.count, unique.count,
+      "Duplicate NHL espnTeamIDs found: \(nhlIDs.filter { id in nhlIDs.filter { $0 == id }.count > 1 })")
+  }
+
+  // MARK: F1 catalog coverage
+
+  func test_f1_allEntries_haveNonEmptyEspnTeamID() {
+    let bad = TeamCatalog.all.filter { $0.sport == .f1 && $0.espnTeamID.isEmpty }
+    XCTAssertTrue(bad.isEmpty, "F1 entries with empty espnTeamID: \(bad.map(\.teamID))")
+  }
+
+  func test_f1_kickSauber_isInCatalog() {
+    let ks = TeamCatalog.all.filter { $0.sport == .f1 && $0.name == "Kick Sauber" }
+    XCTAssertEqual(ks.count, 2, "Kick Sauber should have 2 driver entries (Hülkenberg + Bortoleto)")
+  }
+
+  func test_f1_raceLabel_includesDriver() {
+    // raceLabel must include the driver name for racing sports — drives widget TeamHeader.
+    let team = TeamCatalog.all.first { $0.sport == .f1 && $0.driverNames.contains("Hamilton") }
+    XCTAssertNotNil(team)
+    XCTAssertTrue(team?.raceLabel.contains("Hamilton") == true ||
+                  team?.raceLabel.contains("Lewis Hamilton") == true,
+      "raceLabel must include the driver name")
+    XCTAssertTrue(team?.raceLabel.contains("Ferrari") == true,
+      "raceLabel must include the constructor name")
+  }
+
+  // MARK: MotoGP catalog coverage
+
+  func test_motoGP_ducati_displayName_isJustDucati() {
+    // "Ducati Lenovo" was the old name — verify it's been corrected.
+    let ducati = TeamCatalog.all.filter {
+      $0.sport == .motoGP && $0.espnTeamID == "motogp_ducati_lenovo"
+    }
+    XCTAssertFalse(ducati.isEmpty)
+    for entry in ducati {
+      XCTAssertFalse(entry.displayName.localizedCaseInsensitiveContains("Lenovo"),
+        "Ducati display name should not include 'Lenovo' — it was removed in Build 16")
+      XCTAssertEqual(entry.displayName, "Ducati")
+    }
+  }
+
+  func test_motoGP_allEntries_haveDriverDisplayName() {
+    let missing = TeamCatalog.all.filter {
+      $0.sport == .motoGP && ($0.driverDisplayName == nil || $0.driverDisplayName?.isEmpty == true)
+    }
+    XCTAssertTrue(missing.isEmpty, "MotoGP entries missing driverDisplayName: \(missing.map(\.teamID))")
+  }
+}
+
+// MARK: - HomeTeamTeamSummary formatting
+// shortenPlace and inlineDisplay bugs would be caught here.
+
+final class HomeTeamTeamSummaryTests: XCTestCase {
+
+  private func summary(record: String = "38-30-14", place: String, last10: String = "6-3-1", streak: String = "W3") -> HomeTeamTeamSummary {
+    HomeTeamTeamSummary(compositeID: "nhl:22", record: record, place: place,
+                        last10: last10, streak: streak, style: .standard)
+  }
+
+  func test_shortenPlace_nationalFootballConference() {
+    XCTAssertTrue(summary(place: "3rd in National Football Conference").inlineDisplay.contains("NFC"))
+    XCTAssertFalse(summary(place: "3rd in National Football Conference").inlineDisplay.contains("National Football Conference"))
+  }
+
+  func test_shortenPlace_americanFootballConference() {
+    XCTAssertTrue(summary(place: "1st in American Football Conference").inlineDisplay.contains("AFC"))
+  }
+
+  func test_shortenPlace_metropolitanDivision() {
+    let display = summary(place: "2nd in Metropolitan Division").inlineDisplay
+    XCTAssertTrue(display.contains("Metro Div."))
+    XCTAssertFalse(display.contains("Metropolitan Division"))
+  }
+
+  func test_shortenPlace_nationalLeague() {
+    XCTAssertTrue(summary(place: "5th in National League").inlineDisplay.contains("NL"))
+  }
+
+  func test_shortenPlace_unknownDivision_passesThrough() {
+    let place = "1st in Imaginary Division"
+    XCTAssertTrue(summary(place: place).inlineDisplay.contains(place))
+  }
+
+  func test_inlineDisplay_standard_format() {
+    let s = summary(record: "38-30-14", place: "10th in Eastern Conference", last10: "6-3-1", streak: "W3")
+    let d = s.inlineDisplay
+    XCTAssertTrue(d.contains("38-30-14"))
+    XCTAssertTrue(d.contains("L10 6-3-1"))
+    XCTAssertTrue(d.contains("W3"))
+    XCTAssertTrue(d.contains("East. Conf."))
+  }
+
+  func test_inlineDisplay_racing_format() {
+    let s = HomeTeamTeamSummary(compositeID: "f1:hamilton", record: "131", place: "2",
+                                last10: "2", streak: "5", style: .racingDriver)
+    let d = s.inlineDisplay
+    XCTAssertTrue(d.contains("Pts 131"))
+    XCTAssertTrue(d.contains("Place 2"))
+    XCTAssertTrue(d.contains("Wins 2"))
+    XCTAssertTrue(d.contains("Podiums 5"))
   }
 }

@@ -59,7 +59,6 @@ enum StreamingServiceMatcher {
     "hbo": "max",
     "hbomax": "max",
     "hbo max": "max",
-    "hbomax": "max",
     "tnt": "max",
     "tntsports": "max",
     "tnt sports": "max",

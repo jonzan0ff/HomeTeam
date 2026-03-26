@@ -45,10 +45,12 @@ enum GameFormatters {
       }
     }
 
-    // Already ends in " GP" — strip any sponsor prefix (e.g. "Aramco Japanese GP" → "Japanese GP")
+    // Already ends in " GP" — strip sponsor prefix only when input is 4+ words
+    // (e.g. "Qatar Airways Australian GP" → "Australian GP").
+    // 3-word inputs like "São Paulo GP" are left unchanged — "Paulo" is not the location.
     if s.hasSuffix(" GP") {
       let words = s.components(separatedBy: " ")
-      if words.count == 2 { return s }  // Already compact ("Japanese GP")
+      if words.count <= 3 { return s }  // 2 = compact; 3 = ambiguous (two-word city like "São Paulo")
       if let location = words.dropLast().last { return "\(location) GP" }
     }
 
