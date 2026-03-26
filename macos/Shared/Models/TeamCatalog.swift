@@ -79,7 +79,8 @@ struct TeamDefinition: Codable, Hashable, Identifiable {
   let name: String
   let displayName: String
   let abbreviation: String
-  let driverNames: [String]   // F1/MotoGP: single-element for per-driver entries
+  let driverNames: [String]   // F1/MotoGP: abbreviated names used for matching (e.g. "M.Marquez")
+  let driverDisplayName: String?  // Full name for header display (e.g. "Marc Marquez")
 
   // Identifiable: use composite so ForEach never sees duplicates across sports
   var id: String { compositeID }
@@ -88,10 +89,12 @@ struct TeamDefinition: Codable, Hashable, Identifiable {
 
   var shortLabel: String { city.isEmpty ? displayName : "\(city) \(name)" }
 
-  /// For F1/MotoGP: "Ferrari — Hamilton"; for team sports: displayName
+  /// For F1/MotoGP: "Ferrari — Lewis Hamilton"; for team sports: displayName
   var raceLabel: String {
-    guard !driverNames.isEmpty else { return displayName }
-    return "\(displayName) — \(driverNames.joined(separator: " / "))"
+    guard sport.isRacing else { return displayName }
+    let driver = driverDisplayName ?? driverNames.first
+    guard let driver, !driver.isEmpty else { return displayName }
+    return "\(displayName) — \(driver)"
   }
 
   var searchText: String {
@@ -112,7 +115,7 @@ struct TeamDefinition: Codable, Hashable, Identifiable {
 
   init(teamID: String, sport: SupportedSport, city: String, name: String,
        displayName: String, abbreviation: String, driverNames: [String] = [],
-       espnTeamID: String? = nil) {
+       espnTeamID: String? = nil, driverDisplayName: String? = nil) {
     self.teamID = teamID
     self.espnTeamID = espnTeamID ?? teamID
     self.sport = sport
@@ -121,6 +124,7 @@ struct TeamDefinition: Codable, Hashable, Identifiable {
     self.displayName = displayName
     self.abbreviation = abbreviation
     self.driverNames = driverNames
+    self.driverDisplayName = driverDisplayName
   }
 }
 
@@ -156,15 +160,15 @@ enum TeamCatalog {
     .init(teamID:"14", sport:.nhl, city:"Ottawa",      name:"Senators",     displayName:"Ottawa Senators",        abbreviation:"OTT"),
     .init(teamID:"15", sport:.nhl, city:"Philadelphia",name:"Flyers",       displayName:"Philadelphia Flyers",    abbreviation:"PHI"),
     .init(teamID:"16", sport:.nhl, city:"Pittsburgh",  name:"Penguins",     displayName:"Pittsburgh Penguins",    abbreviation:"PIT"),
-    .init(teamID:"18",     sport:.nhl, city:"San Jose",    name:"Sharks",        displayName:"San Jose Sharks",        abbreviation:"SJ"),
+    .init(teamID:"18",     sport:.nhl, city:"San Jose",    name:"Sharks",        displayName:"San Jose Sharks",        abbreviation:"SJ",   espnTeamID:"28"),
     .init(teamID:"19",     sport:.nhl, city:"St. Louis",   name:"Blues",         displayName:"St. Louis Blues",        abbreviation:"STL"),
     .init(teamID:"20",     sport:.nhl, city:"Tampa Bay",   name:"Lightning",     displayName:"Tampa Bay Lightning",    abbreviation:"TB"),
     .init(teamID:"21",     sport:.nhl, city:"Toronto",     name:"Maple Leafs",   displayName:"Toronto Maple Leafs",    abbreviation:"TOR"),
-    .init(teamID:"22",     sport:.nhl, city:"Vancouver",   name:"Canucks",       displayName:"Vancouver Canucks",      abbreviation:"VAN"),
+    .init(teamID:"22",     sport:.nhl, city:"Vancouver",   name:"Canucks",       displayName:"Vancouver Canucks",      abbreviation:"VAN",  espnTeamID:"18"),
     .init(teamID:"37",     sport:.nhl, city:"Vegas",       name:"Golden Knights",displayName:"Vegas Golden Knights",   abbreviation:"VGK"),
-    .init(teamID:"23",     sport:.nhl, city:"Washington",  name:"Capitals",      displayName:"Washington Capitals",    abbreviation:"WSH"),
-    .init(teamID:"28",     sport:.nhl, city:"Winnipeg",    name:"Jets",          displayName:"Winnipeg Jets",          abbreviation:"WPG"),
-    .init(teamID:"124292", sport:.nhl, city:"Seattle",     name:"Kraken",        displayName:"Seattle Kraken",         abbreviation:"SEA"),
+    .init(teamID:"23",     sport:.nhl, city:"Washington",  name:"Capitals",      displayName:"Washington Capitals",    abbreviation:"WSH",  espnTeamID:"22"),
+    .init(teamID:"28",     sport:.nhl, city:"Winnipeg",    name:"Jets",          displayName:"Winnipeg Jets",          abbreviation:"WPG",  espnTeamID:"53"),
+    .init(teamID:"124292", sport:.nhl, city:"Seattle",     name:"Kraken",        displayName:"Seattle Kraken",         abbreviation:"SEA",  espnTeamID:"23"),
     .init(teamID:"129764", sport:.nhl, city:"Utah",        name:"Mammoth",       displayName:"Utah Mammoth",           abbreviation:"UTAH"),
   ]
 
@@ -327,44 +331,46 @@ enum TeamCatalog {
   // One entry per driver. espnTeamID is the shared ESPN team ID for schedule fetching.
   // Update lineups each winter.
   private static let f1Teams: [TeamDefinition] = [
-    .init(teamID:"106842_hamilton",   sport:.f1, city:"", name:"Ferrari",       displayName:"Ferrari",       abbreviation:"FER", driverNames:["Hamilton"],    espnTeamID:"106842"),
-    .init(teamID:"106842_leclerc",    sport:.f1, city:"", name:"Ferrari",       displayName:"Ferrari",       abbreviation:"FER", driverNames:["Leclerc"],     espnTeamID:"106842"),
-    .init(teamID:"106892_norris",     sport:.f1, city:"", name:"McLaren",       displayName:"McLaren",       abbreviation:"MCL", driverNames:["Norris"],      espnTeamID:"106892"),
-    .init(teamID:"106892_piastri",    sport:.f1, city:"", name:"McLaren",       displayName:"McLaren",       abbreviation:"MCL", driverNames:["Piastri"],     espnTeamID:"106892"),
-    .init(teamID:"106893_russell",    sport:.f1, city:"", name:"Mercedes",      displayName:"Mercedes",      abbreviation:"MER", driverNames:["Russell"],     espnTeamID:"106893"),
-    .init(teamID:"106893_antonelli",  sport:.f1, city:"", name:"Mercedes",      displayName:"Mercedes",      abbreviation:"MER", driverNames:["Antonelli"],   espnTeamID:"106893"),
-    .init(teamID:"106921_verstappen", sport:.f1, city:"", name:"Red Bull",      displayName:"Red Bull",      abbreviation:"RBR", driverNames:["Verstappen"],  espnTeamID:"106921"),
-    .init(teamID:"106921_tsunoda",    sport:.f1, city:"", name:"Red Bull",      displayName:"Red Bull",      abbreviation:"RBR", driverNames:["Tsunoda"],     espnTeamID:"106921"),
-    .init(teamID:"106922_gasly",      sport:.f1, city:"", name:"Alpine",        displayName:"Alpine",        abbreviation:"ALP", driverNames:["Gasly"],       espnTeamID:"106922"),
-    .init(teamID:"106922_doohan",     sport:.f1, city:"", name:"Alpine",        displayName:"Alpine",        abbreviation:"ALP", driverNames:["Doohan"],      espnTeamID:"106922"),
-    .init(teamID:"123986_alonso",     sport:.f1, city:"", name:"Aston Martin",  displayName:"Aston Martin",  abbreviation:"AM",  driverNames:["Alonso"],      espnTeamID:"123986"),
-    .init(teamID:"123986_stroll",     sport:.f1, city:"", name:"Aston Martin",  displayName:"Aston Martin",  abbreviation:"AM",  driverNames:["Stroll"],      espnTeamID:"123986"),
-    .init(teamID:"111427_hulkenberg", sport:.f1, city:"", name:"Haas",          displayName:"Haas",          abbreviation:"HAS", driverNames:["Hülkenberg"],  espnTeamID:"111427"),
-    .init(teamID:"111427_bearman",    sport:.f1, city:"", name:"Haas",          displayName:"Haas",          abbreviation:"HAS", driverNames:["Bearman"],     espnTeamID:"111427"),
-    .init(teamID:"106967_albon",      sport:.f1, city:"", name:"Williams",      displayName:"Williams",      abbreviation:"WIL", driverNames:["Albon"],       espnTeamID:"106967"),
-    .init(teamID:"106967_sainz",      sport:.f1, city:"", name:"Williams",      displayName:"Williams",      abbreviation:"WIL", driverNames:["Sainz"],       espnTeamID:"106967"),
-    .init(teamID:"123988_hadjar",     sport:.f1, city:"", name:"Racing Bulls",  displayName:"Racing Bulls",  abbreviation:"RB",  driverNames:["Hadjar"],      espnTeamID:"123988"),
-    .init(teamID:"123988_lawson",     sport:.f1, city:"", name:"Racing Bulls",  displayName:"Racing Bulls",  abbreviation:"RB",  driverNames:["Lawson"],      espnTeamID:"123988"),
+    .init(teamID:"106842_hamilton",   sport:.f1, city:"", name:"Ferrari",       displayName:"Ferrari",       abbreviation:"FER", driverNames:["Hamilton"],    espnTeamID:"106842", driverDisplayName:"Lewis Hamilton"),
+    .init(teamID:"106842_leclerc",    sport:.f1, city:"", name:"Ferrari",       displayName:"Ferrari",       abbreviation:"FER", driverNames:["Leclerc"],     espnTeamID:"106842", driverDisplayName:"Charles Leclerc"),
+    .init(teamID:"106892_norris",     sport:.f1, city:"", name:"McLaren",       displayName:"McLaren",       abbreviation:"MCL", driverNames:["Norris"],      espnTeamID:"106892", driverDisplayName:"Lando Norris"),
+    .init(teamID:"106892_piastri",    sport:.f1, city:"", name:"McLaren",       displayName:"McLaren",       abbreviation:"MCL", driverNames:["Piastri"],     espnTeamID:"106892", driverDisplayName:"Oscar Piastri"),
+    .init(teamID:"106893_russell",    sport:.f1, city:"", name:"Mercedes",      displayName:"Mercedes",      abbreviation:"MER", driverNames:["Russell"],     espnTeamID:"106893", driverDisplayName:"George Russell"),
+    .init(teamID:"106893_antonelli",  sport:.f1, city:"", name:"Mercedes",      displayName:"Mercedes",      abbreviation:"MER", driverNames:["Antonelli"],   espnTeamID:"106893", driverDisplayName:"Kimi Antonelli"),
+    .init(teamID:"106921_verstappen", sport:.f1, city:"", name:"Red Bull",      displayName:"Red Bull",      abbreviation:"RBR", driverNames:["Verstappen"],  espnTeamID:"106921", driverDisplayName:"Max Verstappen"),
+    .init(teamID:"106921_tsunoda",    sport:.f1, city:"", name:"Red Bull",      displayName:"Red Bull",      abbreviation:"RBR", driverNames:["Tsunoda"],     espnTeamID:"106921", driverDisplayName:"Yuki Tsunoda"),
+    .init(teamID:"106922_gasly",      sport:.f1, city:"", name:"Alpine",        displayName:"Alpine",        abbreviation:"ALP", driverNames:["Gasly"],       espnTeamID:"106922", driverDisplayName:"Pierre Gasly"),
+    .init(teamID:"106922_doohan",     sport:.f1, city:"", name:"Alpine",        displayName:"Alpine",        abbreviation:"ALP", driverNames:["Doohan"],      espnTeamID:"106922", driverDisplayName:"Jack Doohan"),
+    .init(teamID:"123986_alonso",     sport:.f1, city:"", name:"Aston Martin",  displayName:"Aston Martin",  abbreviation:"AM",  driverNames:["Alonso"],      espnTeamID:"123986", driverDisplayName:"Fernando Alonso"),
+    .init(teamID:"123986_stroll",     sport:.f1, city:"", name:"Aston Martin",  displayName:"Aston Martin",  abbreviation:"AM",  driverNames:["Stroll"],      espnTeamID:"123986", driverDisplayName:"Lance Stroll"),
+    .init(teamID:"111427_hulkenberg", sport:.f1, city:"", name:"Haas",          displayName:"Haas",          abbreviation:"HAS", driverNames:["Hülkenberg"],  espnTeamID:"111427", driverDisplayName:"Nico Hülkenberg"),
+    .init(teamID:"111427_bearman",    sport:.f1, city:"", name:"Haas",          displayName:"Haas",          abbreviation:"HAS", driverNames:["Bearman"],     espnTeamID:"111427", driverDisplayName:"Oliver Bearman"),
+    .init(teamID:"106967_albon",      sport:.f1, city:"", name:"Williams",      displayName:"Williams",      abbreviation:"WIL", driverNames:["Albon"],       espnTeamID:"106967", driverDisplayName:"Alexander Albon"),
+    .init(teamID:"106967_sainz",      sport:.f1, city:"", name:"Williams",      displayName:"Williams",      abbreviation:"WIL", driverNames:["Sainz"],       espnTeamID:"106967", driverDisplayName:"Carlos Sainz"),
+    .init(teamID:"123988_hadjar",       sport:.f1, city:"", name:"Racing Bulls",   displayName:"Racing Bulls",   abbreviation:"RB",  driverNames:["Hadjar"],       espnTeamID:"123988", driverDisplayName:"Isack Hadjar"),
+    .init(teamID:"123988_lawson",       sport:.f1, city:"", name:"Racing Bulls",   displayName:"Racing Bulls",   abbreviation:"RB",  driverNames:["Lawson"],       espnTeamID:"123988", driverDisplayName:"Liam Lawson"),
+    .init(teamID:"132211_hulkenberg",   sport:.f1, city:"", name:"Kick Sauber",    displayName:"Kick Sauber",    abbreviation:"KSB", driverNames:["Hülkenberg"],   espnTeamID:"132211", driverDisplayName:"Nico Hülkenberg"),
+    .init(teamID:"132212_bortoleto",    sport:.f1, city:"", name:"Kick Sauber",    displayName:"Kick Sauber",    abbreviation:"KSB", driverNames:["Bortoleto"],    espnTeamID:"132212", driverDisplayName:"Gabriel Bortoleto"),
   ]
 
   // One entry per rider. Update each winter.
   private static let motoGPTeams: [TeamDefinition] = [
-    .init(teamID:"motogp_ducati_bagnaia",    sport:.motoGP, city:"", name:"Ducati Lenovo",  displayName:"Ducati Lenovo",  abbreviation:"DUC", driverNames:["Bagnaia"],          espnTeamID:"motogp_ducati_lenovo"),
-    .init(teamID:"motogp_ducati_mmarquez",   sport:.motoGP, city:"", name:"Ducati Lenovo",  displayName:"Ducati Lenovo",  abbreviation:"DUC", driverNames:["M.Marquez"],        espnTeamID:"motogp_ducati_lenovo"),
-    .init(teamID:"motogp_pramac_martin",     sport:.motoGP, city:"", name:"Prima Pramac",   displayName:"Prima Pramac",   abbreviation:"PRM", driverNames:["Martin"],           espnTeamID:"motogp_pramac"),
-    .init(teamID:"motogp_pramac_zarco",      sport:.motoGP, city:"", name:"Prima Pramac",   displayName:"Prima Pramac",   abbreviation:"PRM", driverNames:["Zarco"],            espnTeamID:"motogp_pramac"),
-    .init(teamID:"motogp_aprilia_aleix",     sport:.motoGP, city:"", name:"Aprilia Racing", displayName:"Aprilia Racing", abbreviation:"APR", driverNames:["Aleix"],            espnTeamID:"motogp_aprilia"),
-    .init(teamID:"motogp_aprilia_vinales",   sport:.motoGP, city:"", name:"Aprilia Racing", displayName:"Aprilia Racing", abbreviation:"APR", driverNames:["Vinales"],          espnTeamID:"motogp_aprilia"),
-    .init(teamID:"motogp_ktm_binder",        sport:.motoGP, city:"", name:"Red Bull KTM",   displayName:"Red Bull KTM",   abbreviation:"KTM", driverNames:["Binder"],           espnTeamID:"motogp_ktm"),
-    .init(teamID:"motogp_ktm_acosta",        sport:.motoGP, city:"", name:"Red Bull KTM",   displayName:"Red Bull KTM",   abbreviation:"KTM", driverNames:["Acosta"],           espnTeamID:"motogp_ktm"),
-    .init(teamID:"motogp_gresini_amarquez",  sport:.motoGP, city:"", name:"Gresini Racing", displayName:"Gresini Racing", abbreviation:"GRS", driverNames:["A.Marquez"],        espnTeamID:"motogp_gresini"),
-    .init(teamID:"motogp_gresini_dg",        sport:.motoGP, city:"", name:"Gresini Racing", displayName:"Gresini Racing", abbreviation:"GRS", driverNames:["Di Giannantonio"],  espnTeamID:"motogp_gresini"),
-    .init(teamID:"motogp_vr46_bezzecchi",    sport:.motoGP, city:"", name:"VR46",           displayName:"Mooney VR46",    abbreviation:"VR46",driverNames:["Bezzecchi"],        espnTeamID:"motogp_vr46"),
-    .init(teamID:"motogp_vr46_marini",       sport:.motoGP, city:"", name:"VR46",           displayName:"Mooney VR46",    abbreviation:"VR46",driverNames:["Marini"],           espnTeamID:"motogp_vr46"),
-    .init(teamID:"motogp_honda_mir",         sport:.motoGP, city:"", name:"Repsol Honda",   displayName:"Repsol Honda",   abbreviation:"HRC", driverNames:["Mir"],              espnTeamID:"motogp_honda_repsol"),
-    .init(teamID:"motogp_honda_marini2",     sport:.motoGP, city:"", name:"Repsol Honda",   displayName:"Repsol Honda",   abbreviation:"HRC", driverNames:["Marini"],           espnTeamID:"motogp_honda_repsol"),
-    .init(teamID:"motogp_yamaha_quartararo", sport:.motoGP, city:"", name:"Monster Yamaha", displayName:"Monster Yamaha", abbreviation:"YAM", driverNames:["Quartararo"],       espnTeamID:"motogp_yamaha"),
-    .init(teamID:"motogp_yamaha_morbidelli", sport:.motoGP, city:"", name:"Monster Yamaha", displayName:"Monster Yamaha", abbreviation:"YAM", driverNames:["Morbidelli"],       espnTeamID:"motogp_yamaha"),
+    .init(teamID:"motogp_ducati_bagnaia",    sport:.motoGP, city:"", name:"Ducati",  displayName:"Ducati",  abbreviation:"DUC", driverNames:["Bagnaia"],         espnTeamID:"motogp_ducati_lenovo", driverDisplayName:"Francesco Bagnaia"),
+    .init(teamID:"motogp_ducati_mmarquez",   sport:.motoGP, city:"", name:"Ducati",  displayName:"Ducati",  abbreviation:"DUC", driverNames:["M.Marquez"],       espnTeamID:"motogp_ducati_lenovo", driverDisplayName:"Marc Marquez"),
+    .init(teamID:"motogp_pramac_martin",     sport:.motoGP, city:"", name:"Prima Pramac",   displayName:"Prima Pramac",   abbreviation:"PRM", driverNames:["Martin"],          espnTeamID:"motogp_pramac",        driverDisplayName:"Jorge Martin"),
+    .init(teamID:"motogp_pramac_zarco",      sport:.motoGP, city:"", name:"Prima Pramac",   displayName:"Prima Pramac",   abbreviation:"PRM", driverNames:["Zarco"],           espnTeamID:"motogp_pramac",        driverDisplayName:"Johann Zarco"),
+    .init(teamID:"motogp_aprilia_aleix",     sport:.motoGP, city:"", name:"Aprilia Racing", displayName:"Aprilia Racing", abbreviation:"APR", driverNames:["Aleix"],           espnTeamID:"motogp_aprilia",       driverDisplayName:"Aleix Espargaro"),
+    .init(teamID:"motogp_aprilia_vinales",   sport:.motoGP, city:"", name:"Aprilia Racing", displayName:"Aprilia Racing", abbreviation:"APR", driverNames:["Vinales"],         espnTeamID:"motogp_aprilia",       driverDisplayName:"Maverick Viñales"),
+    .init(teamID:"motogp_ktm_binder",        sport:.motoGP, city:"", name:"Red Bull KTM",   displayName:"Red Bull KTM",   abbreviation:"KTM", driverNames:["Binder"],          espnTeamID:"motogp_ktm",           driverDisplayName:"Brad Binder"),
+    .init(teamID:"motogp_ktm_acosta",        sport:.motoGP, city:"", name:"Red Bull KTM",   displayName:"Red Bull KTM",   abbreviation:"KTM", driverNames:["Acosta"],          espnTeamID:"motogp_ktm",           driverDisplayName:"Pedro Acosta"),
+    .init(teamID:"motogp_gresini_amarquez",  sport:.motoGP, city:"", name:"Gresini Racing", displayName:"Gresini Racing", abbreviation:"GRS", driverNames:["A.Marquez"],       espnTeamID:"motogp_gresini",       driverDisplayName:"Alex Marquez"),
+    .init(teamID:"motogp_gresini_dg",        sport:.motoGP, city:"", name:"Gresini Racing", displayName:"Gresini Racing", abbreviation:"GRS", driverNames:["Di Giannantonio"], espnTeamID:"motogp_gresini",       driverDisplayName:"Fabio Di Giannantonio"),
+    .init(teamID:"motogp_vr46_bezzecchi",    sport:.motoGP, city:"", name:"VR46",           displayName:"Mooney VR46",    abbreviation:"VR46",driverNames:["Bezzecchi"],       espnTeamID:"motogp_vr46",          driverDisplayName:"Marco Bezzecchi"),
+    .init(teamID:"motogp_vr46_marini",       sport:.motoGP, city:"", name:"VR46",           displayName:"Mooney VR46",    abbreviation:"VR46",driverNames:["Marini"],          espnTeamID:"motogp_vr46",          driverDisplayName:"Luca Marini"),
+    .init(teamID:"motogp_honda_mir",         sport:.motoGP, city:"", name:"Repsol Honda",   displayName:"Repsol Honda",   abbreviation:"HRC", driverNames:["Mir"],             espnTeamID:"motogp_honda_repsol",  driverDisplayName:"Joan Mir"),
+    .init(teamID:"motogp_honda_marini2",     sport:.motoGP, city:"", name:"Repsol Honda",   displayName:"Repsol Honda",   abbreviation:"HRC", driverNames:["Marini"],          espnTeamID:"motogp_honda_repsol",  driverDisplayName:"Luca Marini"),
+    .init(teamID:"motogp_yamaha_quartararo", sport:.motoGP, city:"", name:"Monster Yamaha", displayName:"Monster Yamaha", abbreviation:"YAM", driverNames:["Quartararo"],      espnTeamID:"motogp_yamaha",        driverDisplayName:"Fabio Quartararo"),
+    .init(teamID:"motogp_yamaha_morbidelli", sport:.motoGP, city:"", name:"Monster Yamaha", displayName:"Monster Yamaha", abbreviation:"YAM", driverNames:["Morbidelli"],      espnTeamID:"motogp_yamaha",        driverDisplayName:"Franco Morbidelli"),
   ]
 }
 

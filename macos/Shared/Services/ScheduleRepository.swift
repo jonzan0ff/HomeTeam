@@ -78,6 +78,7 @@ final class ScheduleRepository: ObservableObject {
       let merged = snapshotStore.snapshot.mergingNondestructively(with: newSnapshot)
       snapshotStore.save(merged)
       await prefetchLogos(for: merged.games)
+      await prefetchRacingLogos(for: favorites)
       WidgetCenter.shared.reloadAllTimelines()
     } catch {
       lastError = error
@@ -192,6 +193,39 @@ final class ScheduleRepository: ObservableObject {
             try data.write(to: dest, options: .atomic)
           } catch {
             // Non-fatal: logo fetch failures never block schedule data
+          }
+        }
+      }
+    }
+  }
+
+  /// Downloads F1 constructor logos (SVG or PNG) from GitHub Pages into the App Group container.
+  /// Driven by favorite teams in the catalog — F1 games have no team IDs in the schedule feed.
+  private func prefetchRacingLogos(for compositeIDs: [String]) async {
+    var seen = Set<String>()
+    var needed: [String] = []
+    for cid in compositeIDs {
+      guard let team = TeamCatalog.team(for: cid), team.sport == .f1 else { continue }
+      guard seen.insert(team.espnTeamID).inserted else { continue }
+      if AppGroupStore.logoFileURL(sport: .f1, espnTeamID: team.espnTeamID) == nil {
+        needed.append(team.espnTeamID)
+      }
+    }
+    guard !needed.isEmpty else { return }
+    print("[ScheduleRepository] F1 logo prefetch: \(needed.count) missing logo(s)")
+    await withTaskGroup(of: Void.self) { group in
+      for espnTeamID in needed {
+        group.addTask {
+          guard let dir = AppGroupStore.logosDirectoryURL else { return }
+          for ext in ["svg", "png"] {
+            guard let src = URL(string: "https://jonzan0ff.github.io/HomeTeam/logos/teams/f1_\(espnTeamID).\(ext)") else { continue }
+            let dest = dir.appendingPathComponent("f1_\(espnTeamID).\(ext)")
+            do {
+              let (data, response) = try await URLSession.shared.data(from: src)
+              guard (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
+              try data.write(to: dest, options: .atomic)
+              return
+            } catch { continue }
           }
         }
       }

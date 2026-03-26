@@ -82,19 +82,18 @@ private enum StandingsClient {
   static func fetchTeamSport(for team: TeamDefinition) async throws -> HomeTeamTeamSummary? {
     let year = Calendar.current.component(.year, from: Date())
     for season in [year, year - 1] {
-      if let summary = try await fetchESPN(for: team, season: season) {
-        return summary
-      }
+      if let summary = try await fetchESPN(for: team, season: season, seasonType: 2) { return summary }
+      // Some sports/off-season periods return data without seasontype filter
+      if let summary = try await fetchESPN(for: team, season: season, seasonType: nil) { return summary }
     }
     return nil
   }
 
-  private static func fetchESPN(for team: TeamDefinition, season: Int) async throws -> HomeTeamTeamSummary? {
+  private static func fetchESPN(for team: TeamDefinition, season: Int, seasonType: Int?) async throws -> HomeTeamTeamSummary? {
     guard var components = URLComponents(string: "https://site.api.espn.com/apis/v2/sports/\(team.sport.sportPath)/\(team.sport.leaguePath)/standings") else { return nil }
-    components.queryItems = [
-      URLQueryItem(name: "season", value: "\(season)"),
-      URLQueryItem(name: "seasontype", value: "2"),
-    ]
+    var queryItems = [URLQueryItem(name: "season", value: "\(season)")]
+    if let st = seasonType { queryItems.append(URLQueryItem(name: "seasontype", value: "\(st)")) }
+    components.queryItems = queryItems
     guard let url = components.url else { return nil }
     let (data, response) = try await URLSession.shared.data(from: url)
     if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) { return nil }

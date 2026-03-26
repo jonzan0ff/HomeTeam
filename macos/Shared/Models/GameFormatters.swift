@@ -17,7 +17,6 @@ enum GameFormatters {
   ///   ""                                   → ""
   static func compactRaceName(from raw: String) -> String {
     guard !raw.isEmpty else { return "" }
-    guard !raw.hasSuffix("GP") else { return raw }
 
     let s = raw.trimmingCharacters(in: .whitespaces)
 
@@ -25,9 +24,13 @@ enum GameFormatters {
     if s.localizedCaseInsensitiveContains("united states") { return "Americas GP" }
 
     // "Grand Prix of <Location>" → "<Location> GP"
-    if let range = s.range(of: #"(?i)Grand Prix of (.+)"#, options: .regularExpression),
-       let capRange = s.range(of: #"(?i)(?<=Grand Prix of ).+"#, options: .regularExpression) {
-      _ = range
+    if let capRange = s.range(of: #"(?i)(?<=Grand Prix of ).+"#, options: .regularExpression) {
+      let location = String(s[capRange]).trimmingCharacters(in: .whitespaces)
+      return "\(location) GP"
+    }
+
+    // "GP of <Location>" → "<Location> GP"  (ESPNRacingParser pre-converts "Grand Prix" → "GP")
+    if let capRange = s.range(of: #"(?i)(?<=GP of ).+"#, options: .regularExpression) {
       let location = String(s[capRange]).trimmingCharacters(in: .whitespaces)
       return "\(location) GP"
     }
@@ -40,6 +43,13 @@ enum GameFormatters {
       if let location = before.split(separator: " ").last {
         return "\(location) GP"
       }
+    }
+
+    // Already ends in " GP" — strip any sponsor prefix (e.g. "Aramco Japanese GP" → "Japanese GP")
+    if s.hasSuffix(" GP") {
+      let words = s.components(separatedBy: " ")
+      if words.count == 2 { return s }  // Already compact ("Japanese GP")
+      if let location = words.dropLast().last { return "\(location) GP" }
     }
 
     return s

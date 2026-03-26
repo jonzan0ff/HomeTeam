@@ -64,10 +64,40 @@ struct HomeTeamTeamSummary: Codable, Equatable {
   var inlineDisplay: String {
     switch style {
     case .standard:
-      return "\(record)  |  \(place)  |  L10 \(last10)  |  \(streak)"
+      return "\(record)  |  \(HomeTeamTeamSummary.shortenPlace(place))  |  L10 \(last10)  |  \(streak)"
     case .racingDriver:
       return "Place \(place)  |  Pts \(record)  |  Wins \(last10)  |  Podiums \(streak)"
     }
+  }
+
+  private static func shortenPlace(_ place: String) -> String {
+    var s = place
+    let replacements: [(String, String)] = [
+      ("National Football Conference", "NFC"),
+      ("American Football Conference", "AFC"),
+      ("National Basketball Association", "NBA"),
+      ("Eastern Conference", "East. Conf."),
+      ("Western Conference", "West. Conf."),
+      ("Northern Conference", "North. Conf."),
+      ("Southern Conference", "South. Conf."),
+      ("National League", "NL"),
+      ("American League", "AL"),
+      ("Metropolitan Division", "Metro Div."),
+      ("Atlantic Division", "Atlantic Div."),
+      ("Pacific Division", "Pacific Div."),
+      ("Central Division", "Central Div."),
+      ("Northeast Division", "NE Div."),
+      ("Southeast Division", "SE Div."),
+      ("Northwest Division", "NW Div."),
+      ("Southwest Division", "SW Div."),
+    ]
+    for (long, short) in replacements {
+      if s.localizedCaseInsensitiveContains(long) {
+        s = s.replacingOccurrences(of: long, with: short, options: .caseInsensitive)
+        break
+      }
+    }
+    return s
   }
 }
 

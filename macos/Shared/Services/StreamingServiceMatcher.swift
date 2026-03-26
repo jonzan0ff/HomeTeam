@@ -54,10 +54,20 @@ enum StreamingServiceMatcher {
     "youtubetv": "youtubetv",
     // Hulu
     "hulu": "hulu",
-    // MAX / HBO Max / TNT (TNT sports content streams on Max)
+    // MAX / HBO Max / TNT / truTV (all stream on Max)
     "max": "max",
+    "hbo": "max",
+    "hbomax": "max",
+    "hbo max": "max",
     "hbomax": "max",
     "tnt": "max",
+    "tntsports": "max",
+    "tnt sports": "max",
+    "tnt/hbo": "max",
+    "hbo/max": "max",
+    "trutv": "max",
+    "truetv": "max",
+    "true tv": "max",
     // TBS
     "tbs": "tbs",
     // FS1 / FS2 / Fox Sports

@@ -23,10 +23,19 @@ enum AppGroupStore {
     return dir
   }
 
-  /// Returns the on-disk URL for a team logo. Returns nil for racing sports (no logo).
+  /// Returns the on-disk URL for a team logo, or nil if not yet downloaded / not supported.
+  /// F1: checks App Group container for .svg first, then .png. MotoGP: always nil (no logos).
   static func logoFileURL(sport: SupportedSport, espnTeamID: String) -> URL? {
-    guard !sport.isRacing, !espnTeamID.isEmpty else { return nil }
-    return logosDirectoryURL?.appendingPathComponent("\(sport.rawValue)_\(espnTeamID).png")
+    guard !espnTeamID.isEmpty, let dir = logosDirectoryURL else { return nil }
+    if sport == .f1 {
+      let svgURL = dir.appendingPathComponent("f1_\(espnTeamID).svg")
+      if FileManager.default.fileExists(atPath: svgURL.path) { return svgURL }
+      let pngURL = dir.appendingPathComponent("f1_\(espnTeamID).png")
+      if FileManager.default.fileExists(atPath: pngURL.path) { return pngURL }
+      return nil
+    }
+    if sport.isRacing { return nil }  // MotoGP has no logos
+    return dir.appendingPathComponent("\(sport.rawValue)_\(espnTeamID).png")
   }
 
   // MARK: Helpers

@@ -18,7 +18,7 @@ struct HomeTeamWidget: Widget {
       HomeTeamWidgetEntryView(entry: entry)
         .containerBackground(.fill.tertiary, for: .widget)
     }
-    .configurationDisplayName("HomeTeam")
+    .configurationDisplayName("Team")
     .description("See upcoming and live games for your favourite teams.")
     .supportedFamilies([.systemLarge])
   }
