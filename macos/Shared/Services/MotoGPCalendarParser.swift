@@ -1,0 +1,92 @@
+import Foundation
+
+// PulseLive MotoGP API:
+// 1. GET /motogp/v1/results/seasons → find current season ID
+// 2. GET /motogp/v1/results/events?seasonUuid={id}&isFinished=false → events
+//
+// Only shows upcoming events (isFinished=false).
+// No session-type filter available at this endpoint level.
+// No broadcast data in API — US rights are Fox/FS1/FS2; hardcoded below.
+
+struct MotoGPCalendarParser {
+
+  static func parse(_ data: Data) throws -> [HomeTeamGame] {
+    let events = try JSONDecoder().decode([MotoGPEvent].self, from: data)
+    return events.filter { $0.test != true }.compactMap { game(from: $0) }
+  }
+
+  // MotoGP API returns date-only strings: "2026-03-27"
+  private static let dateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyy-MM-dd"
+    f.timeZone = TimeZone(identifier: "UTC")
+    return f
+  }()
+
+  private static func normalizedName(_ raw: String?) -> String {
+    guard let raw else { return "MotoGP Race" }
+    let gp = raw.replacingOccurrences(of: "grand prix", with: "GP", options: [.caseInsensitive])
+    // Title-case: lowercase then capitalize each word, then fix "Gp" back to "GP"
+    return gp.lowercased().capitalized.replacingOccurrences(of: "Gp", with: "GP")
+  }
+
+  private static func game(from event: MotoGPEvent) -> HomeTeamGame? {
+    // Use date_end (race day) if available, else fall back to date_start
+    let dateString = event.dateEnd ?? event.dateStart
+    guard let date = dateFormatter.date(from: dateString) else { return nil }
+
+    let status: GameStatus
+    switch event.status?.uppercased() {
+    case "STARTED", "IN-PROGRESS": status = .live
+    case "FINISHED":                status = .final
+    default:                        status = .scheduled
+    }
+
+    let venueName = [event.circuit?.name, event.circuit?.place, event.circuit?.nation]
+      .compactMap { $0 }.joined(separator: ", ")
+
+    return HomeTeamGame(
+      id: event.id,
+      sport: .motoGP,
+      homeTeamID: "", awayTeamID: "",
+      homeTeamName: normalizedName(event.name ?? event.sponsoredName),
+      awayTeamName: "",
+      homeTeamAbbrev: "", awayTeamAbbrev: "",
+      homeScore: nil, awayScore: nil,
+      homeRecord: nil, awayRecord: nil,
+      scheduledAt: date,
+      status: status,
+      statusDetail: nil,
+      venueName: venueName.isEmpty ? nil : venueName,
+      broadcastNetworks: ["FS1"],
+      isPlayoff: false,
+      seriesInfo: nil,
+      racingResults: nil
+    )
+  }
+}
+
+private struct MotoGPEvent: Decodable {
+  let id: String
+  let name: String?
+  let sponsoredName: String?
+  let dateStart: String
+  let dateEnd: String?
+  let status: String?
+  let circuit: MotoGPCircuit?
+  let test: Bool?
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, status, circuit, test
+    case sponsoredName = "sponsored_name"
+    case dateStart = "date_start"
+    case dateEnd = "date_end"
+  }
+}
+
+private struct MotoGPCircuit: Decodable {
+  let name: String?
+  let place: String?
+  let nation: String?
+}

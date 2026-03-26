@@ -1034,101 +1034,139 @@
       "size_bytes": 41913
     },
     "f1:106842": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Ferrari official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Ferrari_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106842.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/d/df/Scuderia_Ferrari_HP_logo_24.svg",
+      "size_bytes": 41145,
+      "note": "Colorful logo (red/green/yellow/dark). needs-invert for white-on-dark."
     },
     "f1:106892": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from McLaren official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/McLaren_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106892.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/6/66/McLaren_Racing_logo.svg",
+      "size_bytes": 2687,
+      "note": "Orange (#FF8000) on transparent. Colorful."
     },
     "f1:106893": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Mercedes official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Mercedes_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106893.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Mercedes-AMG_Petronas_F1_Team_logo_(2026).svg",
+      "size_bytes": 10764,
+      "note": "Teal color (#00b1a9). 2026 logo. Colorful."
     },
     "f1:106921": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Red Bull official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Red_Bull_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106921.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/f/fa/Red_Bull_Racing_Logo_2026.svg",
+      "size_bytes": 27041,
+      "note": "Dark navy/red/yellow. 2026 logo. Colorful."
     },
     "f1:106922": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Alpine official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Alpine_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106922.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Alpine_F1_Team_Logo.svg",
+      "size_bytes": 2821,
+      "note": "Dark blue + lighter blue. Colorful."
     },
     "f1:123986": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Aston Martin official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_123986.png",
+      "source": "https://upload.wikimedia.org/wikipedia/en/1/15/Aston_Martin_Aramco_2024_logo.png",
+      "size_bytes": 15679,
+      "note": "2024 Aston Martin Aramco logo PNG. Colorful (green branding). needs-invert."
     },
     "f1:111427": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Haas official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Haas_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_111427.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/1/18/TGR_Haas_F1_Team_Logo_(2026).svg",
+      "size_bytes": 10855,
+      "note": "Red only on transparent. 2026 TGR Haas logo. Colorful."
     },
     "f1:106967": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Williams official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Williams_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_106967.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Williams_Racing_2022_logo.svg",
+      "size_bytes": 5913,
+      "note": "Dark navy + blue on transparent. Colorful."
     },
     "f1:123988": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Racing Bulls official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Racing_Bulls_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_123988.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/2/2b/VCARB_F1_logo.svg",
+      "size_bytes": 17580,
+      "note": "White + blue + green on transparent. Partially white-on-dark ready."
     },
     "f1:132212": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Audi official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Audi_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_132212.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/0/03/Audif1.com_logo17_(cropped).svg",
+      "size_bytes": 7823,
+      "note": "Red (#ff2d00) on transparent. Audi Revolut F1 Team 2026."
     },
     "f1:132211": {
-      "status": "manual-needed",
-      "reason": "ESPN CDN has no racing constructor logos. Source from Cadillac official press kit or Wikipedia SVG.",
-      "suggested_source": "https://en.wikipedia.org/wiki/Cadillac_in_Formula_One"
+      "status": "ok",
+      "file": "teams/f1_132211.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/b/bc/Cadillac_Formula_1_Team_Logo_(2025).svg",
+      "size_bytes": 9861,
+      "note": "White (#fff) on transparent. Perfect for dark UI."
     }
   },
   "streaming": {
     "espn-plus": {
-      "status": "manual-needed",
-      "reason": "HTTP 404",
-      "suggested_source": "https://brandfetch.com/espn.com \u2014 white variant"
+      "status": "ok",
+      "file": "streaming/espn-plus.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/8/80/ESPN_Plus.svg",
+      "size_bytes": 1313,
+      "note": "Yellow (#F9B300) on transparent. needs-invert for pure white."
     },
     "hulu": {
-      "status": "manual-needed",
-      "reason": "HTTP 404",
-      "suggested_source": "https://press.hulu.com \u2014 white/green logo"
+      "status": "ok",
+      "file": "streaming/hulu.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Hulu_logo_(2018).svg",
+      "size_bytes": 806,
+      "note": "Green (#1CE783) on transparent. Official Hulu brand color."
     },
     "hulu-tv": {
-      "status": "manual-needed",
-      "reason": "HTTP 404",
-      "suggested_source": "Same as hulu"
+      "status": "ok",
+      "file": "streaming/hulu-tv.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Hulu_logo_(2018).svg",
+      "size_bytes": 806,
+      "note": "Same as hulu logo. Green on transparent."
     },
     "paramount": {
-      "status": "manual-needed",
-      "reason": "HTTP 429",
-      "suggested_source": "https://www.paramount.com/brand"
+      "status": "ok",
+      "file": "streaming/paramount.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Paramount%2B_logo.svg",
+      "size_bytes": 6858,
+      "note": "Blue (#0064FF) on transparent. Colorful."
     },
     "amazon": {
-      "status": "manual-needed",
-      "reason": "HTTP 429",
-      "suggested_source": "https://advertising.amazon.com/library/guides/logo-usage"
+      "status": "ok",
+      "file": "streaming/amazon.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/9/90/Prime_Video_logo_(2024).svg",
+      "size_bytes": 5720,
+      "note": "Blue (#0779ff) on transparent. 2024 Prime Video logo."
     },
     "peacock": {
-      "status": "manual-needed",
-      "reason": "HTTP 429",
-      "suggested_source": "https://www.peacocktv.com/about"
+      "status": "ok",
+      "file": "streaming/peacock.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/d/d3/NBCUniversal_Peacock_Logo.svg",
+      "size_bytes": 3335,
+      "note": "Blue (#069DE0) Peacock text logo on transparent."
     },
     "hbo": {
-      "status": "manual-needed",
-      "reason": "HTTP 429",
-      "suggested_source": "https://www.max.com/press"
+      "status": "ok",
+      "file": "streaming/hbo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Max_logo.svg",
+      "size_bytes": 3287,
+      "note": "Blue (#002be7) Max streaming logo. needs-invert for dark UI use."
     },
     "youtube-tv": {
-      "status": "manual-needed",
-      "reason": "HTTP 429",
-      "suggested_source": "https://www.youtube.com/about/brand-resources/"
+      "status": "ok",
+      "file": "streaming/youtube-tv.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/f/fc/YouTube_TV_logo_2024.svg",
+      "size_bytes": 2904,
+      "note": "Red YouTube button + black text on transparent. needs-invert for dark UI."
     },
     "netflix": {
       "status": "ok",
@@ -1143,11 +1181,11 @@
     }
   },
   "summary": {
-    "teams_ok": 172,
-    "teams_manual_needed": 11,
+    "teams_ok": 183,
+    "teams_manual_needed": 0,
     "teams_missing": 0,
-    "streaming_ok": 1,
-    "streaming_manual_needed": 8,
+    "streaming_ok": 9,
+    "streaming_manual_needed": 0,
     "streaming_skipped": 1
   }
 }

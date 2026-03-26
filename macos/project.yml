@@ -1,0 +1,123 @@
+name: HomeTeam
+options:
+  bundleIdPrefix: com.hometeam
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    ENABLE_HARDENED_RUNTIME: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: Q4MZVR4MU5
+    ALWAYS_SEARCH_USER_PATHS: NO
+  configs:
+    Debug:
+      ENABLE_TESTABILITY: YES
+
+packages:
+  swift-snapshot-testing:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.15.0"
+
+targets:
+
+  HomeTeam:
+    type: application
+    platform: macOS
+    sources:
+      - HomeTeamApp
+      - Shared
+    entitlements:
+      path: Config/HomeTeam.entitlements
+    settings:
+      base:
+        PRODUCT_NAME: HomeTeam
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.app
+        SWIFT_MODULE_NAME: HomeTeam
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: HomeTeamApp/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - target: HomeTeamExtension
+        embed: true
+
+  HomeTeamExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - HomeTeamExtension
+      - Shared
+    entitlements:
+      path: Config/HomeTeamExtension.entitlements
+    settings:
+      base:
+        PRODUCT_NAME: HomeTeamExtension
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.app.extension
+        SWIFT_MODULE_NAME: HomeTeamExtension
+        DEFINES_MODULE: NO
+        SKIP_INSTALL: YES
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: AppIntents.framework
+
+  HomeTeamTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    entitlements:
+      path: Config/HomeTeamTests.entitlements
+    settings:
+      base:
+        PRODUCT_NAME: HomeTeamTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.app.tests
+        SWIFT_MODULE_NAME: HomeTeamTests
+        INFOPLIST_FILE: Tests/Info.plist
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/HomeTeam.app/Contents/MacOS/HomeTeam"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: HomeTeam
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+
+  HomeTeamUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests
+    settings:
+      base:
+        PRODUCT_NAME: HomeTeamUITests
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.app.uitests
+        SWIFT_MODULE_NAME: HomeTeamUITests
+        INFOPLIST_FILE: UITests/Info.plist
+        TEST_TARGET_NAME: HomeTeam
+    dependencies:
+      - target: HomeTeam
+
+schemes:
+  HomeTeam:
+    build:
+      targets:
+        HomeTeam: all
+        HomeTeamExtension: [build]
+        HomeTeamTests: [test]
+        HomeTeamUITests: [test]
+    run:
+      config: Debug
+    test:
+      targets:
+        - HomeTeamTests
+        - HomeTeamUITests
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release
