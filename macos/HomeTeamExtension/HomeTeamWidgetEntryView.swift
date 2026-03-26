@@ -5,9 +5,9 @@ import WidgetKit
 
 struct HomeTeamWidgetEntryView: View {
   let entry: HomeTeamEntry
-  @Environment(\.widgetRenderingMode) private var renderingMode
+  @Environment(\.colorScheme) private var colorScheme
 
-  private var isFullColor: Bool { renderingMode == .fullColor }
+  private var isDark: Bool { colorScheme == .dark }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -17,22 +17,22 @@ struct HomeTeamWidgetEntryView: View {
         NoGamesView()
       } else {
         if let team = entry.teamDefinition {
-          TeamHeader(team: team, summary: entry.teamSummary, isFullColor: isFullColor)
-          Divider().opacity(isFullColor ? 0.18 : 0.2)
+          TeamHeader(team: team, summary: entry.teamSummary, isDark: isDark)
+          Divider().opacity(isDark ? 0.18 : 0.2)
         }
         SectionRow(
           title: "PREVIOUS",
           games: entry.previousGames,
           emptyText: "No finals",
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
-          isFullColor: isFullColor
+          isDark: isDark
         )
         SectionRow(
           title: "UPCOMING",
           games: entry.allUpcoming,
           emptyText: upcomingEmptyText,
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
-          isFullColor: isFullColor
+          isDark: isDark
         )
         Spacer(minLength: 0)
         footerView
@@ -53,7 +53,7 @@ struct HomeTeamWidgetEntryView: View {
       if entry.fetchedAt != .distantPast {
         Text("Updated \(entry.fetchedAt.formatted(.dateTime.hour().minute()))")
           .font(.caption2.weight(.semibold))
-          .foregroundStyle(isFullColor ? Color.white.opacity(0.72) : Color.secondary)
+          .foregroundStyle(isDark ? Color.white.opacity(0.72) : Color.secondary)
       }
     }
   }
@@ -64,7 +64,7 @@ struct HomeTeamWidgetEntryView: View {
 private struct TeamHeader: View {
   let team: TeamDefinition
   let summary: HomeTeamTeamSummary?
-  let isFullColor: Bool
+  let isDark: Bool
 
   var body: some View {
     HStack(spacing: 8) {
@@ -76,15 +76,15 @@ private struct TeamHeader: View {
       } else if team.sport.isRacing {
         Image(systemName: team.sport.systemImageName)
           .font(.system(size: 18, weight: .semibold))
-          .foregroundStyle(isFullColor ? Color.white.opacity(0.75) : Color.primary.opacity(0.75))
+          .foregroundStyle(isDark ? Color.white.opacity(0.75) : Color.primary.opacity(0.75))
           .frame(width: 30, height: 30)
       } else {
         Circle()
-          .fill(isFullColor ? Color.white.opacity(0.15) : Color.primary.opacity(0.12))
+          .fill(isDark ? Color.white.opacity(0.15) : Color.primary.opacity(0.12))
           .overlay(
             Text(String(team.abbreviation.prefix(1)).uppercased())
               .font(.system(size: 12, weight: .bold))
-              .foregroundStyle(isFullColor ? Color.white.opacity(0.7) : Color.primary.opacity(0.7))
+              .foregroundStyle(isDark ? Color.white.opacity(0.7) : Color.primary.opacity(0.7))
           )
           .frame(width: 30, height: 30)
       }
@@ -92,18 +92,18 @@ private struct TeamHeader: View {
       VStack(alignment: .leading, spacing: 1) {
         Text(team.displayName)
           .font(.system(size: 13, weight: .bold))
-          .foregroundStyle(isFullColor ? Color.white : Color.primary)
+          .foregroundStyle(isDark ? Color.white : Color.primary)
           .lineLimit(1)
         if let summary {
           Text(summary.inlineDisplay)
             .font(.system(size: 9, weight: .medium))
-            .foregroundStyle(isFullColor ? Color.white.opacity(0.62) : Color.secondary)
+            .foregroundStyle(isDark ? Color.white.opacity(0.62) : Color.secondary)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
         } else {
           Text(team.sport.displayName)
             .font(.caption2)
-            .foregroundStyle(isFullColor ? Color.white.opacity(0.55) : Color.secondary)
+            .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
         }
       }
 
@@ -119,19 +119,19 @@ private struct SectionRow: View {
   let games: [HomeTeamGame]
   let emptyText: String
   let favoriteDriverNames: [String]
-  let isFullColor: Bool
+  let isDark: Bool
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(title)
         .font(.caption2.weight(.bold))
         .textCase(.uppercase)
-        .foregroundStyle(isFullColor ? Color.white.opacity(0.62) : Color.secondary)
+        .foregroundStyle(isDark ? Color.white.opacity(0.62) : Color.secondary)
 
       if games.isEmpty {
         Text(emptyText)
           .font(.caption2)
-          .foregroundStyle(isFullColor ? Color.white.opacity(0.54) : Color.secondary)
+          .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
       } else {
         HStack(spacing: 6) {
           ForEach(games.prefix(3)) { game in
@@ -139,7 +139,7 @@ private struct SectionRow: View {
               game: game,
               isPrevious: title == "PREVIOUS",
               favoriteDriverNames: favoriteDriverNames,
-              isFullColor: isFullColor
+              isDark: isDark
             )
           }
         }
@@ -154,7 +154,7 @@ private struct GameCard: View {
   let game: HomeTeamGame
   let isPrevious: Bool
   let favoriteDriverNames: [String]
-  let isFullColor: Bool
+  let isDark: Bool
 
   private var isLive: Bool { game.status == .live }
   private var isRacing: Bool { game.sport.isRacing }
@@ -204,19 +204,6 @@ private struct GameCard: View {
       .flatMap { NSImage(contentsOf: $0) }
   }
 
-  private func formattedRaceName(_ name: String) -> String {
-    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-    let lower = trimmed.lowercased()
-    // Hard-coded overrides
-    if lower.contains("united states") { return "GP of the Americas" }
-    // Fix title case: prepositions/articles stay lowercase after first word
-    let smallWords: Set<String> = ["of", "the", "a", "an", "and", "in", "at", "for", "to", "de", "la", "del"]
-    let words = trimmed.components(separatedBy: " ")
-    return words.enumerated().map { i, word in
-      i == 0 ? word : (smallWords.contains(word.lowercased()) ? word.lowercased() : word)
-    }.joined(separator: " ")
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       // Header: date chip + status
@@ -230,9 +217,9 @@ private struct GameCard: View {
           .padding(.vertical, 2)
           .background(
             Capsule(style: .continuous)
-              .fill(isFullColor ? Color.white.opacity(0.16) : Color.primary.opacity(0.1))
+              .fill(isDark ? Color.white.opacity(0.16) : Color.primary.opacity(0.1))
           )
-          .foregroundStyle(isFullColor ? Color.white.opacity(0.9) : Color.primary)
+          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
 
         Spacer(minLength: 0)
 
@@ -241,19 +228,19 @@ private struct GameCard: View {
             .font(.system(size: 8, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.75)
-            .foregroundStyle(isLive ? Color.green : (isFullColor ? Color.white.opacity(0.7) : Color.secondary))
+            .foregroundStyle(isLive ? Color.green : (isDark ? Color.white.opacity(0.7) : Color.secondary))
         }
       }
 
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
-        RacingResultsView(results: results, favoriteDriverNames: favoriteDriverNames, isFullColor: isFullColor)
+        RacingResultsView(results: results, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
       } else if isRacing {
-        Text(formattedRaceName(game.homeTeamName))
+        Text(GameFormatters.compactRaceName(from: game.homeTeamName))
           .font(.system(size: 8.5, weight: .semibold))
-          .lineLimit(2)
-          .minimumScaleFactor(0.78)
-          .foregroundStyle(isFullColor ? Color.white.opacity(0.9) : Color.primary)
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
       } else {
         VStack(spacing: 4) {
           if !game.awayTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -262,7 +249,7 @@ private struct GameCard: View {
               trailing: trailingValue(score: game.awayScore, record: game.awayRecord),
               isLeader: awayLeads,
               logoImage: teamLogoImage(espnTeamID: game.awayTeamID),
-              isFullColor: isFullColor
+              isDark: isDark
             )
           }
           if !game.homeTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -271,7 +258,7 @@ private struct GameCard: View {
               trailing: trailingValue(score: game.homeScore, record: game.homeRecord),
               isLeader: homeLeads,
               logoImage: teamLogoImage(espnTeamID: game.homeTeamID),
-              isFullColor: isFullColor
+              isDark: isDark
             )
           }
         }
@@ -286,14 +273,14 @@ private struct GameCard: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       RoundedRectangle(cornerRadius: 9, style: .continuous)
-        .fill(isFullColor ? Color.white.opacity(0.09) : Color.primary.opacity(0.06))
+        .fill(isDark ? Color.white.opacity(0.09) : Color.primary.opacity(0.06))
     )
     .overlay(
       RoundedRectangle(cornerRadius: 9, style: .continuous)
         .stroke(
           isLive
             ? Color.red.opacity(0.55)
-            : (isFullColor ? Color.white.opacity(0.14) : Color.primary.opacity(0.12)),
+            : (isDark ? Color.white.opacity(0.14) : Color.primary.opacity(0.12)),
           lineWidth: 1
         )
     )
@@ -307,7 +294,7 @@ private struct TeamRow: View {
   let trailing: String
   let isLeader: Bool
   let logoImage: NSImage?
-  let isFullColor: Bool
+  let isDark: Bool
 
   var body: some View {
     HStack(spacing: 5) {
@@ -317,11 +304,11 @@ private struct TeamRow: View {
             .resizable().aspectRatio(contentMode: .fit)
         } else {
           Circle()
-            .fill(isFullColor ? Color.white.opacity(0.18) : Color.primary.opacity(0.14))
+            .fill(isDark ? Color.white.opacity(0.18) : Color.primary.opacity(0.14))
             .overlay(
               Text(String(abbrev.prefix(1)).uppercased())
                 .font(.system(size: 7, weight: .bold))
-                .foregroundStyle(isFullColor ? Color.white.opacity(0.92) : Color.primary.opacity(0.8))
+                .foregroundStyle(isDark ? Color.white.opacity(0.92) : Color.primary.opacity(0.8))
             )
         }
       }
@@ -332,8 +319,8 @@ private struct TeamRow: View {
         .font(.caption2.weight(isLeader ? .bold : .regular))
         .foregroundStyle(
           isLeader
-            ? (isFullColor ? Color.white : Color.primary)
-            : (isFullColor ? Color.white.opacity(0.84) : Color.primary.opacity(0.75))
+            ? (isDark ? Color.white : Color.primary)
+            : (isDark ? Color.white.opacity(0.84) : Color.primary.opacity(0.75))
         )
 
       Spacer(minLength: 2)
@@ -344,14 +331,14 @@ private struct TeamRow: View {
             .font(.caption2.weight(isLeader ? .bold : .regular))
             .foregroundStyle(
               isLeader
-                ? (isFullColor ? Color.white : Color.primary)
-                : (isFullColor ? Color.white.opacity(0.85) : Color.primary.opacity(0.75))
+                ? (isDark ? Color.white : Color.primary)
+                : (isDark ? Color.white.opacity(0.85) : Color.primary.opacity(0.75))
             )
             .monospacedDigit()
           Image(systemName: "arrowtriangle.left.fill")
             .font(.system(size: 5.5, weight: .bold))
             .foregroundStyle(
-              (isFullColor ? Color.white : Color.primary)
+              (isDark ? Color.white : Color.primary)
                 .opacity(isLeader ? 0.88 : 0.0)
             )
             .frame(width: 4)
@@ -366,7 +353,7 @@ private struct TeamRow: View {
 private struct RacingResultsView: View {
   let results: [RacingResultLine]
   let favoriteDriverNames: [String]
-  let isFullColor: Bool
+  let isDark: Bool
 
   private func isFavorite(_ line: RacingResultLine) -> Bool {
     guard !favoriteDriverNames.isEmpty else { return false }
@@ -391,12 +378,12 @@ private struct RacingResultsView: View {
         HStack(spacing: 4) {
           Text("\(line.position)")
             .font(.system(size: 8, weight: .semibold))
-            .foregroundStyle(isFullColor ? Color.white.opacity(0.9) : Color.primary)
+            .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
             .frame(width: 10, alignment: .leading)
           Text(line.driverName)
             .font(.system(size: 8, weight: fav ? .bold : .regular))
             .foregroundStyle(
-              isFullColor
+              isDark
                 ? (fav ? Color.white : Color.white.opacity(0.86))
                 : (fav ? Color.primary : Color.primary.opacity(0.75))
             )

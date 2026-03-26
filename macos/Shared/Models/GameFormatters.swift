@@ -21,6 +21,9 @@ enum GameFormatters {
 
     let s = raw.trimmingCharacters(in: .whitespaces)
 
+    // Hard-coded: US race is held at Circuit of the Americas, not "United States"
+    if s.localizedCaseInsensitiveContains("united states") { return "Americas GP" }
+
     // "Grand Prix of <Location>" → "<Location> GP"
     if let range = s.range(of: #"(?i)Grand Prix of (.+)"#, options: .regularExpression),
        let capRange = s.range(of: #"(?i)(?<=Grand Prix of ).+"#, options: .regularExpression) {

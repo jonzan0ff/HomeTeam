@@ -152,8 +152,10 @@ private enum StandingsClient {
     let place: String
     if let r = rawRank, let rank = Int(r) { place = "\(ordinal(rank)) in \(groupName)" }
     else { place = rawRank ?? groupName }
-    let last10 = s["lastten"] ?? s["last10"] ?? s["l10"] ?? s["last 10"] ??
-      s.first(where: { $0.key.contains("10") || ($0.key.contains("last") && $0.key.contains("en")) })?.value ?? "-"
+    let rawL10 = s["lastten"] ?? s["last10"] ?? s["l10"] ?? s["last 10"] ??
+      s.first(where: { $0.key.contains("10") || ($0.key.contains("last") && $0.key.contains("en")) })?.value
+    // Strip any ESPN suffix after the W-L record (e.g. "4-4-2, 0 PTS" → "4-4-2")
+    let last10 = rawL10.map { String($0.split(separator: ",").first ?? Substring($0)).trimmingCharacters(in: .whitespaces) } ?? "-"
     let streak = s["streak"] ?? "-"
     return RawSummary(record: record, place: place, last10: last10, streak: streak)
   }
