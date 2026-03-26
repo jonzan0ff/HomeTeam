@@ -179,8 +179,35 @@ final class MotoGPCalendarParserTests: XCTestCase {
     XCTAssertEqual(games[0].status, .live)
   }
 
-  func test_status_nil_mapsScheduled() throws {
+  func test_status_nil_futureDate_mapsScheduled() throws {
+    // Future date with nil status → still scheduled
     let json = motogpJSON(dateStart: "2026-03-29", status: nil)
+    let games = try MotoGPCalendarParser.parse(json)
+    XCTAssertEqual(games[0].status, .scheduled)
+  }
+
+  func test_status_nil_pastDate_mapsFinal() throws {
+    // isFinished=true endpoint can return events with null status field.
+    // Any event with a past date should be treated as final.
+    let json = motogpJSON(dateStart: "2020-06-01", status: nil)
+    let games = try MotoGPCalendarParser.parse(json)
+    XCTAssertEqual(games[0].status, .final,
+      "Past-date event with nil status must be .final so it appears in the PREVIOUS section")
+  }
+
+  func test_status_unknown_pastDate_mapsFinal() throws {
+    // PulseLive uses "CLOSED"/"COMPLETED"/"ENDED" in some API versions; must all map to .final
+    for s in ["CLOSED", "COMPLETED", "ENDED", "RANDOM_UNKNOWN"] {
+      let json = motogpJSON(dateStart: "2020-06-01", status: s)
+      let games = try MotoGPCalendarParser.parse(json)
+      XCTAssertEqual(games[0].status, .final,
+        "Past-date event with status '\(s)' must be .final")
+    }
+  }
+
+  func test_status_closed_futureDate_mapsScheduled() throws {
+    // Pathological: future date with unrecognized status → treat as scheduled
+    let json = motogpJSON(dateStart: "2027-01-01", status: "UNKNOWN")
     let games = try MotoGPCalendarParser.parse(json)
     XCTAssertEqual(games[0].status, .scheduled)
   }

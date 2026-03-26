@@ -22,9 +22,18 @@ struct ScheduleClient {
   }
 
   static func fetchF1() async throws -> [HomeTeamGame] {
-    let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard")!
-    let (data, _) = try await URLSession.shared.data(from: url)
-    return try ESPNRacingParser.parse(data, sport: .f1)
+    let year = Calendar.current.component(.year, from: Date())
+    // Use full-year date range so all races appear, not just the current scoreboard window.
+    // Fetch current year and next year to capture season transitions.
+    var games: [HomeTeamGame] = []
+    for y in [year, year + 1] {
+      let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard?dates=\(y)0101-\(y)1231&limit=100")!
+      if let (data, _) = try? await URLSession.shared.data(from: url) {
+        games += (try? ESPNRacingParser.parse(data, sport: .f1)) ?? []
+      }
+    }
+    // Deduplicate by event ID in case a race straddles the year boundary
+    return Array(Dictionary(grouping: games, by: \.id).compactMap(\.value.first))
   }
 
   static func fetchMotoGP() async throws -> [HomeTeamGame] {

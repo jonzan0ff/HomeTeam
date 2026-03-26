@@ -39,8 +39,10 @@ struct MotoGPCalendarParser {
     let status: GameStatus
     switch event.status?.uppercased() {
     case "STARTED", "IN-PROGRESS": status = .live
-    case "FINISHED":                status = .final
-    default:                        status = .scheduled
+    case "FINISHED", "CLOSED", "COMPLETED", "ENDED": status = .final
+    default:
+      // If date is unambiguously in the past, treat as final regardless of unknown status string.
+      status = date < Date() ? .final : .scheduled
     }
 
     let venueName = [event.circuit?.name, event.circuit?.place, event.circuit?.nation]

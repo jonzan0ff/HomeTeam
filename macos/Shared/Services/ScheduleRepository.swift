@@ -41,10 +41,11 @@ final class ScheduleRepository: ObservableObject {
 
   private var hasLiveTrackedGame: Bool {
     let favs = settingsStore.settings.favoriteTeamCompositeIDs
+    let favTeams = favs.compactMap { TeamCatalog.team(for: $0) }
     return snapshot.games.contains { game in
       guard game.status == .live else { return false }
-      return favs.contains { cid in
-        guard let t = TeamCatalog.team(for: cid) else { return false }
+      return favTeams.contains { t in
+        if t.sport.isRacing { return game.sport == t.sport }
         return game.homeTeamID == t.espnTeamID || game.awayTeamID == t.espnTeamID
       }
     }
