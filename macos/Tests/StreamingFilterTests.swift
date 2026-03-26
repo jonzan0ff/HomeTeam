@@ -513,12 +513,17 @@ final class CompactLiveStatusTests: XCTestCase {
 
 final class AppGroupStoreTests: XCTestCase {
 
-  func test_containerURL_isNonNil() {
+  func test_containerURL_isNonNil() throws {
+    // App Group entitlements require a properly signed build — skip in unsigned CI.
+    try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil,
+      "App Group not available in unsigned CI build. Run locally with a signed build.")
     XCTAssertNotNil(AppGroupStore.containerURL,
       "App Group container must be accessible. Check entitlements and portal registration.")
   }
 
   func test_roundTrip_appSettings() throws {
+    try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil,
+      "App Group not available in unsigned CI build. Run locally with a signed build.")
     let original = AppSettings.default
     try AppGroupStore.write(original, to: "test_settings.json")
     let loaded = try AppGroupStore.read(AppSettings.self, from: "test_settings.json")
