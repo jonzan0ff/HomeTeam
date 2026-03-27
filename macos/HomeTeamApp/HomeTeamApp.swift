@@ -15,6 +15,9 @@ struct HomeTeamApp: App {
       .filter { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }
     others.forEach { $0.terminate() }
 
+    // Clear HTTP cache so AsyncImage always fetches fresh logos on launch
+    URLCache.shared.removeAllCachedResponses()
+
     // Refresh on launch + adaptive background schedule (60 s live / 60 min idle)
     Task { await ScheduleRepository.shared.startAutoRefresh() }
   }
