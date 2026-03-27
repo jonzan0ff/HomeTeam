@@ -95,32 +95,3 @@ struct HomeTeamTimelineProvider: AppIntentTimelineProvider {
     )
   }
 }
-
-// MARK: - Entry
-
-struct HomeTeamEntry: TimelineEntry {
-  let date: Date
-  let teamDefinition: TeamDefinition?
-  let teamSummary: HomeTeamTeamSummary?
-  let isOffSeason: Bool
-  let liveGames: [HomeTeamGame]
-  let previousGames: [HomeTeamGame]
-  let upcomingGames: [HomeTeamGame]
-  let fetchedAt: Date
-  let streamingKeys: Set<String>
-
-  var allUpcoming: [HomeTeamGame] { liveGames + upcomingGames }
-  var isEmpty: Bool { previousGames.isEmpty && allUpcoming.isEmpty }
-
-  static let placeholder = HomeTeamEntry(
-    date: Date(),
-    teamDefinition: nil,
-    teamSummary: nil,
-    isOffSeason: false,
-    liveGames: [],
-    previousGames: [],
-    upcomingGames: [],
-    fetchedAt: .distantPast,
-    streamingKeys: []
-  )
-}

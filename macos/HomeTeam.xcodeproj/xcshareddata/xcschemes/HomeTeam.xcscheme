@@ -64,24 +64,6 @@
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
-      <PostActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Kill Extension"
-               scriptText = "killall -9 HomeTeamExtension 2>/dev/null; exit 0">
-               <EnvironmentBuildable>
-                  <BuildableReference
-                     BuildableIdentifier = "primary"
-                     BlueprintIdentifier = "F9E2F0AA9CA8FEF630C7165B"
-                     BuildableName = "HomeTeam.app"
-                     BlueprintName = "HomeTeam"
-                     ReferencedContainer = "container:HomeTeam.xcodeproj">
-                  </BuildableReference>
-               </EnvironmentBuildable>
-            </ActionContent>
-         </ExecutionAction>
-      </PostActions>
    </BuildAction>
    <TestAction
       buildConfiguration = "Debug"

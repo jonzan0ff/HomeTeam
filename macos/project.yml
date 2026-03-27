@@ -16,11 +16,6 @@ settings:
     Debug:
       ENABLE_TESTABILITY: YES
 
-packages:
-  swift-snapshot-testing:
-    url: https://github.com/pointfreeco/swift-snapshot-testing
-    from: "1.15.0"
-
 targets:
 
   HomeTeam:
@@ -84,8 +79,6 @@ targets:
         BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
       - target: HomeTeam
-      - package: swift-snapshot-testing
-        product: SnapshotTesting
 
   HomeTeamUITests:
     type: bundle.ui-testing
