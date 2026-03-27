@@ -246,7 +246,6 @@ private struct GameCard: View {
     return Text(flag != nil ? "\(flag!) \(compact)" : compact)
       .font(.caption2.weight(.semibold))
       .lineLimit(1)
-      .minimumScaleFactor(0.8)
       .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
   }
 
