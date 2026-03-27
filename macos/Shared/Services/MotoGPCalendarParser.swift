@@ -15,6 +15,51 @@ struct MotoGPCalendarParser {
     return events.filter { $0.test != true }.compactMap { game(from: $0) }
   }
 
+  /// Maps event UUID → circuit TimeZone for session timestamp correction.
+  /// The Pulselive API stores session times in circuit-local time but labels
+  /// the offset as +00:00, so callers must re-interpret using the circuit TZ.
+  static func circuitTimezones(from data: Data) -> [String: TimeZone] {
+    guard let events = try? JSONDecoder().decode([MotoGPEvent].self, from: data) else { return [:] }
+    var result: [String: TimeZone] = [:]
+    for event in events {
+      guard let legacyID = event.circuit?.legacyID,
+            let tzID = Self.circuitTimezoneID(legacyID: legacyID),
+            let tz = TimeZone(identifier: tzID) else { continue }
+      result[event.id] = tz
+    }
+    return result
+  }
+
+  // Pulselive circuit legacy_id → IANA timezone identifier.
+  // All 22 circuits on the 2026 calendar.
+  private static func circuitTimezoneID(legacyID: Int) -> String? {
+    switch legacyID {
+    case 106: return "Asia/Bangkok"          // Buriram, Thailand
+    case  39: return "America/Sao_Paulo"     // Goiania, Brazil
+    case 101: return "America/Chicago"       // Austin, USA (COTA)
+    case   4: return "Europe/Madrid"         // Jerez, Spain
+    case   8: return "Europe/Paris"          // Le Mans, France
+    case  13: return "Europe/Madrid"         // Barcelona, Spain
+    case   6: return "Europe/Rome"           // Mugello, Italy
+    case 115: return "Europe/Budapest"       // Balatonfokajár, Hungary
+    case  11: return "Europe/Prague"         // Brno, Czech Republic
+    case   7: return "Europe/Amsterdam"      // Assen, Netherlands
+    case  51: return "Europe/Berlin"         // Sachsenring, Germany
+    case  42: return "Europe/London"         // Silverstone, UK
+    case 100: return "Europe/Madrid"         // Alcañiz, Spain
+    case  38: return "Europe/Rome"           // Misano, Italy
+    case  24: return "Europe/Vienna"         // Spielberg, Austria
+    case  76: return "Asia/Tokyo"            // Motegi, Japan
+    case 111: return "Asia/Makassar"         // Lombok, Indonesia
+    case  32: return "Australia/Melbourne"   // Phillip Island, Australia
+    case  75: return "Asia/Kuala_Lumpur"     // Sepang, Malaysia
+    case  93: return "Asia/Qatar"            // Doha, Qatar
+    case 109: return "Europe/Lisbon"         // Portimao, Portugal
+    case  77: return "Europe/Madrid"         // Cheste, Spain
+    default:  return nil
+    }
+  }
+
   // MotoGP API returns date-only strings: "2026-03-27". Parse in local timezone so
   // the calendar day is correct. Exact race time is patched later from session data.
   private static let dateFormatter: DateFormatter = {
@@ -93,4 +138,10 @@ private struct MotoGPCircuit: Decodable {
   let name: String?
   let place: String?
   let nation: String?
+  let legacyID: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case name, place, nation
+    case legacyID = "legacy_id"
+  }
 }

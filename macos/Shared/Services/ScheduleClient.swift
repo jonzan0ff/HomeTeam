@@ -54,6 +54,7 @@ struct ScheduleClient {
     allEventsReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
     let (allEventsData, _) = try await URLSession.shared.data(for: allEventsReq)
     var allGames = try MotoGPCalendarParser.parse(allEventsData)
+    let circuitTimezones = MotoGPCalendarParser.circuitTimezones(from: allEventsData)
 
     // Fetch race results for finished events and exact RAC timestamps for upcoming events, concurrently
     let finished = allGames.filter { $0.status == .final }
@@ -65,7 +66,8 @@ struct ScheduleClient {
         group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
       }
       for game in upcoming {
-        group.addTask { (game.id, [], await fetchMotoGPRaceDate(eventID: game.id)) }
+        let tz = circuitTimezones[game.id]
+        group.addTask { (game.id, [], await fetchMotoGPRaceDate(eventID: game.id, circuitTimezone: tz)) }
       }
       for await (id, results, date) in group {
         if !results.isEmpty { resultsByID[id] = results }
@@ -114,8 +116,10 @@ struct ScheduleClient {
     return lines + dnfLines
   }
 
-  /// Fetches the RAC session date for an upcoming MotoGP event to get the exact race time.
-  private static func fetchMotoGPRaceDate(eventID: String) async -> Date? {
+  /// Fetches the RAC session date for an upcoming MotoGP event.
+  /// The Pulselive API stores session times in circuit-local time but labels the
+  /// offset as +00:00, so we strip the offset and re-parse using circuitTimezone.
+  private static func fetchMotoGPRaceDate(eventID: String, circuitTimezone: TimeZone?) async -> Date? {
     guard let sessURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/sessions?eventUuid=\(eventID)&categoryUuid=\(motoGPClassUUID)") else { return nil }
     var sessReq = URLRequest(url: sessURL)
     sessReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
@@ -123,9 +127,15 @@ struct ScheduleClient {
           let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData),
           let racSession = sessions.first(where: { $0.type == "RAC" }),
           let dateStr = racSession.date else { return nil }
-    let iso = ISO8601DateFormatter()
-    iso.formatOptions = [.withInternetDateTime]
-    return iso.date(from: dateStr)
+
+    // Strip the fake +00:00 offset and parse as circuit-local time
+    let localStr = dateStr.replacingOccurrences(of: "+00:00", with: "")
+                          .replacingOccurrences(of: "Z", with: "")
+    let fmt = DateFormatter()
+    fmt.locale = Locale(identifier: "en_US_POSIX")
+    fmt.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    fmt.timeZone = circuitTimezone ?? TimeZone(identifier: "UTC")
+    return fmt.date(from: localStr)
   }
 
   /// Fetch standings summary for a single team. Returns nil on any failure (non-fatal).
