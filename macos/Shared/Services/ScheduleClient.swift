@@ -47,19 +47,13 @@ struct ScheduleClient {
     let seasons = try JSONDecoder().decode([MotoGPSeason].self, from: seasonsData)
     guard let current = seasons.first(where: { $0.current }) ?? seasons.last else { return [] }
 
-    async let upcomingGames: [HomeTeamGame] = {
-      let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/events?seasonUuid=\(current.id)&isFinished=false")!
-      var req = URLRequest(url: url); req.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
-      let (data, _) = try await URLSession.shared.data(for: req)
-      return try MotoGPCalendarParser.parse(data)
-    }()
-    async let finishedGames: [HomeTeamGame] = {
-      let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/events?seasonUuid=\(current.id)&isFinished=true")!
-      var req = URLRequest(url: url); req.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
-      let (data, _) = try await URLSession.shared.data(for: req)
-      return try MotoGPCalendarParser.parse(data)
-    }()
-    var allGames = try await upcomingGames + finishedGames
+    // Fetch all events in one call — isFinished=false misses CURRENT (in-weekend) events,
+    // and isFinished=true misses them too. Single all-events call gets everything.
+    let allEventsURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/events?seasonUuid=\(current.id)")!
+    var allEventsReq = URLRequest(url: allEventsURL)
+    allEventsReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    let (allEventsData, _) = try await URLSession.shared.data(for: allEventsReq)
+    var allGames = try MotoGPCalendarParser.parse(allEventsData)
 
     // Fetch race results for all finished events concurrently
     let finished = allGames.filter { $0.status == .final }
