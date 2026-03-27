@@ -79,10 +79,12 @@ enum GameFormatters {
     "monaco":     "🇲🇨",
     "spanish":    "🇪🇸",
     "austrian":   "🇦🇹",
+    "austria":    "🇦🇹",   // MotoGP: GP Of Austria
     "hungarian":  "🇭🇺",
     "belgian":    "🇧🇪",
     "dutch":      "🇳🇱",
     "italian":    "🇮🇹",
+    "italy":      "🇮🇹",   // MotoGP: GP Of Italy
     "singapore":  "🇸🇬",
     "states":     "🇺🇸",   // United States GP (COTA)
     "vegas":      "🇺🇸",   // Las Vegas GP
@@ -91,7 +93,10 @@ enum GameFormatters {
     "qatar":      "🇶🇦",
     "abu":        "🇦🇪",   // Abu Dhabi GP
     "british":    "🇬🇧",
+    "britain":    "🇬🇧",   // MotoGP: GP Of Great Britain
     "azerbai":    "🇦🇿",   // Azerbaijan GP
+    "spanish":    "🇪🇸",
+    "spain":      "🇪🇸",   // MotoGP: GP Of Spain
     // MotoGP
     "thailand":   "🇹🇭",
     "brazil":     "🇧🇷",
@@ -111,6 +116,7 @@ enum GameFormatters {
     "hungary":    "🇭🇺",
     "czechia":    "🇨🇿",
     "kingdom":    "🇬🇧",   // United Kingdom GP
+    "australia":  "🇦🇺",   // MotoGP: GP Of Australia (also prefix of "Australian")
   ]
 
   // MARK: - Live status
