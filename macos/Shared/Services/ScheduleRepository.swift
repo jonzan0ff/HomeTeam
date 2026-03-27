@@ -236,71 +236,56 @@ final class ScheduleRepository: ObservableObject {
     }
   }
 
-  // MotoGP manufacturer logo sources — Clearbit returns transparent-background PNGs,
-  // which render correctly on both light and dark widget backgrounds (unlike favicons).
-  private static let motoGPLogoSources: [String: URL] = {
-    func logo(_ domain: String) -> URL {
-      URL(string: "https://logo.clearbit.com/\(domain)")!  // no size param — defaults to 128px PNG
-    }
-    return [
-      "motogp_ducati_lenovo": logo("ducati.com"),
-      "motogp_pramac":         logo("ducati.com"),   // Pramac runs Ducati bikes
-      "motogp_gresini":        logo("ducati.com"),   // Gresini runs Ducati bikes
-      "motogp_vr46":           logo("vr46.com"),
-      "motogp_aprilia":        logo("aprilia.com"),
-      "motogp_ktm":            logo("ktm.com"),
-      "motogp_honda_repsol":   logo("honda.com"),
-      "motogp_yamaha":         logo("yamaha-motor.com"),
-    ]
-  }()
-
-  /// Downloads F1 (GitHub Pages SVG/PNG) and MotoGP (favicon CDN) logos into the App Group container.
+  /// Downloads F1 (SVG/PNG) and MotoGP (PNG) logos from GitHub Pages into the App Group container.
   /// Driven by favorite teams in the catalog — racing games have no team IDs in the schedule feed.
   private func prefetchRacingLogos(for compositeIDs: [String]) async {
+    guard let dir = AppGroupStore.logosDirectoryURL else { return }
+    let base = "https://jonzan0ff.github.io/HomeTeam/logos/teams"
+
     var seen = Set<String>()
-    var f1Needed: [String] = []
-    var motoGPNeeded: [String] = []
+    var needed: [(SupportedSport, String)] = []
 
     for cid in compositeIDs {
       guard let team = TeamCatalog.team(for: cid), team.sport.isRacing else { continue }
       guard seen.insert(team.espnTeamID).inserted else { continue }
-      if AppGroupStore.logoFileURL(sport: team.sport, espnTeamID: team.espnTeamID) == nil {
-        if team.sport == .f1 { f1Needed.append(team.espnTeamID) }
-        else if team.sport == .motoGP { motoGPNeeded.append(team.espnTeamID) }
+      let exists: Bool
+      if team.sport == .f1 {
+        let svg = dir.appendingPathComponent("f1_\(team.espnTeamID).svg")
+        let png = dir.appendingPathComponent("f1_\(team.espnTeamID).png")
+        exists = FileManager.default.fileExists(atPath: svg.path) || FileManager.default.fileExists(atPath: png.path)
+      } else {
+        let png = dir.appendingPathComponent("motoGP_\(team.espnTeamID).png")
+        exists = FileManager.default.fileExists(atPath: png.path)
       }
+      if !exists { needed.append((team.sport, team.espnTeamID)) }
     }
 
-    guard !f1Needed.isEmpty || !motoGPNeeded.isEmpty else { return }
-    print("[ScheduleRepository] Racing logo prefetch: \(f1Needed.count) F1, \(motoGPNeeded.count) MotoGP")
+    guard !needed.isEmpty else { return }
+    print("[ScheduleRepository] Racing logo prefetch: \(needed.count) logo(s)")
 
     await withTaskGroup(of: Void.self) { group in
-      for espnTeamID in f1Needed {
+      for (sport, espnTeamID) in needed {
         group.addTask {
-          guard let dir = AppGroupStore.logosDirectoryURL else { return }
-          for ext in ["svg", "png"] {
-            guard let src = URL(string: "https://jonzan0ff.github.io/HomeTeam/logos/teams/f1_\(espnTeamID).\(ext)") else { continue }
-            let dest = dir.appendingPathComponent("f1_\(espnTeamID).\(ext)")
+          if sport == .f1 {
+            for ext in ["svg", "png"] {
+              guard let src = URL(string: "\(base)/f1_\(espnTeamID).\(ext)") else { continue }
+              let dest = dir.appendingPathComponent("f1_\(espnTeamID).\(ext)")
+              do {
+                let (data, response) = try await URLSession.shared.data(from: src)
+                guard (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
+                try data.write(to: dest, options: .atomic)
+                return
+              } catch { continue }
+            }
+          } else {
+            guard let src = URL(string: "\(base)/motoGP_\(espnTeamID).png") else { return }
+            let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
             do {
               let (data, response) = try await URLSession.shared.data(from: src)
-              guard (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
+              guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
               try data.write(to: dest, options: .atomic)
-              return
-            } catch { continue }
+            } catch {}
           }
-        }
-      }
-      for espnTeamID in motoGPNeeded {
-        group.addTask { [motoGPSources = Self.motoGPLogoSources] in
-          guard let src = motoGPSources[espnTeamID],
-                let dir = AppGroupStore.logosDirectoryURL else { return }
-          let dest = dir.appendingPathComponent("motoGP_\(espnTeamID)_v2.png")
-          do {
-            let (data, response) = try await URLSession.shared.data(from: src)
-            guard let http = response as? HTTPURLResponse,
-                  (200...299).contains(http.statusCode),
-                  data.count > 200 else { return }  // guard against empty/error body
-            try data.write(to: dest, options: .atomic)
-          } catch {}
         }
       }
     }

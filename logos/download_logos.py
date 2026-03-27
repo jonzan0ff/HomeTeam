@@ -220,9 +220,46 @@ for cid, abbrev in nba_teams:
 fetch_soccer_teams("usa.1", "mls")
 fetch_soccer_teams("eng.1", "premierLeague")
 
-# ── F1 + MotoGP athletes (headshots) ─────────────────────────────────────────
-fetch_racing_athletes("f1", "f1")
-fetch_racing_athletes("motogp", "motogp")
+# ── F1 athletes (headshots, not used for logos — team SVGs committed manually)
+# fetch_racing_athletes("f1", "f1")  # headshots are not team logos
+
+# ── MotoGP team logos (official MotoGP API, transparent PNGs) ─────────────────
+# Filename: motoGP_{espnTeamID}.png  (matches AppGroupStore.logoFileURL convention)
+motogp_teams = [
+    ("motoGP_motogp_ducati_lenovo",
+        "https://photos.motogp.com/teams/8/9/892fff2f-7402-4fbd-99fb-5fd567d8a80c/main-picture.png"),
+    ("motoGP_motogp_pramac",
+        "https://photos.motogp.com/teams/5/9/598ccfb2-e0f1-4ad7-92b7-00ec9238a72c/main-picture.png"),
+    ("motoGP_motogp_aprilia",
+        "https://photos.motogp.com/teams/1/1/11d18b37-baba-400a-80c2-f8ddf040f97e/main-picture.png"),
+    ("motoGP_motogp_ktm",
+        "https://photos.motogp.com/teams/0/b/0b6cc118-a286-4343-9020-fb53c6f77c1a/main-picture.png"),
+    ("motoGP_motogp_gresini",
+        "https://photos.motogp.com/teams/1/1/11729e67-d2cb-41ad-b3a8-4a0ac5768a5f/main-picture.png"),
+    ("motoGP_motogp_vr46",
+        "https://photos.motogp.com/teams/4/1/4130a48f-fa91-48be-a50c-f8a2e3f863a0/main-picture.png"),
+    ("motoGP_motogp_honda_repsol",
+        "https://photos.motogp.com/teams/c/e/ce837bd3-bc07-40ef-83cf-6a8025bededf/main-picture.png"),
+    ("motoGP_motogp_yamaha",
+        "https://photos.motogp.com/teams/1/4/141b6f0f-7e53-4d27-9bdb-0ea8fba7e842/main-picture.png"),
+]
+print("\nMotoGP teams:")
+for filename_id, url in motogp_teams:
+    data, err = fetch(url)
+    if data:
+        path = os.path.join(TEAMS_DIR, f"{filename_id}.png")
+        with open(path, "wb") as f:
+            f.write(data)
+        manifest["teams"][filename_id] = {
+            "status": "ok", "file": f"teams/{filename_id}.png",
+            "source": url, "size_bytes": len(data)
+        }
+        results["ok"] += 1
+        print(f"  OK  {filename_id} ({len(data)} bytes)")
+    else:
+        manifest["teams"][filename_id] = {"status": "missing", "reason": err}
+        results["missing"] += 1
+        print(f"  MISSING {filename_id}: {err}")
 
 # ── Streaming services ────────────────────────────────────────────────────────
 # Sources: official press/brand kit URLs for white variants
