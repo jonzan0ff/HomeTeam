@@ -27,6 +27,7 @@ struct HomeTeamWidgetEntryView: View {
           isOffSeason: false,
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
           streamingKeys: entry.streamingKeys,
+          racingSummary: entry.teamDefinition?.sport.isRacing == true ? entry.teamSummary?.inlineDisplay : nil,
           isDark: isDark
         )
         SectionRow(
@@ -36,6 +37,7 @@ struct HomeTeamWidgetEntryView: View {
           isOffSeason: entry.isOffSeason,
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
           streamingKeys: entry.streamingKeys,
+          racingSummary: nil,
           isDark: isDark
         )
         .padding(.top, 4)
@@ -43,8 +45,8 @@ struct HomeTeamWidgetEntryView: View {
         footerView
       }
     }
-    .padding(.horizontal, 4)
-    .padding(.vertical, 8)
+    .padding(.horizontal, 2)
+    .padding(.vertical, 4)
   }
 
   private var upcomingEmptyText: String {
@@ -130,14 +132,24 @@ private struct SectionRow: View {
   let isOffSeason: Bool
   let favoriteDriverNames: [String]
   let streamingKeys: Set<String>
+  let racingSummary: String?   // e.g. "Place 1  |  Pts 50  |  Wins 2  |  Podiums 4"
   let isDark: Bool
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(title)
-        .font(.caption2.weight(.bold))
-        .textCase(.uppercase)
-        .foregroundStyle(isDark ? Color.white.opacity(0.62) : Color.secondary)
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        Text(title)
+          .font(.caption2.weight(.bold))
+          .textCase(.uppercase)
+          .foregroundStyle(isDark ? Color.white.opacity(0.62) : Color.secondary)
+        if let summary = racingSummary {
+          Text(summary)
+            .font(.system(size: 8.5, weight: .regular))
+            .foregroundStyle(isDark ? Color.white.opacity(0.5) : Color.secondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+        }
+      }
 
       if games.isEmpty {
         if isOffSeason {
@@ -282,7 +294,7 @@ private struct GameCard: View {
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
         raceNameText
-        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isCompleted: game.status == .final, isDark: isDark)
+        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
       } else if isRacing {
         raceNameText
       } else {
@@ -398,7 +410,6 @@ private struct RacingResultsView: View {
   let results: [RacingResultLine]
   let sport: SupportedSport
   let favoriteDriverNames: [String]
-  let isCompleted: Bool
   let isDark: Bool
 
   private func isFavorite(_ line: RacingResultLine) -> Bool {
@@ -464,12 +475,7 @@ private struct RacingResultsView: View {
 
           Spacer(minLength: 0)
 
-          if isCompleted, let pts = GameFormatters.racePoints(for: line.position, sport: sport) {
-            Text("\(pts)pts")
-              .font(.system(size: 7.5, weight: .regular))
-              .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
-              .lineLimit(1)
-          } else if let gap = line.timeOrGap {
+          if let gap = line.timeOrGap {
             Text(gap)
               .font(.system(size: 7, weight: .regular))
               .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
