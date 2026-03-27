@@ -72,50 +72,24 @@ struct HomeTeamTimelineProvider: AppIntentTimelineProvider {
       snapshot = .empty
     }
 
-    // Filter games for this team
-    let teamGames: [HomeTeamGame]
-    if team.sport.isRacing {
-      teamGames = snapshot.games.filter { $0.sport == team.sport }
-    } else {
-      teamGames = snapshot.games.filter {
-        $0.homeTeamID == team.espnTeamID || $0.awayTeamID == team.espnTeamID
-      }
-    }
-
     let now = Date()
-    let live = teamGames.filter { $0.status == .live }
-    let previous = teamGames
-      .filter { $0.status == .final && $0.scheduledAt < now }
-      .sorted { $0.scheduledAt > $1.scheduledAt }
-    let upcoming = teamGames
-      .filter { $0.status == .scheduled && $0.scheduledAt > now }
-      .sorted { $0.scheduledAt < $1.scheduledAt }
-
-    // Streaming filter for upcoming (only if user has services configured)
-    let filteredUpcoming: [HomeTeamGame]
     let streamingKeys = Set(settings?.selectedStreamingServices ?? [])
-    if streamingKeys.isEmpty {
-      filteredUpcoming = upcoming
-    } else {
-      filteredUpcoming = upcoming.filter { game in
-        game.broadcastNetworks.contains {
-          StreamingServiceMatcher.isMatch(rawName: $0, selectedKeys: streamingKeys)
-        }
-      }
-    }
+    let filtered = WidgetGameFilter.filter(
+      games: snapshot.games, for: team, streamingKeys: streamingKeys, now: now
+    )
 
     let teamSummary = snapshot.teamSummaries.first { $0.compositeID == team.compositeID }
 
-    log.info("streamingKeys=\(streamingKeys.sorted()) live=\(live.count) previous=\(previous.count) upcoming(pre-filter)=\(upcoming.count) upcoming(post-filter)=\(filteredUpcoming.count)")
+    log.info("streamingKeys=\(streamingKeys.sorted()) live=\(filtered.live.count) previous=\(filtered.previous.count) upcoming=\(filtered.upcoming.count)")
 
     return HomeTeamEntry(
       date: now,
       teamDefinition: team,
       teamSummary: teamSummary,
-      isOffSeason: upcoming.isEmpty && !team.sport.isRacing,
-      liveGames: live,
-      previousGames: Array(previous.prefix(3)),
-      upcomingGames: Array(filteredUpcoming.prefix(3)),
+      isOffSeason: filtered.isOffSeason,
+      liveGames: filtered.live,
+      previousGames: filtered.previous,
+      upcomingGames: filtered.upcoming,
       fetchedAt: snapshot.fetchedAt,
       streamingKeys: streamingKeys
     )

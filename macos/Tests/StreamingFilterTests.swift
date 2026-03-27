@@ -801,3 +801,486 @@ final class HomeTeamTeamSummaryTests: XCTestCase {
     XCTAssertTrue(d.contains("Podiums 5"))
   }
 }
+
+// MARK: - Widget game filter (1A)
+
+final class WidgetGameFilterTests: XCTestCase {
+
+  private let now = Date(timeIntervalSince1970: 1_700_000_000)   // 2023-11-14 ~10:13 UTC
+  private let hour: TimeInterval = 3600
+
+  // MARK: Live filtering
+
+  func test_live_includesLiveGames() {
+    let games = [makeGame(id: "1", status: .live)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.live.count, 1)
+  }
+
+  func test_live_excludesFinalGames() {
+    let games = [makeGame(id: "1", status: .final, at: now - hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.live.isEmpty)
+  }
+
+  func test_live_excludesScheduledGames() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now + hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.live.isEmpty)
+  }
+
+  // MARK: Previous filtering
+
+  func test_previous_includesFinalBeforeNow() {
+    let games = [makeGame(id: "1", status: .final, at: now - hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.previous.count, 1)
+  }
+
+  func test_previous_excludesFinalAfterNow() {
+    let games = [makeGame(id: "1", status: .final, at: now + hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.previous.isEmpty)
+  }
+
+  func test_previous_excludesLiveGames() {
+    let games = [makeGame(id: "1", status: .live, at: now - hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.previous.isEmpty)
+  }
+
+  func test_previous_sortedNewestFirst() {
+    let games = (1...5).map { i in
+      makeGame(id: "\(i)", status: .final, at: now - Double(i) * hour)
+    }
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.previous.map(\.id), ["1", "2", "3"],
+      "Should be sorted newest-first")
+  }
+
+  func test_previous_limitedTo3() {
+    let games = (1...10).map { i in
+      makeGame(id: "\(i)", status: .final, at: now - Double(i) * hour)
+    }
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.previous.count, 3)
+  }
+
+  // MARK: Upcoming filtering
+
+  func test_upcoming_includesScheduledAfterNow() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now + hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.upcoming.count, 1)
+  }
+
+  func test_upcoming_excludesScheduledBeforeNow() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now - hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.upcoming.isEmpty)
+  }
+
+  func test_upcoming_excludesFinalGames() {
+    let games = [makeGame(id: "1", status: .final, at: now + hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.upcoming.isEmpty)
+  }
+
+  func test_upcoming_sortedEarliestFirst() {
+    let games = (1...5).map { i in
+      makeGame(id: "\(i)", status: .scheduled, at: now + Double(6 - i) * hour)
+    }
+    let result = filter(games, sport: .nhl)
+    // Earliest (smallest offset) should be first
+    XCTAssertEqual(result.upcoming.map(\.id), ["5", "4", "3"])
+  }
+
+  func test_upcoming_limitedTo3() {
+    let games = (1...10).map { i in
+      makeGame(id: "\(i)", status: .scheduled, at: now + Double(i) * hour)
+    }
+    let result = filter(games, sport: .nhl)
+    XCTAssertEqual(result.upcoming.count, 3)
+  }
+
+  // MARK: Team matching
+
+  func test_racing_matchesBySport() {
+    let games = [makeGame(id: "1", sport: .f1, status: .live, homeTeamID: "", awayTeamID: "")]
+    let team = makeTeamDef(sport: .f1, espnTeamID: "999")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertEqual(result.live.count, 1)
+  }
+
+  func test_racing_doesNotMatchDifferentSport() {
+    let games = [makeGame(id: "1", sport: .motoGP, status: .live, homeTeamID: "", awayTeamID: "")]
+    let team = makeTeamDef(sport: .f1, espnTeamID: "999")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertEqual(result.live.count, 0)
+  }
+
+  func test_teamSport_matchesByHomeTeamID() {
+    let games = [makeGame(id: "1", status: .live, homeTeamID: "23", awayTeamID: "99")]
+    let team = makeTeamDef(sport: .nhl, espnTeamID: "23")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertEqual(result.live.count, 1)
+  }
+
+  func test_teamSport_matchesByAwayTeamID() {
+    let games = [makeGame(id: "1", status: .live, homeTeamID: "99", awayTeamID: "23")]
+    let team = makeTeamDef(sport: .nhl, espnTeamID: "23")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertEqual(result.live.count, 1)
+  }
+
+  func test_teamSport_excludesNonMatchingTeamID() {
+    let games = [makeGame(id: "1", status: .live, homeTeamID: "55", awayTeamID: "66")]
+    let team = makeTeamDef(sport: .nhl, espnTeamID: "23")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertEqual(result.live.count, 0)
+  }
+
+  // MARK: Streaming filter
+
+  func test_streamingFilter_passesAll_whenNoSelection() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now + hour, broadcasts: ["Peacock"])]
+    let result = filter(games, sport: .nhl, streamingKeys: [])
+    XCTAssertEqual(result.upcoming.count, 1)
+  }
+
+  func test_streamingFilter_passesMatching() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now + hour, broadcasts: ["ESPN+"])]
+    let result = filter(games, sport: .nhl, streamingKeys: ["espnplus"])
+    XCTAssertEqual(result.upcoming.count, 1)
+  }
+
+  func test_streamingFilter_hidesNonMatching() {
+    let games = [makeGame(id: "1", status: .scheduled, at: now + hour, broadcasts: ["Peacock"])]
+    let result = filter(games, sport: .nhl, streamingKeys: ["espnplus"])
+    XCTAssertTrue(result.upcoming.isEmpty)
+  }
+
+  // MARK: Off-season
+
+  func test_isOffSeason_true_whenNoUpcomingAndNotRacing() {
+    let games = [makeGame(id: "1", status: .final, at: now - hour)]
+    let result = filter(games, sport: .nhl)
+    XCTAssertTrue(result.isOffSeason)
+  }
+
+  func test_isOffSeason_false_forRacingSports() {
+    let games = [makeGame(id: "1", sport: .f1, status: .final, at: now - hour,
+                          homeTeamID: "", awayTeamID: "")]
+    let team = makeTeamDef(sport: .f1, espnTeamID: "1")
+    let result = WidgetGameFilter.filter(games: games, for: team, streamingKeys: [], now: now)
+    XCTAssertFalse(result.isOffSeason)
+  }
+
+  // MARK: Helpers
+
+  private func filter(
+    _ games: [HomeTeamGame],
+    sport: SupportedSport,
+    streamingKeys: Set<String> = []
+  ) -> WidgetGameFilter.Result {
+    let team = makeTeamDef(sport: sport, espnTeamID: "1")
+    return WidgetGameFilter.filter(games: games, for: team, streamingKeys: streamingKeys, now: now)
+  }
+
+  private func makeTeamDef(sport: SupportedSport, espnTeamID: String) -> TeamDefinition {
+    TeamDefinition(
+      teamID: "test_\(espnTeamID)", sport: sport,
+      city: "", name: "Test", displayName: "Test", abbreviation: "TST",
+      driverNames: [], espnTeamID: espnTeamID, driverDisplayName: nil
+    )
+  }
+
+  private func makeGame(
+    id: String,
+    sport: SupportedSport = .nhl,
+    status: GameStatus = .scheduled,
+    at scheduledAt: Date? = nil,
+    homeTeamID: String = "1",
+    awayTeamID: String = "2",
+    broadcasts: [String] = []
+  ) -> HomeTeamGame {
+    HomeTeamGame(
+      id: id, sport: sport,
+      homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+      homeTeamName: "Home", awayTeamName: "Away",
+      homeTeamAbbrev: "HOM", awayTeamAbbrev: "AWY",
+      homeScore: nil, awayScore: nil,
+      homeRecord: nil, awayRecord: nil,
+      scheduledAt: scheduledAt ?? now, status: status,
+      statusDetail: nil, venueName: nil,
+      broadcastNetworks: broadcasts,
+      isPlayoff: false, seriesInfo: nil, racingResults: nil
+    )
+  }
+}
+
+// MARK: - Race points (1E)
+
+final class RacePointsTests: XCTestCase {
+
+  func test_motogp_p1_is25() {
+    XCTAssertEqual(GameFormatters.racePoints(for: 1, sport: .motoGP), 25)
+  }
+
+  func test_f1_p1_is25() {
+    XCTAssertEqual(GameFormatters.racePoints(for: 1, sport: .f1), 25)
+  }
+
+  func test_f1_p2_is18() {
+    XCTAssertEqual(GameFormatters.racePoints(for: 2, sport: .f1), 18)
+  }
+
+  func test_f1_p10_is1() {
+    XCTAssertEqual(GameFormatters.racePoints(for: 10, sport: .f1), 1)
+  }
+
+  func test_f1_p11_isNil() {
+    XCTAssertNil(GameFormatters.racePoints(for: 11, sport: .f1))
+  }
+
+  func test_motogp_dnf_isNil() {
+    XCTAssertNil(GameFormatters.racePoints(for: 0, sport: .motoGP))
+  }
+
+  func test_nonRacing_isNil() {
+    XCTAssertNil(GameFormatters.racePoints(for: 1, sport: .nhl))
+  }
+}
+
+// MARK: - Race flag (1F)
+
+final class RaceFlagTests: XCTestCase {
+
+  func test_japanese() {
+    XCTAssertEqual(GameFormatters.raceFlag(for: "Japanese Grand Prix"), "🇯🇵")
+  }
+
+  func test_americas() {
+    XCTAssertEqual(GameFormatters.raceFlag(for: "Americas GP"), "🇺🇸")
+  }
+
+  func test_thailand() {
+    XCTAssertEqual(GameFormatters.raceFlag(for: "Thailand GP"), "🇹🇭")
+  }
+
+  func test_unknown_returnsNil() {
+    XCTAssertNil(GameFormatters.raceFlag(for: "Unknown Location GP"))
+  }
+
+  func test_brazil() {
+    XCTAssertEqual(GameFormatters.raceFlag(for: "Brazil GP"), "🇧🇷")
+  }
+
+  func test_qatar() {
+    XCTAssertEqual(GameFormatters.raceFlag(for: "Qatar GP"), "🇶🇦")
+  }
+}
+
+// MARK: - ScheduleSnapshot merge — remaining tests (1G)
+
+extension ScheduleSnapshotTests {
+
+  func test_nonDestructiveMerge_bothHaveGames_usesNew() {
+    let cached = ScheduleSnapshot(games: [makeGame(id: "old")], fetchedAt: Date(timeIntervalSinceNow: -60))
+    let fresh  = ScheduleSnapshot(games: [makeGame(id: "new")], fetchedAt: Date())
+    let merged = cached.mergingNondestructively(with: fresh)
+    XCTAssertEqual(merged.games.map(\.id), ["new"])
+  }
+
+  func test_nonDestructiveMerge_bothEmpty_staysEmpty() {
+    let cached = ScheduleSnapshot(games: [], fetchedAt: Date(timeIntervalSinceNow: -60))
+    let fresh  = ScheduleSnapshot(games: [], fetchedAt: Date())
+    let merged = cached.mergingNondestructively(with: fresh)
+    XCTAssertTrue(merged.games.isEmpty)
+  }
+
+  func test_nonDestructiveMerge_newSummaries_replaceExisting() {
+    let oldSummary = HomeTeamTeamSummary(compositeID: "nhl:1", record: "10-5", place: "1st",
+                                         last10: "7-3", streak: "W2", style: .standard)
+    let newSummary = HomeTeamTeamSummary(compositeID: "nhl:1", record: "11-5", place: "1st",
+                                         last10: "8-2", streak: "W3", style: .standard)
+    let cached = ScheduleSnapshot(games: [makeGame(id: "1")], fetchedAt: Date(timeIntervalSinceNow: -60),
+                                  teamSummaries: [oldSummary])
+    let fresh  = ScheduleSnapshot(games: [makeGame(id: "1")], fetchedAt: Date(),
+                                  teamSummaries: [newSummary])
+    let merged = cached.mergingNondestructively(with: fresh)
+    XCTAssertEqual(merged.teamSummaries.first?.record, "11-5")
+  }
+
+  func test_nonDestructiveMerge_emptySummaries_keepsExisting() {
+    let summary = HomeTeamTeamSummary(compositeID: "nhl:1", record: "10-5", place: "1st",
+                                      last10: "7-3", streak: "W2", style: .standard)
+    let cached = ScheduleSnapshot(games: [makeGame(id: "1")], fetchedAt: Date(timeIntervalSinceNow: -60),
+                                  teamSummaries: [summary])
+    let fresh  = ScheduleSnapshot(games: [makeGame(id: "1")], fetchedAt: Date(),
+                                  teamSummaries: [])
+    let merged = cached.mergingNondestructively(with: fresh)
+    XCTAssertEqual(merged.teamSummaries.first?.record, "10-5",
+      "Empty incoming summaries should not wipe existing")
+  }
+}
+
+// MARK: - App settings persistence — remaining tests (1H)
+
+extension AppGroupStoreTests {
+
+  func test_roundTrip_withFavoritesAndStreaming() throws {
+    try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil)
+    var settings = AppSettings.default
+    settings.favoriteTeamCompositeIDs = ["nhl:23", "f1:hamilton"]
+    settings.selectedStreamingServices = ["espnplus", "max"]
+    settings.zipCode = "20001"
+    try AppGroupStore.write(settings, to: "test_settings_full.json")
+    let loaded = try AppGroupStore.read(AppSettings.self, from: "test_settings_full.json")
+    XCTAssertEqual(loaded.favoriteTeamCompositeIDs, ["nhl:23", "f1:hamilton"])
+    XCTAssertEqual(loaded.selectedStreamingServices, ["espnplus", "max"])
+    XCTAssertEqual(loaded.zipCode, "20001")
+  }
+
+  func test_roundTrip_preservesNotificationSettings() throws {
+    try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil)
+    var settings = AppSettings.default
+    settings.notifications.gameStarting = false
+    settings.notifications.scoreUpdates = true
+    try AppGroupStore.write(settings, to: "test_settings_notif.json")
+    let loaded = try AppGroupStore.read(AppSettings.self, from: "test_settings_notif.json")
+    XCTAssertEqual(loaded.notifications.gameStarting, false)
+    XCTAssertEqual(loaded.notifications.scoreUpdates, true)
+    XCTAssertEqual(loaded.notifications.finalScore, true) // default
+  }
+
+  func test_decoding_defaultSettings_matchesStatic() throws {
+    try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil)
+    // Encode default, decode, confirm identical
+    let original = AppSettings.default
+    try AppGroupStore.write(original, to: "test_settings_default.json")
+    let loaded = try AppGroupStore.read(AppSettings.self, from: "test_settings_default.json")
+    XCTAssertEqual(original, loaded)
+    XCTAssertTrue(loaded.favoriteTeamCompositeIDs.isEmpty)
+    XCTAssertTrue(loaded.selectedStreamingServices.isEmpty)
+  }
+}
+
+// MARK: - MotoGP circuit timezones (1I)
+
+final class MotoGPCircuitTimezoneTests: XCTestCase {
+
+  func test_circuitTimezone_COTA_isChicago() throws {
+    let json = makeEventsJSON(legacyID: 101)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    let tz = timezones.values.first
+    XCTAssertEqual(tz?.identifier, "America/Chicago")
+  }
+
+  func test_circuitTimezone_Silverstone_isLondon() throws {
+    let json = makeEventsJSON(legacyID: 42)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    let tz = timezones.values.first
+    XCTAssertEqual(tz?.identifier, "Europe/London")
+  }
+
+  func test_circuitTimezone_Motegi_isTokyo() throws {
+    let json = makeEventsJSON(legacyID: 76)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    let tz = timezones.values.first
+    XCTAssertEqual(tz?.identifier, "Asia/Tokyo")
+  }
+
+  func test_circuitTimezone_unknownID_returnsEmpty() throws {
+    let json = makeEventsJSON(legacyID: 999)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    XCTAssertTrue(timezones.isEmpty)
+  }
+
+  func test_circuitTimezone_PhillipIsland_isMelbourne() throws {
+    let json = makeEventsJSON(legacyID: 32)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    let tz = timezones.values.first
+    XCTAssertEqual(tz?.identifier, "Australia/Melbourne")
+  }
+
+  func test_circuitTimezone_Sepang_isKualaLumpur() throws {
+    let json = makeEventsJSON(legacyID: 75)
+    let timezones = MotoGPCalendarParser.circuitTimezones(from: json)
+    let tz = timezones.values.first
+    XCTAssertEqual(tz?.identifier, "Asia/Kuala_Lumpur")
+  }
+
+  private func makeEventsJSON(legacyID: Int) -> Data {
+    """
+    [{"id":"evt-tz","date_start":"2026-03-27","test":false,
+      "circuit":{"legacy_id":\(legacyID),"name":"Test Circuit","place":"Test","nation":"TST"}}]
+    """.data(using: .utf8)!
+  }
+}
+
+// MARK: - HomeTeamGame patching (1O)
+
+final class HomeTeamGamePatchingTests: XCTestCase {
+
+  func test_patchingRacingResults_attachesResults() {
+    let game = makeGame()
+    let results = [RacingResultLine(position: 1, driverName: "Hamilton", teamName: "Mercedes",
+                                    timeOrGap: nil, espnTeamID: nil)]
+    let patched = game.patchingRacingResults(results)
+    XCTAssertEqual(patched.racingResults?.count, 1)
+    XCTAssertEqual(patched.racingResults?.first?.driverName, "Hamilton")
+  }
+
+  func test_patchingRacingResults_preservesOtherFields() {
+    let game = makeGame()
+    let patched = game.patchingRacingResults([])
+    XCTAssertEqual(patched.id, game.id)
+    XCTAssertEqual(patched.sport, game.sport)
+    XCTAssertEqual(patched.homeTeamName, game.homeTeamName)
+    XCTAssertEqual(patched.scheduledAt, game.scheduledAt)
+    XCTAssertEqual(patched.status, game.status)
+  }
+
+  func test_patchingScheduledAt_updatesDate() {
+    let game = makeGame()
+    let newDate = Date(timeIntervalSince1970: 2_000_000_000)
+    let patched = game.patchingScheduledAt(newDate)
+    XCTAssertEqual(patched.scheduledAt, newDate)
+  }
+
+  func test_patchingScheduledAt_preservesOtherFields() {
+    let game = makeGame()
+    let patched = game.patchingScheduledAt(Date())
+    XCTAssertEqual(patched.id, game.id)
+    XCTAssertEqual(patched.sport, game.sport)
+    XCTAssertEqual(patched.homeTeamName, game.homeTeamName)
+    XCTAssertEqual(patched.status, game.status)
+    XCTAssertEqual(patched.homeScore, game.homeScore)
+  }
+
+  func test_patching_updatesScoresAndDetail() {
+    let game = makeGame()
+    let patched = game.patching(homeScore: 3, awayScore: 1, statusDetail: "3rd Period")
+    XCTAssertEqual(patched.homeScore, 3)
+    XCTAssertEqual(patched.awayScore, 1)
+    XCTAssertEqual(patched.statusDetail, "3rd Period")
+    XCTAssertEqual(patched.id, game.id)
+  }
+
+  private func makeGame() -> HomeTeamGame {
+    HomeTeamGame(
+      id: "patch-test", sport: .nhl,
+      homeTeamID: "1", awayTeamID: "2",
+      homeTeamName: "Home", awayTeamName: "Away",
+      homeTeamAbbrev: "HOM", awayTeamAbbrev: "AWY",
+      homeScore: nil, awayScore: nil,
+      homeRecord: "10-5", awayRecord: "8-7",
+      scheduledAt: Date(timeIntervalSince1970: 1_700_000_000),
+      status: .scheduled,
+      statusDetail: nil, venueName: "Arena",
+      broadcastNetworks: ["ESPN+"],
+      isPlayoff: false, seriesInfo: nil, racingResults: nil
+    )
+  }
+}

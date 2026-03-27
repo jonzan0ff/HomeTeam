@@ -5,213 +5,111 @@
 
 ---
 
-## Layer 0 — App Group smoke test (run before writing any HomeTeam code)
+## Layer 0 — App Group smoke test (separate project)
 
-> **Why this exists**: the old app's entitlements files were empty — meaning the widget and app were almost certainly writing to separate sandboxed containers, not the shared App Group. This is likely the root cause of the widget QA failures. We verify the plumbing works before building anything on top of it.
->
-> This is a **throwaway two-target Xcode project** (`AppGroupSmokeTest`). It has no product value. Its only job is to prove that the Apple Developer account, Xcode signing, and the App Group identifier `group.com.jonzanoff.hometeam` all work together on this machine. Once it passes it can be deleted or archived.
+> A throwaway two-target Xcode project (`AppGroupSmokeTest`) proving the App Group plumbing works.
+> Once it passes it can be archived. Not part of the main test suite.
 
-### What to build
-
-A minimal Xcode project with **two targets** and **one test target**, all sharing the same App Group:
-
-**Target 1 — `SmokeApp`** (macOS App)
-- On launch: writes `{"source": "app", "timestamp": "<ISO date>"}` to `<AppGroupContainer>/smoke_test.json`
-- Displays the write result on screen (success or error message)
-- Entitlement: `com.apple.security.application-groups` = `["group.com.jonzanoff.hometeam"]`
-
-**Target 2 — `SmokeWidget`** (WidgetKit extension)
-- Timeline provider reads `smoke_test.json` from the same App Group container
-- Widget displays the `source` and `timestamp` values, or "No data yet" if the file is absent
-- Entitlement: same App Group as above
-
-**Target 3 — `SmokeTests`** (XCTest, also has the App Group entitlement)
-
-The tests I can run with `xcodebuild test`:
-
-```
-testAppGroupContainerURLIsNonNil
-  → FileManager.containerURL(forSecurityApplicationGroupIdentifier: "group.com.jonzanoff.hometeam") != nil
-  → FAILS if the group is not registered in the Apple Developer portal or entitlements are wrong
-
-testAppGroupContainerIsWritable
-  → Write a known string to <container>/smoke_rw_test.txt
-  → Read it back, assert content matches
-  → FAILS if the container exists but permissions are wrong
-
-testAppGroupRoundTripJSON
-  → Encode {"ping": true, "value": 42} → write to <container>/smoke_json.json
-  → Decode from same path → assert decoded values match
-  → FAILS if JSON serialization or file I/O through the container is broken
-
-testAppGroupWriteFromOneTargetReadFromAnother
-  → This is the cross-process proof: SmokeApp writes the file at launch (UAT step)
-  → This test reads that same file from the test runner process (which also has the entitlement)
-  → Assert the file exists and contains `"source": "app"`
-  → FAILS if the app and test runner are not sharing the same container
-```
-
-### Pass criteria (I can verify all of these)
-
-```
-xcodebuild test \
-  -project AppGroupSmokeTest.xcodeproj \
-  -scheme SmokeTests \
-  -destination 'platform=macOS' \
-  CODE_SIGN_IDENTITY="Apple Development" \
-  DEVELOPMENT_TEAM=<your team ID>
-```
-
-All 4 tests green = App Group is correctly provisioned, entitlements are set, and cross-process file sharing works.
-
-### What the human needs to verify (UAT, 2 minutes)
-
-1. Build and run `SmokeApp` — confirm it shows "Write succeeded"
-2. Add `SmokeWidget` to the macOS desktop
-3. Confirm the widget shows the timestamp written by the app (not "No data yet")
-
-If the widget shows "No data yet" after the app has launched, the App Group is not shared between the two processes despite the tests passing — which would indicate a signing/provisioning mismatch that needs fixing before HomeTeam development begins.
-
-### Why not just use the HomeTeam entitlements directly
-
-Because debugging App Group issues inside a complex app (with real data fetching, settings, widget configuration) is hard. The smoke test isolates the one variable — shared container file I/O — with zero noise. Fix the plumbing at minimum complexity, then build on it.
+| Test | Asserts |
+|---|---|
+| `testAppGroupContainerURLIsNonNil` | `containerURL(forSecurityApplicationGroupIdentifier:)` returns non-nil |
+| `testAppGroupContainerIsWritable` | Write + read back from container succeeds |
+| `testAppGroupRoundTripJSON` | Encode → write → decode round-trip produces identical values |
+| `testAppGroupWriteFromOneTargetReadFromAnother` | File written by SmokeApp is readable from test runner |
 
 ---
 
 ## The hard limit: widget OS integration cannot be automated
 
-The following widget behaviors **cannot be automated by any test tooling** — they are UAT-only:
-
-| Action | Why it cannot be automated |
+| Action | Why |
 |---|---|
-| Add widget from macOS gallery | `com.apple.notificationcenterui` is a separate OS process; XCUITest cannot drive it without system accessibility grants that CI machines do not have |
-| Widget configuration sheet appears on add | The sheet is OS-rendered, not app-rendered |
-| Select a team in the widget picker | Same OS process restriction |
-| Edit widget (right-click → Edit "HomeTeam") | Same |
-| Widget re-renders after team change | WidgetKit timeline delivery is OS-scheduled; no force-refresh API |
+| Add widget from macOS gallery | `notificationcenterui` is a separate OS process |
+| Widget configuration sheet | OS-rendered, not app-rendered |
+| Team picker selection | Same OS process restriction |
+| Widget re-renders after change | WidgetKit timeline is OS-scheduled |
 
-The previous `desktop_automation_gate.sh` attempted to bridge this via AppleScript/Accessibility APIs. It was fragile, required a real signed build, required a real Mac with accessibility permissions granted, and was not CI-safe. **Do not attempt to automate these steps in the rebuild.**
-
-The strategy is: make every layer *below* the OS surface airtight with automation, so the manual UAT checklist is as short as possible.
-
-### Widget QA coverage map
-
-| What you're checking | How it's covered |
-|---|---|
-| Widget view renders correctly | Snapshot tests with fixture data |
-| Filtering / formatting logic | Unit tests |
-| App Group JSON has valid favorites | Shared container UI tests |
-| Timeline entry builds correctly | Unit tests on `HomeTeamWidgetContentState` |
-| Widget picks correct team after add | **UAT only** |
-| Widget picker shows teams (not empty) | **UAT only** (JSON correctness is unit-tested; picker rendering is not) |
-| Widget re-renders after settings change | **UAT only** |
+Strategy: make every layer **below** the OS surface airtight so manual UAT is minimal.
 
 ---
 
-## The core problem with widget QA (remaining automation challenges)
-
-Widgets are the hardest surface to automate on macOS because:
-
-1. **The widget process is isolated.** It has no XPC connection to the app during a test run.
-2. **WidgetKit timeline delivery is OS-controlled.** You cannot force a refresh in XCUITest.
-3. **The widget picker reads from an App Group JSON file.** If that file is wrong/missing, the picker shows nothing — and you only discover this at UAT.
-4. **Widget rendering is a WidgetKit view.** You cannot interact with it via accessibility.
-
-The solution is **to test layers, not the rendered widget directly**.
-
----
-
-## Test pyramid for HomeTeam
+## Test pyramid
 
 ```
          ┌──────────────────────────────┐
          │   UAT (human)                │  ← pixel polish, OS widget picker UX
          ├──────────────────────────────┤
-         │   UI Tests (XCUITest)        │  ← app navigation, onboarding flow,
+         │   UI Tests (XCUITest)        │  ← app navigation, onboarding,
          │                              │     App Group JSON correctness
          ├──────────────────────────────┤
-         │   Snapshot / Preview Tests   │  ← widget view rendered with fixture data
+         │   Snapshot / Preview Tests   │  ← widget view with fixture data
          ├──────────────────────────────┤
-         │   Unit Tests (no network)    │  ← all business logic, filtering, formatting
+         │   Unit Tests (no network)    │  ← all business logic
          └──────────────────────────────┘
 ```
-
-The widget's **visual output** is tested at the Snapshot layer with known fixture data.
-The widget's **data correctness** is tested at the Unit layer.
-The App Group **plumbing** is tested at the UI Test layer.
 
 ---
 
 ## Layer 1 — Unit tests (no network, no UI, instant)
 
-These must all pass before any handoff. Run via `qa_unit_gate.sh`.
+Run via `xcodebuild test -only-testing HomeTeamTests`.
 
-### 1A. Game filtering
+### 1A. Widget game filtering
 
-Test `Array<HomeTeamGame>` extension methods with fixture arrays.
+The widget timeline provider (`makeEntry`) splits games into live/previous/upcoming. These
+filtering rules are extracted into `WidgetGameFilter` for testability.
 
 | Test | Input | Expected |
 |---|---|---|
-| `nextWidgetGames` includes live game from yesterday | live game with yesterday's start | included |
-| `nextWidgetGames` excludes final from yesterday | final game | excluded |
-| `nextWidgetGames` includes scheduled from start-of-today | startTimeUTC = midnight today | included |
-| `nextWidgetGames` returns max 3 | 10 upcoming games | 3 |
-| `upcomingGames` excludes MotoGP practice | session name "Free Practice 1" | excluded |
-| `upcomingGames` excludes MotoGP qualifying | session name "Qualifying" | excluded |
-| `upcomingGames` excludes MotoGP warm-up | session name "Warm Up" | excluded |
-| `upcomingGames` includes MotoGP sprint | session name "Sprint" | included |
-| `upcomingGames` includes MotoGP grand prix | session name "Spanish Grand Prix" | included |
-| `upcomingGames` includes MotoGP main race | session name "Race" | included |
-| `upcomingGames` passes all F1 sessions | session name "Free Practice 1", sport .f1 | included |
-| `previousGames` excludes live games | live game from yesterday | excluded |
-| `previousGames` excludes future finals | final game in future (edge case) | excluded |
-| `previousGames` returns most recent first | 5 finals | newest first |
-| `previousGames` limits to racing season year | 2024 races + 2025 upcoming | 2025 only |
+| `live_includesLiveGames` | game with `.live` status | included in live |
+| `live_excludesFinalGames` | game with `.final` status | excluded from live |
+| `live_excludesScheduledGames` | game with `.scheduled` status | excluded from live |
+| `previous_includesFinalBeforeNow` | final game, `scheduledAt` in past | included |
+| `previous_excludesFinalAfterNow` | final game, `scheduledAt` in future | excluded |
+| `previous_excludesLiveGames` | live game | excluded |
+| `previous_sortedNewestFirst` | 5 finals at different dates | most recent first |
+| `previous_limitedTo3` | 10 final games | only 3 returned |
+| `upcoming_includesScheduledAfterNow` | scheduled game in future | included |
+| `upcoming_excludesScheduledBeforeNow` | scheduled game in past | excluded |
+| `upcoming_excludesFinalGames` | final game in future | excluded |
+| `upcoming_sortedEarliestFirst` | 5 scheduled games | chronological order |
+| `upcoming_limitedTo3` | 10 scheduled games | only 3 returned |
+| `racing_matchesBySport` | F1 game, team with `sport == .f1` | included |
+| `racing_doesNotMatchByTeamID` | F1 game, team with different sport | excluded |
+| `teamSport_matchesByHomeTeamID` | NHL game, team with matching `espnTeamID` | included |
+| `teamSport_matchesByAwayTeamID` | NHL game, team with matching `espnTeamID` as away | included |
+| `teamSport_excludesNonMatchingTeamID` | NHL game, wrong team | excluded |
+| `streamingFilter_passesAll_whenNoSelection` | no streaming keys, any game | included |
+| `streamingFilter_passesMatching` | `["espnplus"]`, game on ESPN+ | included |
+| `streamingFilter_hidesNonMatching` | `["espnplus"]`, game on Peacock | excluded |
+| `isOffSeason_true_whenNoUpcomingAndNotRacing` | NHL, no upcoming games | `isOffSeason = true` |
+| `isOffSeason_false_forRacingSports` | F1, no upcoming games | `isOffSeason = false` |
 
-### 1B. Streaming filter
+### 1B. Streaming service matching
 
-| Test | Selected services | Game services | Expected |
-|---|---|---|---|
-| No selection → pass | `[]` | `["Regional Sports Network"]` | pass |
-| No selection → pass even unknown | `[]` | `["Foobar TV"]` | pass |
-| Selection → ESPN game passes | `["espn+"]` | `["ESPN+"]` | pass |
-| Selection → non-matching fails | `["hulu"]` | `["ESPN+"]` | fail |
-| Selection → unknown service fails | `["apple tv"]` | `["Regional Sports Network"]` | fail |
-| Hulu TV vs Hulu normalization | `["hulu tv"]` | `["Hulu + Live TV"]` | pass |
-| Hulu TV vs Hulu normalization | `["hulu"]` | `["Hulu + Live TV"]` | fail (Hulu TV ≠ Hulu) |
-| HBO catches TNT | `["hbo"]` | `["TNT"]` | pass |
-| HBO catches Bleacher Report | `["hbo"]` | `["Bleacher Report"] ` | pass |
-| Amazon catches Prime Video | `["amazon"]` | `["Prime Video"]` | pass |
-| Multiple services — first match wins | `["hulu"]` | `["ESPN+", "Hulu"]` | pass |
+Tests for `StreamingServiceMatcher.canonicalKey(for:)` and `isMatch(rawName:selectedKeys:)`.
 
-### 1C. Streaming service normalization
+| Test | Input | Expected |
+|---|---|---|
+| `canonicalKey_espnPlus` | `"ESPN+"` | `"espnplus"` |
+| `canonicalKey_appleTV` | `"Apple TV+"` | `"appletvplus"` |
+| `canonicalKey_appleTV_withoutPlus` | `"Apple TV"` | `"appletvplus"` |
+| `canonicalKey_primevideo` | `"Amazon Prime Video"` | `"primevideo"` |
+| `canonicalKey_fs1_variants` | `"FS1"`, `"Fox Sports 1"` | `"fs1"` |
+| `canonicalKey_fs2_variants` | `"FS2"`, `"Fox Sports 2"` | `"fs2"` |
+| `canonicalKey_fox` | `"Fox"` | `"fox"` |
+| `canonicalKey_max_catchesTNT` | `"TNT"` | `"max"` |
+| `canonicalKey_max_catchesHBO` | `"HBO"`, `"HBO Max"` | `"max"` |
+| `canonicalKey_max_catchesTNTSlashHBO` | `"TNT/HBO"` | `"max"` |
+| `canonicalKey_max_catchesTruTV` | `"TruTV"`, `"truTV"`, `"TrueTV"` | `"max"` |
+| `canonicalKey_unknown_returnsNil` | `"FakeNetwork123"` | `nil` |
+| `isMatch_returnsTrue_whenKeyInSet` | `"ESPN+"` with `["espnplus"]` | `true` |
+| `isMatch_returnsFalse_whenKeyNotInSet` | `"Peacock"` with `["espnplus"]` | `false` |
+| `isMatch_returnsFalse_whenNoServicesSelected` | `"ESPN+"` with `[]` | `false` |
+| `isMatch_max_selected_catchesTNTSlashHBO` | `"TNT/HBO"` with `["max"]` | `true` |
 
-`AppSettings.normalizedServiceName(rawValue)` unit tests:
+### 1C. Race name formatting
 
-| Input | Expected canonical |
-|---|---|
-| `"ESPN+"` | `"espn+"` |
-| `"ESPN Plus"` | `"espn+"` |
-| `"Hulu + Live TV"` | `"hulu tv"` |
-| `"Hulu Live TV"` | `"hulu tv"` |
-| `"Hulu"` | `"hulu"` |
-| `"Paramount+"` | `"paramount"` |
-| `"Amazon Prime Video"` | `"amazon"` |
-| `"Prime Video"` | `"amazon"` |
-| `"Apple TV+"` | `"apple tv"` |
-| `"AppleTV+"` | `"apple tv"` |
-| `"YouTube TV"` | `"youtube tv"` |
-| `"TNT"` | `"hbo"` |
-| `"TBS"` | `"hbo"` |
-| `"TruTV"` | `"hbo"` |
-| `"Bleacher Report"` | `"hbo"` |
-| `"Max"` | `"hbo"` |
-| `"Netflix"` | `"netflix"` |
-| `"Regional Sports Network"` | `"regional sports network"` (passthrough) |
-
-### 1D. Race name formatting
-
-`compactRaceName(from:)` unit tests:
+Tests for `GameFormatters.compactRaceName(from:)`.
 
 | Input | Expected |
 |---|---|
@@ -221,132 +119,237 @@ Test `Array<HomeTeamGame>` extension methods with fixture arrays.
 | `"Grand Prix of Monaco"` | `"Monaco GP"` |
 | `"Heineken Dutch Grand Prix"` | `"Dutch GP"` |
 | `"MotoGP Grand Prix of Spain"` | `"Spain GP"` |
-| `"São Paulo GP"` | `"São Paulo GP"` |
+| `"GP of Monaco"` | `"Monaco GP"` |
+| `"MotoGP GP of Spain"` | `"Spain GP"` |
+| `"Qatar Airways Australian GP"` | `"Australian GP"` |
+| `"São Paulo GP"` | `"São Paulo GP"` (unchanged, 3-word) |
+| `"United States Grand Prix"` | `"Americas GP"` (hard-coded override) |
 | `""` | `""` |
 
-### 1E. Live status compact label
+### 1D. Live status compact label
 
-`compactLiveStatus(from:)` unit tests:
+Tests for `GameFormatters.compactLiveStatus(from:)`.
 
 | Input | Expected |
 |---|---|
+| `nil` | `"LIVE"` |
 | `""` | `"LIVE"` |
-| `"End of the 2nd Period Intermission"` | `"2ND INT"` |
 | `"3rd Period - 14:32"` | `"3RD • 14:32"` |
-| `"Shootout"` | `"SO"` |
-| `"Overtime"` | `"OT"` |
+| `"End of the 2nd Period Intermission"` | `"2ND INT"` |
 | `"Intermission"` | `"INT"` |
+| `"Overtime"` | `"OT"` |
+| `"Shootout"` | `"SO"` |
 
-### 1F. Widget content state
+### 1E. Race points
 
-Test `HomeTeamWidgetContentState` with fixture `ScheduleSnapshot` and `AppSettings`:
+Tests for `GameFormatters.racePoints(for:sport:)`.
 
-| Scenario | Expected `widgetEmptyStateMessage` title |
+| Position | Sport | Expected |
+|---|---|---|
+| 1 | `.motoGP` | `25` |
+| 1 | `.f1` | `25` |
+| 2 | `.f1` | `18` |
+| 10 | `.f1` | `1` |
+| 11 | `.f1` | `nil` (outside points) |
+| 0 | `.motoGP` | `nil` (DNF) |
+| 5 | `.nhl` | `nil` (non-racing) |
+
+### 1F. Race flag lookup
+
+Tests for `GameFormatters.raceFlag(for:)`.
+
+| Input | Expected |
 |---|---|
-| Team not configured, no favorites | "Add favorites in HomeTeam" |
-| Team not configured, favorites exist | "Widget not configured" |
-| API error message present | "Unable to load games" |
-| Upcoming hidden by streaming filter | "Upcoming hidden by streaming filters" |
-| Games exist but none qualify | "Schedule is still catching up" |
-| Truly empty (no games at all) | "No games available" |
-
-Test `upcomingHiddenByStreamingFilter`:
-- True when: unfiltered upcoming non-empty AND filtered upcoming empty
-- False when: no services selected
-- False when: not configured
+| `"Japanese Grand Prix"` | `"🇯🇵"` |
+| `"Americas GP"` | `"🇺🇸"` |
+| `"Thailand GP"` | `"🇹🇭"` |
+| `"Unknown Location GP"` | `nil` |
 
 ### 1G. ScheduleSnapshot merge (non-destructive)
 
-| Scenario | Expected result |
+Tests for `ScheduleSnapshot.mergingNondestructively(with:)`.
+
+| Scenario | Expected |
 |---|---|
-| New snapshot has games → use new | new games |
-| New snapshot empty, no error, existing has games → keep existing | existing games |
-| New snapshot has error → use new (show error) | new (error) |
-| New snapshot empty + error → use new | new (error) |
-| New snapshot empty, existing nil → use new | empty |
+| New snapshot has games | use new games |
+| New snapshot empty, existing has games | keep existing games |
+| New snapshot has games, existing has games | use new games |
+| New snapshot empty, existing empty | empty |
+| New has summaries, existing has summaries | use new summaries |
+| New has empty summaries, existing has summaries | keep existing summaries |
 
-### 1H. App settings persistence round-trip
+### 1H. App settings persistence
 
-- Save settings with favorites + streaming + zip → reload → values identical
-- Unknown composite team IDs are stripped on decode (sanitization)
-- Duplicate favorite IDs deduplicated on save
-- `meetsOnboardingRequirements`: true iff ≥1 favorite AND ≥1 streaming service
+Tests for `AppGroupStore.write/read` with `AppSettings`.
 
-### 1I. NFL season endpoint logic
+| Test | Asserts |
+|---|---|
+| `roundTrip_default` | Encode + decode `.default` → identical |
+| `roundTrip_withFavoritesAndStreaming` | Populated settings survive round-trip |
+| `roundTrip_preservesNotificationSettings` | Nested `AppNotificationSettings` intact |
+| `decoding_missingFieldsFallsBackToDefaults` | Old JSON without new fields decodes gracefully |
 
-- Month ≥ August → active season = current year
-- Month < August → active season = current year - 1
-- Both active and active-1 included
-- Season types 2 and 3 for each
+### 1I. MotoGP calendar parser
+
+Tests for `MotoGPCalendarParser.parse(_:)` and `circuitTimezones(from:)`.
+
+| Test | Asserts |
+|---|---|
+| `usesDateEnd_asRaceDay` | `scheduledAt` weekday = Sunday (from `date_end`) |
+| `fallsBackToDateStart_whenNoDateEnd` | Uses `date_start` when `date_end` is nil |
+| `hardcodesFS1_broadcast` | `broadcastNetworks == ["FS1"]` |
+| `grandPrix_shortenedToGP` | `homeTeamName` contains "GP", not "Grand Prix" |
+| `filtersOutTestEvents` | `test: true` events produce 0 games |
+| `status_finished_mapsFinal` | `"FINISHED"` → `.final` |
+| `status_inProgress_mapsLive` | `"IN-PROGRESS"` → `.live` |
+| `status_started_mapsScheduled` | `"STARTED"` → `.scheduled` |
+| `status_nil_futureDate_mapsScheduled` | nil status, future date → `.scheduled` |
+| `status_nil_pastDate_mapsFinal` | nil status, past date → `.final` |
+| `circuitTimezone_COTA_isChicago` | legacy_id 101 → `America/Chicago` |
+| `circuitTimezone_Silverstone_isLondon` | legacy_id 42 → `Europe/London` |
+| `circuitTimezone_Motegi_isTokyo` | legacy_id 76 → `Asia/Tokyo` |
+| `circuitTimezone_unknownID_returnsEmpty` | legacy_id 999 → not in map |
+
+### 1J. ESPN racing parser
+
+Tests for `ESPNRacingParser.parse(_:sport:)`.
+
+| Test | Asserts |
+|---|---|
+| `usesTypeId3_asRaceCompetition` | Race date from competition with `type_id: 3` |
+| `fallsBackToLastCompetition_whenNoTypeId3` | Uses last competition as fallback |
+| `extractsBroadcastNames` | Broadcast names from `names` array |
+| `broadcastNames_emptyWhenNoBroadcasts` | Empty array when no broadcasts |
+| `appleTV_matchesStreamingFilter` | `"Apple TV"` → `appletvplus` key |
+| `homeTeamName_storedVerbatim` | Raw name preserved (sponsor stripping at display time) |
+| `status_pre_mapsScheduled` | `"pre"` → `.scheduled` |
+| `status_in_mapsLive` | `"in"` → `.live` |
+| `status_post_completed_mapsFinal` | `"post"` + `completed: true` → `.final` |
+| `sport_passedThrough` | Sport parameter flows through to game |
+
+### 1K. Menu bar game filter
+
+Tests for `menuBarGames(from:selectedStreamingKeys:hiddenCompositeIDs:)`.
+
+| Test | Asserts |
+|---|---|
+| `excludesFinalGames` | Final games not in result |
+| `excludesPostponedGames` | Postponed games not in result |
+| `sortedByScheduledAt` | Ascending by `scheduledAt` |
+| `noStreamingSelection_showsAll` | Empty keys → all games pass |
+| `streamingFilter_showsMatchingGame` | Matching game included |
+| `streamingFilter_hidesNonMatchingGame` | Non-matching game excluded |
+| `streamingFilter_hidesUnrecognisedNetworks` | Unknown network excluded when filter active |
+
+### 1L. App Group store
+
+Tests for `AppGroupStore` container access and file operations.
+
+| Test | Asserts |
+|---|---|
+| `containerURL_isNonNil` | App Group container accessible (skip in unsigned CI) |
+| `roundTrip_appSettings` | Write + read `AppSettings` produces identical result |
+| `logoFileURL_emptyEspnTeamID_alwaysNil` | Empty ID → `nil` for any sport |
+| `logoFileURL_motoGP_nonexistentID_isNil` | Non-existent file → `nil` |
+
+### 1M. Team catalog integrity
+
+| Test | Asserts |
+|---|---|
+| `nhl_washingtonCapitals_espnTeamID` | ESPN ID = `"23"` |
+| `nhl_seattleKraken_espnTeamID` | ESPN ID = `"124292"` |
+| `nhl_espnTeamIDs_areUnique` | No duplicate ESPN IDs within NHL |
+| `f1_allEntries_haveNonEmptyEspnTeamID` | No empty `espnTeamID` in F1 catalog |
+| `f1_kickSauber_isInCatalog` | 2 driver entries for Kick Sauber |
+| `f1_raceLabel_includesDriver` | `raceLabel` contains driver name + constructor |
+| `motoGP_ducati_displayName_isJustDucati` | No "Lenovo" in display name |
+| `motoGP_allEntries_haveDriverDisplayName` | No nil/empty `driverDisplayName` |
+
+### 1N. HomeTeamTeamSummary formatting
+
+Tests for `inlineDisplay` and `shortenPlace`.
+
+| Test | Asserts |
+|---|---|
+| `shortenPlace_NFC` | `"National Football Conference"` → `"NFC"` |
+| `shortenPlace_AFC` | `"American Football Conference"` → `"AFC"` |
+| `shortenPlace_metropolitanDivision` | → `"Metro Div."` |
+| `shortenPlace_nationalLeague` | → `"NL"` |
+| `shortenPlace_unknownDivision_passesThrough` | Unrecognized text unchanged |
+| `inlineDisplay_standard_format` | Contains record, L10, streak, shortened place |
+| `inlineDisplay_hides_l10_when_missing` | `"-"` → no "L10" in output |
+| `inlineDisplay_hides_streak_when_missing` | `"-"` → no trailing dash |
+| `inlineDisplay_racing_format` | Contains Place, Pts, Wins, Podiums |
+
+### 1O. HomeTeamGame patching
+
+Tests for `patchingRacingResults`, `patchingScheduledAt`, `patching(homeScore:...)`.
+
+| Test | Asserts |
+|---|---|
+| `patchingRacingResults_attachesResults` | Results present on returned copy |
+| `patchingRacingResults_preservesOtherFields` | All other fields unchanged |
+| `patchingScheduledAt_updatesDate` | `scheduledAt` changed to new date |
+| `patchingScheduledAt_preservesOtherFields` | All other fields unchanged |
+| `patching_updatesScoresAndDetail` | Scores and statusDetail changed |
 
 ---
 
 ## Layer 2 — Snapshot / Preview tests (no network, visual regression)
 
-Use `swift-snapshot-testing` (or Xcode's built-in `assertSnapshot`) against `HomeTeamWidgetContentView`.
-
-Build a set of **fixture data factories** covering:
+Use `swift-snapshot-testing` against `HomeTeamWidgetEntryView`.
 
 ### 2A. Fixture scenarios
 
-| Fixture name | Sport | Previous | Upcoming | Notes |
+| Fixture | Sport | Previous | Upcoming | Notes |
 |---|---|---|---|---|
 | `nhl_typical` | NHL | 3 finals with scores | 3 scheduled with records | Standard case |
-| `nhl_live_game` | NHL | 2 finals | 1 live (2nd period) + 2 scheduled | Live indicator |
-| `nhl_empty_upcoming` | NHL | 3 finals | empty | Off-season |
-| `f1_typical` | F1 | 3 GP finals with results | 3 GP scheduled | Race results |
-| `f1_upcoming_practice` | F1 | 1 GP final | FP1 + qualifying + sprint | All F1 sessions shown |
-| `motogp_typical` | MotoGP | 3 GP finals | sprint + GP only | Practice filtered out |
-| `motogp_filtered_by_streaming` | MotoGP | 2 finals | all hidden by streaming filter | Streaming hint message |
-| `unconfigured_no_favorites` | — | — | — | "Add favorites" state |
-| `unconfigured_favorites_exist` | — | — | — | "Widget not configured" state |
-| `api_error` | NHL | stale 3 finals | error message | Error state |
-| `racing_season_year_boundary` | F1 | 2024 races hidden, 2025 races shown | — | Year-filtered previous |
+| `nhl_live_game` | NHL | 2 finals | 1 live + 2 scheduled | Live red border |
+| `nhl_offseason` | NHL | 3 finals | empty | Off-season message |
+| `f1_typical` | F1 | 2 GP finals with results | 3 GP scheduled | Race results + names |
+| `motogp_typical` | MotoGP | 2 GP finals | 3 GP scheduled | Abbreviated driver names |
+| `unconfigured` | — | — | — | Placeholder state |
+| `no_games` | NHL | empty | empty | "No games available" |
 
-### 2B. Snapshot test approach
+### 2B. Approach
 
 ```swift
-// Example: renders widget view with fixture, diffs against stored reference PNG
 func testNHLTypical() {
-    let state = HomeTeamWidgetContentState(
-        referenceDate: .fixture_march_25_2025,
-        snapshot: .nhl_typical,
-        settings: .fixture_espn_hulu,
-        team: .boston_bruins,
-        isTeamSelectionConfigured: true
+    let entry = HomeTeamEntry(
+        date: .fixture,
+        teamDefinition: .fixture_capitals,
+        teamSummary: .fixture_nhl,
+        isOffSeason: false,
+        liveGames: [],
+        previousGames: .fixture_nhl_previous,
+        upcomingGames: .fixture_nhl_upcoming,
+        fetchedAt: .fixture,
+        streamingKeys: []
     )
-    let view = HomeTeamWidgetContentView(state: state)
-        .frame(width: 329, height: 345) // systemLarge macOS widget size
+    let view = HomeTeamWidgetEntryView(entry: entry)
+        .frame(width: 329, height: 345)
     assertSnapshot(matching: view, as: .image)
 }
 ```
-
-Snapshots are committed as reference images. Any pixel change fails CI and requires explicit re-record.
-
-**Why this matters for the widget**: it catches the full rendering pipeline — filtering, formatting, badge colors, empty states — without touching a real widget instance.
 
 ---
 
 ## Layer 3 — UI tests (XCUITest, real app process)
 
-### 3A. Onboarding flows (already exist — keep)
+### 3A. Onboarding flows
 - Onboarding shown after reset
 - Quick links route to correct Settings sections
 - Onboarding dismisses after favorite + streaming + refresh
 
-### 3B. App Group container correctness (critical for widget)
-
-These tests verify the shared container that the **widget reads**.
+### 3B. App Group container correctness
 
 | Test | What it checks |
 |---|---|
 | App Group container URL available | Entitlements configured correctly |
 | `app_settings.json` written after onboarding | File exists and is valid JSON |
 | `favoriteTeamCompositeIDs` non-empty after adding a favorite | Widget picker will show teams |
-| `schedule_snapshot_{id}.json` written after refresh | Widget can render data |
+| `schedule_snapshot.json` written after refresh | Widget can render data |
 | `selectedStreamingServices` persists across app relaunch | Widget inherits filter |
-
-**This is the highest-value test in the entire suite** because empty favorites = empty widget picker = UAT failure.
 
 ### 3C. Settings persistence
 
@@ -357,102 +360,85 @@ These tests verify the shared container that the **widget reads**.
 | Remove favorite → relaunch → gone | Removal survives relaunch |
 | Toggle streaming service → relaunch → still toggled | Streaming survives relaunch |
 
-### 3D. Test version label
-- Settings → About shows `AppTestVersion.displayString` matching `^\d+\.\d{3} \(.+\)$`
-
 ---
 
 ## Layer 4 — Network smoke tests (opt-in, CI nightly)
 
-Run with `HOMETEAM_RUN_NETWORK_TESTS=1`. Not required for every PR.
+Run with `HOMETEAM_RUN_NETWORK_TESTS=1`.
 
 | Test | Checks |
 |---|---|
 | ESPN NHL schedule returns ≥1 game | API contract stable |
 | ESPN F1 schedule returns ≥1 event | API contract stable |
 | MotoGP PulseLive returns ≥1 event | API contract stable |
+| MotoGP PulseLive sessions returns ≥1 session | Session timestamp API stable |
 | NHL standings returns record strings | Standings API stable |
+| MotoGP standings returns position + points | Pulselive standings API stable |
 | Decoding succeeds without throwing | No schema drift |
-
-These run against live APIs and can flake — they gate nightly builds, not PRs.
 
 ---
 
 ## What NOT to automate (leave for UAT)
 
-| Item | Why it cannot be automated |
+| Item | Why |
 |---|---|
-| Add widget from gallery | OS process (`notificationcenterui`), no XCUITest access |
-| Widget configuration sheet on add | OS-rendered sheet |
-| Team picker shows correct options | OS-rendered picker inside the above sheet |
-| Edit widget (right-click) | OS-rendered menu + sheet |
-| Widget re-renders after team/settings change | WidgetKit timeline is OS-scheduled |
-| Logo image quality on dark background | Requires human eye |
-| "Open at Login" behavior | System service (`SMAppService`), not reliably testable |
+| Add widget from gallery | OS process |
+| Widget configuration sheet | OS-rendered |
+| Team picker selection | OS-rendered |
+| Edit widget (right-click) | OS-rendered |
+| Widget re-renders after change | OS-scheduled |
+| Logo image quality | Human eye |
+| "Open at Login" behavior | `SMAppService`, unreliable in tests |
 
 ---
 
 ## UAT checklist — minimum per handoff
 
-These steps require a real Mac, a real signed build, and a human. If the automated layers all pass, these should take under 5 minutes.
-
 ### App
-- [ ] Launch app fresh → onboarding appears
-- [ ] Add a favorite team → onboarding checklist row turns green
-- [ ] Add a streaming service → checklist row turns green
-- [ ] Onboarding dismisses automatically after both required steps
-- [ ] Main scoreboard shows Previous + Upcoming for the added team
-- [ ] Live game card has red border (if one is available)
-- [ ] Calendar button on upcoming card → opens Google Calendar prefilled correctly
-- [ ] Calendar button hover → brightens + scales up
-- [ ] "Updated HH:MM" flashes bold after manual refresh
-- [ ] Status pill is green when healthy; shows issue count badge + hover card on error
+- [ ] Launch fresh → onboarding appears
+- [ ] Add favorite team → checklist row turns green
+- [ ] Add streaming service → checklist row turns green
+- [ ] Onboarding dismisses after both steps
+- [ ] Main scoreboard shows Previous + Upcoming
+- [ ] Live game card has red border
 - [ ] Drag-reorder favorites → order persists after relaunch
-- [ ] Toggle streaming service → upcoming row updates immediately
+- [ ] Toggle streaming → upcoming updates immediately
 
-### Widget — OS integration (cannot be automated)
-- [ ] Add widget from gallery → configuration sheet appears immediately (not blank)
-- [ ] Configuration sheet shows favorite teams at top of picker
-- [ ] Select a team → widget renders with that team's name and data
-- [ ] Previous section shows real recent results
-- [ ] Upcoming section shows real upcoming games
-- [ ] Right-click → Edit "HomeTeam" → change team → widget updates
-- [ ] Changing streaming in Settings → upcoming in widget reflects change on next refresh
-- [ ] F1/MotoGP upcoming card shows race name (not empty abbreviation rows)
-- [ ] Racing results card shows driver + team, favorite driver highlighted
-- [ ] Team and streaming logos are crisp, light-colored, visible on dark background
+### Widget
+- [ ] Add from gallery → config sheet appears (not blank)
+- [ ] Config sheet shows favorite teams at top
+- [ ] Select team → widget renders with data
+- [ ] Previous shows real results
+- [ ] Upcoming shows real games with correct times
+- [ ] Right-click → Edit → change team → updates
+- [ ] F1/MotoGP shows race names, driver results, favorite highlighted
+- [ ] Logos crisp on dark background
 
 ---
 
-## CI pipeline structure (recommended for rebuild)
+## CI pipeline
 
 ```
 PR gate (every commit):
-  1. qa_unit_gate.sh          ← all unit + snapshot tests, no network
-  2. HomeTeamUITests           ← app navigation + App Group JSON correctness
+  1. xcodebuild test -only-testing HomeTeamTests    ← all unit tests
+  2. HomeTeamUITests                                 ← app + App Group correctness
 
-Nightly (scheduled):
-  3. Network smoke tests        ← ESPN + MotoGP API contract checks
-  4. Screenshot artifacts       ← widget screenshot for human review
+Nightly:
+  3. Network smoke tests (HOMETEAM_RUN_NETWORK_TESTS=1)
+  4. Snapshot tests (swift-snapshot-testing)
 
 Pre-release:
-  5. Full UAT checklist         ← human runs the 7 items above
+  5. Full UAT checklist (human, ~5 min)
 ```
 
 ---
 
-## Key engineering rules for the rebuild (QA-driven)
+## Engineering rules (QA-driven)
 
-1. **One normalization path for streaming service names.** Normalization must happen at parse time, not at display time. No second normalization logic anywhere.
-
-2. **Fixture-injectable `now: Date` on all filtering methods.** Every method that uses `Date()` must accept a `now` parameter. This makes unit tests deterministic without mocking `Date`.
-
-3. **Widget view must accept pure `HomeTeamWidgetContentState` with no init side effects.** The view should be a pure function of its state — snapshot-testable.
-
-4. **App Group write must be synchronous and verified.** After saving settings, the file must exist before the test proceeds. No async fire-and-forget saves.
-
-5. **Accessibility identifiers are a contract.** Every UI element the UI tests reference must have a stable `accessibilityIdentifier`. Treat these like a public API — breaking them is a bug.
-
-6. **Racing session filter must be explicit and tested.** The filter rules (what MotoGP sessions show vs hide) must live in a single function with a complete unit test table. No implicit string-match guesswork.
-
-7. **Snapshot reference images are committed to the repo.** They serve as the visual contract for the widget. Any visual regression fails CI; intentional changes require explicit re-record and commit.
+1. **One normalization path** — all streaming names through `StreamingServiceMatcher.canonicalKey()`.
+2. **Injectable `now: Date`** — all date-sensitive filtering accepts `now` as a parameter.
+3. **Widget view is pure** — `HomeTeamWidgetEntryView` takes only `HomeTeamEntry`, no stores.
+4. **App Group writes are synchronous** — `AppGroupStore.write()` throws on failure.
+5. **Accessibility identifiers are a contract** — don't rename without updating UI tests.
+6. **Racing uses sport-level matching** — `sport == team.sport`, not `homeTeamID` matching.
+7. **Circuit timezones are explicit** — Pulselive session timestamps are circuit-local; `MotoGPCalendarParser.circuitTimezones` maps legacy_id → IANA timezone.
