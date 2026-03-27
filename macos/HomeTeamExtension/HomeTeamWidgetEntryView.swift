@@ -198,7 +198,7 @@ private struct GameCard: View {
     case .scheduled:
       return game.scheduledAt.formatted(.dateTime.hour().minute())
     case .live:
-      return game.statusDetail ?? "LIVE"
+      return GameFormatters.compactLiveStatus(from: game.statusDetail)
     case .final, .postponed:
       return ""
     }
@@ -473,28 +473,24 @@ private struct ServiceBadge: View {
     return Color(red: 0.25, green: 0.25, blue: 0.28)  // dark neutral — readable on both light and dark
   }
 
-  // Always: white pill + colored text. Survives OS-level desaturation in both light and dark modes.
-  // Light mode: add a colored stroke so the white pill is visible against the light widget background.
+  // Colored pill + white text: visible on dark and light widget backgrounds.
+  // Survives OS-level desaturation (dimmed) — gray background + white text stays readable.
 
   var body: some View {
     HStack(spacing: 3) {
       if upper.contains("APPLE") {
         Image(systemName: "appletv")
           .font(.system(size: 7))
-          .foregroundStyle(badgeColor)
+          .foregroundStyle(Color.white)
       }
       Text(label)
         .font(.system(size: label.count > 8 ? 6.8 : 7.5, weight: .black, design: .rounded))
-        .foregroundStyle(badgeColor)
+        .foregroundStyle(Color.white)
         .lineLimit(1)
     }
     .padding(.horizontal, 3)
     .padding(.vertical, 1)
-    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Color.white))
-    .overlay(
-      RoundedRectangle(cornerRadius: 4, style: .continuous)
-        .stroke(badgeColor.opacity(isDark ? 0 : 0.55), lineWidth: 0.75)
-    )
+    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(badgeColor))
   }
 }
 

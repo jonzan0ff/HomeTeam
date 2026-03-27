@@ -169,13 +169,17 @@ final class ScheduleRepository: ObservableObject {
     // Collect unique (sport, espnTeamID) pairs that don't already have a cached logo
     var seen = Set<String>()
     var needed: [(SupportedSport, String)] = []
+    // Re-download if missing or stale (older than 30 days — catches any wrong-logo cache bugs)
+    let staleThreshold = Date().addingTimeInterval(-30 * 24 * 3600)
     for game in games {
       guard !game.sport.isRacing else { continue }
       for teamID in [game.homeTeamID, game.awayTeamID] where !teamID.isEmpty {
         let key = "\(game.sport.rawValue)_\(teamID)"
         guard seen.insert(key).inserted else { continue }
-        if let dest = AppGroupStore.logoFileURL(sport: game.sport, espnTeamID: teamID),
-           !FileManager.default.fileExists(atPath: dest.path) {
+        guard let dest = AppGroupStore.logoFileURL(sport: game.sport, espnTeamID: teamID) else { continue }
+        let isStale = (try? FileManager.default.attributesOfItem(atPath: dest.path)[.modificationDate] as? Date)
+          .map { $0 < staleThreshold } ?? true
+        if !FileManager.default.fileExists(atPath: dest.path) || isStale {
           needed.append((game.sport, teamID))
         }
       }

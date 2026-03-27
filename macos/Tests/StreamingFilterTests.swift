@@ -295,13 +295,30 @@ final class ESPNRacingParserTests: XCTestCase {
     XCTAssertTrue(passes, "\"Apple TV\" from ESPN must match appletvplus streaming filter")
   }
 
-  // MARK: Name normalization
+  // MARK: Name storage
+  // ESPNRacingParser stores the raw event name verbatim.
+  // compactRaceName() is called at display time (widget + app) to strip sponsors.
 
-  func test_grandPrix_shortenedToGP() throws {
-    let json = espnJSON(name: "Japanese Grand Prix",
+  func test_homeTeamName_storedVerbatim() throws {
+    // Raw name preserved — sponsor stripping happens at display time via compactRaceName()
+    let json = espnJSON(name: "Aramco Japanese Grand Prix",
                         competitions: [comp(typeId: 3, date: "2026-03-29T05:00Z")])
     let games = try ESPNRacingParser.parse(json, sport: .f1)
-    XCTAssertEqual(games[0].homeTeamName, "Japanese GP")
+    XCTAssertEqual(games[0].homeTeamName, "Aramco Japanese Grand Prix")
+    XCTAssertEqual(GameFormatters.compactRaceName(from: games[0].homeTeamName), "Japanese GP",
+      "compactRaceName must strip sponsor prefix from verbatim ESPN name")
+  }
+
+  func test_sponsorPlusLocation_compactsToLocationGP() throws {
+    // Crypto.com Miami Grand Prix → Miami GP, Lenovo Canadian Grand Prix → Canadian GP
+    for (raw, expected) in [
+      ("Crypto.com Miami Grand Prix", "Miami GP"),
+      ("Lenovo Canadian Grand Prix", "Canadian GP"),
+      ("Japanese Grand Prix", "Japanese GP"),
+    ] {
+      XCTAssertEqual(GameFormatters.compactRaceName(from: raw), expected,
+        "Failed for input '\(raw)'")
+    }
   }
 
   func test_nonGrandPrixName_unchanged() throws {
@@ -526,8 +543,9 @@ final class CompactRaceNameTests: XCTestCase {
     XCTAssertEqual(GameFormatters.compactRaceName(from: ""), "")
   }
 
-  // ESPNRacingParser.normalizedName() pre-converts "Grand Prix" → "GP" before
-  // compactRaceName receives the string. These cases must be handled separately.
+  // MotoGPCalendarParser pre-converts "Grand Prix" → "GP" before
+  // compactRaceName receives the string. F1 names are stored verbatim and
+  // handled by the "Grand Prix" extractor above.
   func test_gpOf_reordered() {
     XCTAssertEqual(GameFormatters.compactRaceName(from: "GP of Monaco"), "Monaco GP")
   }

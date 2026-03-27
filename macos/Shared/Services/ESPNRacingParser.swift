@@ -23,10 +23,6 @@ struct ESPNRacingParser {
     event.competitions.first(where: { $0.type?.id == 3 }) ?? event.competitions.last
   }
 
-  private static func normalizedName(_ raw: String) -> String {
-    raw.replacingOccurrences(of: "Grand Prix", with: "GP", options: .caseInsensitive)
-  }
-
   private static func raceGame(from event: ESPNScoreboardEvent, sport: SupportedSport) -> HomeTeamGame? {
     let raceComp = raceCompetition(from: event)
     let dateStr = raceComp?.date ?? event.date
@@ -40,7 +36,7 @@ struct ESPNRacingParser {
       id: event.id,
       sport: sport,
       homeTeamID: "", awayTeamID: "",
-      homeTeamName: normalizedName(event.name),
+      homeTeamName: event.name,  // stored verbatim; compactRaceName() formats at display time
       awayTeamName: "",
       homeTeamAbbrev: "", awayTeamAbbrev: "",
       homeScore: nil, awayScore: nil,

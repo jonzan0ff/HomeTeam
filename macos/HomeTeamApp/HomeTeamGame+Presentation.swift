@@ -4,9 +4,9 @@ import Foundation
 
 extension HomeTeamGame {
 
-  /// "Bruins vs Rangers" or "Australian Grand Prix"
+  /// "Bruins vs Rangers" or "Australian GP"
   var title: String {
-    if sport.isRacing { return homeTeamName }
+    if sport.isRacing { return GameFormatters.compactRaceName(from: homeTeamName) }
     return "\(homeTeamAbbrev) vs \(awayTeamAbbrev)"
   }
 
@@ -15,9 +15,9 @@ extension HomeTeamGame {
     switch status {
     case .live:
       if let h = homeScore, let a = awayScore {
-        return "\(h)–\(a) · LIVE"
+        return "\(h)–\(a) · \(GameFormatters.compactLiveStatus(from: statusDetail))"
       }
-      return statusDetail ?? "LIVE"
+      return GameFormatters.compactLiveStatus(from: statusDetail)
     case .final:
       if let h = homeScore, let a = awayScore {
         return "Final · \(h)–\(a)"
