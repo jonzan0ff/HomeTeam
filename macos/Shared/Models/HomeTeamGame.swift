@@ -107,6 +107,23 @@ struct HomeTeamTeamSummary: Codable, Equatable {
 // MARK: - Live score overlay
 
 extension HomeTeamGame {
+  /// Returns a copy with race results attached.
+  func patchingRacingResults(_ results: [RacingResultLine]) -> HomeTeamGame {
+    HomeTeamGame(
+      id: id, sport: sport,
+      homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+      homeTeamName: homeTeamName, awayTeamName: awayTeamName,
+      homeTeamAbbrev: homeTeamAbbrev, awayTeamAbbrev: awayTeamAbbrev,
+      homeScore: homeScore, awayScore: awayScore,
+      homeRecord: homeRecord, awayRecord: awayRecord,
+      scheduledAt: scheduledAt, status: status,
+      statusDetail: statusDetail,
+      venueName: venueName, broadcastNetworks: broadcastNetworks,
+      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      racingResults: results
+    )
+  }
+
   /// Returns a copy with updated scores and statusDetail, keeping all other fields.
   func patching(homeScore: Int?, awayScore: Int?, statusDetail: String?) -> HomeTeamGame {
     HomeTeamGame(

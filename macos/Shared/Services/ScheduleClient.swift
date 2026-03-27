@@ -36,6 +36,9 @@ struct ScheduleClient {
     return Array(Dictionary(grouping: games, by: \.id).compactMap(\.value.first))
   }
 
+  // MotoGP class UUID (legacy_id == 3) — consistent across seasons
+  private static let motoGPClassUUID = "e8c110ad-64aa-4e8e-8a86-f2f152f6a942"
+
   static func fetchMotoGP() async throws -> [HomeTeamGame] {
     let seasonsURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/seasons")!
     var request = URLRequest(url: seasonsURL)
@@ -56,7 +59,50 @@ struct ScheduleClient {
       let (data, _) = try await URLSession.shared.data(for: req)
       return try MotoGPCalendarParser.parse(data)
     }()
-    return try await upcomingGames + finishedGames
+    var allGames = try await upcomingGames + finishedGames
+
+    // Fetch race results for all finished events concurrently
+    let finished = allGames.filter { $0.status == .final }
+    if !finished.isEmpty {
+      var resultsByID: [String: [RacingResultLine]] = [:]
+      await withTaskGroup(of: (String, [RacingResultLine]).self) { group in
+        for game in finished {
+          group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id)) }
+        }
+        for await (id, results) in group {
+          if !results.isEmpty { resultsByID[id] = results }
+        }
+      }
+      allGames = allGames.map { game in
+        guard let results = resultsByID[game.id] else { return game }
+        return game.patchingRacingResults(results)
+      }
+    }
+    return allGames
+  }
+
+  /// Fetches the RAC session classification for a finished MotoGP event.
+  /// Returns all classified finishers so the widget can find any favorite driver.
+  private static func fetchMotoGPRaceResults(eventID: String) async -> [RacingResultLine] {
+    // Step 1: find the RAC session UUID
+    guard let sessURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/sessions?eventUuid=\(eventID)&categoryUuid=\(motoGPClassUUID)") else { return [] }
+    var sessReq = URLRequest(url: sessURL)
+    sessReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (sessData, _) = try? await URLSession.shared.data(for: sessReq),
+          let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData),
+          let racSession = sessions.first(where: { $0.type == "RAC" }) else { return [] }
+
+    // Step 2: fetch classification
+    guard let classURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/session/\(racSession.id)/classification") else { return [] }
+    var classReq = URLRequest(url: classURL)
+    classReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (classData, _) = try? await URLSession.shared.data(for: classReq),
+          let payload = try? JSONDecoder().decode(MotoGPClassificationPayload.self, from: classData) else { return [] }
+
+    return payload.classification.compactMap { entry in
+      guard let pos = entry.position, let name = entry.rider?.fullName, !name.isEmpty else { return nil }
+      return RacingResultLine(position: pos, driverName: name, teamName: entry.team?.name, timeOrGap: entry.gap)
+    }
   }
 
   /// Fetch standings summary for a single team. Returns nil on any failure (non-fatal).
@@ -80,6 +126,31 @@ struct ScheduleClient {
 private struct MotoGPSeason: Decodable {
   let id: String
   let current: Bool
+}
+
+private struct MotoGPRaceSession: Decodable {
+  let id: String
+  let type: String
+}
+
+private struct MotoGPClassificationPayload: Decodable {
+  let classification: [MotoGPClassEntry]
+}
+
+private struct MotoGPClassEntry: Decodable {
+  let position: Int?
+  let rider: MotoGPRider?
+  let team: MotoGPTeamRef?
+  let gap: String?
+}
+
+private struct MotoGPRider: Decodable {
+  let fullName: String?
+  enum CodingKeys: String, CodingKey { case fullName = "full_name" }
+}
+
+private struct MotoGPTeamRef: Decodable {
+  let name: String?
 }
 
 // MARK: - Standings client
