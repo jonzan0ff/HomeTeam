@@ -291,13 +291,17 @@ final class ScheduleRepository: ObservableObject {
               } catch { continue }
             }
           } else {
-            guard let src = URL(string: "\(base)/motoGP_\(espnTeamID).png") else { return }
-            let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
-            do {
-              let (data, response) = try await URLSession.shared.data(from: src)
-              guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
-              try data.write(to: dest, options: .atomic)
-            } catch {}
+            // Try SVG first (transparent), fall back to PNG
+            for ext in ["svg", "png"] {
+              guard let src = URL(string: "\(base)/motoGP_\(espnTeamID).\(ext)") else { continue }
+              let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).\(ext)")
+              do {
+                let (data, response) = try await URLSession.shared.data(from: src)
+                guard (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
+                try data.write(to: dest, options: .atomic)
+                return
+              } catch { continue }
+            }
           }
         }
       }

@@ -35,6 +35,8 @@ enum AppGroupStore {
       return nil
     }
     if sport == .motoGP {
+      let svgURL = dir.appendingPathComponent("motoGP_\(espnTeamID).svg")
+      if FileManager.default.fileExists(atPath: svgURL.path) { return svgURL }
       let pngURL = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
       if FileManager.default.fileExists(atPath: pngURL.path) { return pngURL }
       return nil
