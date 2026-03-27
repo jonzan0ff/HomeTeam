@@ -257,7 +257,7 @@ private struct GameCard: View {
         Text(chipLabel)
           .font(.system(size: 9, weight: .bold))
           .lineLimit(1)
-          .minimumScaleFactor(0.6)
+          .fixedSize()
           .monospacedDigit()
           .padding(.horizontal, 5)
           .padding(.vertical, 2)
