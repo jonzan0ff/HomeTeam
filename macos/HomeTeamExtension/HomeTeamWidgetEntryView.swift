@@ -45,8 +45,7 @@ struct HomeTeamWidgetEntryView: View {
         footerView
       }
     }
-    .padding(.horizontal, 2)
-    .padding(.vertical, 4)
+    .padding(10)
   }
 
   private var upcomingEmptyText: String {

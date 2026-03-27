@@ -268,15 +268,51 @@ private enum StandingsClient {
     }
   }
 
-  // MARK: Racing — ESPN racing standings
+  // MARK: Racing standings
 
   static func fetchRacing(for team: TeamDefinition) async throws -> HomeTeamTeamSummary? {
+    if team.sport == .motoGP { return try await fetchMotoGPStandings(for: team) }
+    return try await fetchF1Standings(for: team)
+  }
+
+  // MotoGP standings via Pulselive API
+  private static func fetchMotoGPStandings(for team: TeamDefinition) async throws -> HomeTeamTeamSummary? {
+    let seasonsURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/seasons")!
+    let (seasonsData, _) = try await URLSession.shared.data(from: seasonsURL)
+    let seasons = try JSONDecoder().decode([MotoGPSeason].self, from: seasonsData)
+    guard let current = seasons.first(where: { $0.current }) else { return nil }
+
+    let classUUID = "e8c110ad-64aa-4e8e-8a86-f2f152f6a942"
+    guard let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/standings?seasonUuid=\(current.id)&categoryUuid=\(classUUID)") else { return nil }
+    let (data, _) = try await URLSession.shared.data(from: url)
+    let payload = try JSONDecoder().decode(MotoGPStandingsPayload.self, from: data)
+
+    for entry in payload.classification {
+      guard let fullName = entry.rider?.fullName else { continue }
+      let matches = team.driverNames.contains {
+        fullName.lowercased().contains($0.lowercased()) || $0.lowercased().contains(fullName.lowercased())
+      }
+      guard matches else { continue }
+      return HomeTeamTeamSummary(
+        compositeID: team.compositeID,
+        record: "\(entry.points)",
+        place: "\(entry.position)",
+        last10: "\(entry.raceWins)",
+        streak: "\(entry.podiums)",
+        style: .racingDriver
+      )
+    }
+    return nil
+  }
+
+  // F1 standings via ESPN API
+  private static func fetchF1Standings(for team: TeamDefinition) async throws -> HomeTeamTeamSummary? {
     guard let url = URL(string: "https://site.api.espn.com/apis/v2/sports/racing/\(team.sport.leaguePath)/standings") else { return nil }
     let (data, response) = try await URLSession.shared.data(from: url)
     if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) { return nil }
     let payload = try JSONDecoder().decode(RacingStandingsPayload.self, from: data)
 
-    for child in payload.children where child.name.lowercased().contains("driver") || child.name.lowercased().contains("rider") {
+    for child in payload.children where child.name.lowercased().contains("driver") {
       for entry in child.standings.entries {
         guard matchesDriver(entry: entry, team: team) else { continue }
         var stats: [String: String] = [:]
@@ -311,6 +347,29 @@ private enum StandingsClient {
 }
 
 // MARK: - Racing standings Decodable models
+
+// MARK: - MotoGP standings Decodable models
+
+private struct MotoGPStandingsPayload: Decodable {
+  let classification: [MotoGPStandingEntry]
+}
+private struct MotoGPStandingEntry: Decodable {
+  let position: Int
+  let rider: MotoGPStandingRider?
+  let points: Int
+  let raceWins: Int
+  let podiums: Int
+  enum CodingKeys: String, CodingKey {
+    case position, rider, points, podiums
+    case raceWins = "race_wins"
+  }
+}
+private struct MotoGPStandingRider: Decodable {
+  let fullName: String?
+  enum CodingKeys: String, CodingKey { case fullName = "full_name" }
+}
+
+// MARK: - F1/ESPN standings Decodable models
 
 private struct RacingStandingsPayload: Decodable {
   let children: [RacingStandingsChild]
