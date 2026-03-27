@@ -95,8 +95,7 @@ enum GameFormatters {
     "british":    "🇬🇧",
     "britain":    "🇬🇧",   // MotoGP: GP Of Great Britain
     "azerbai":    "🇦🇿",   // Azerbaijan GP
-    "spanish":    "🇪🇸",
-    "spain":      "🇪🇸",   // MotoGP: GP Of Spain
+    "spain":      "🇪🇸",   // covers "Spanish GP" and MotoGP "GP Of Spain"
     // MotoGP
     "thailand":   "🇹🇭",
     "brazil":     "🇧🇷",

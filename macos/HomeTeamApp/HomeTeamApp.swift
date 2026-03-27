@@ -19,7 +19,7 @@ struct HomeTeamApp: App {
     URLCache.shared.removeAllCachedResponses()
 
     // Refresh on launch + adaptive background schedule (60 s live / 60 min idle)
-    Task { await ScheduleRepository.shared.startAutoRefresh() }
+    Task { ScheduleRepository.shared.startAutoRefresh() }
   }
 
   var body: some Scene {
