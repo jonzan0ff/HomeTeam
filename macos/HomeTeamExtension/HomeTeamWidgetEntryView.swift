@@ -244,9 +244,9 @@ private struct GameCard: View {
     let compact = GameFormatters.compactRaceName(from: game.homeTeamName)
     let flag = GameFormatters.raceFlag(for: game.homeTeamName)
     return Text(flag != nil ? "\(flag!) \(compact)" : compact)
-      .font(.system(size: 8.5, weight: .semibold))
+      .font(.caption2.weight(.semibold))
       .lineLimit(1)
-      .minimumScaleFactor(0.7)
+      .minimumScaleFactor(0.8)
       .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
   }
 
