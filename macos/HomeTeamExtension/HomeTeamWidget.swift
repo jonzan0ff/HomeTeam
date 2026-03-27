@@ -115,7 +115,8 @@ struct HomeTeamTimelineProvider: AppIntentTimelineProvider {
       liveGames: live,
       previousGames: Array(previous.prefix(3)),
       upcomingGames: Array(filteredUpcoming.prefix(3)),
-      fetchedAt: snapshot.fetchedAt
+      fetchedAt: snapshot.fetchedAt,
+      streamingKeys: streamingKeys
     )
   }
 }
@@ -131,6 +132,7 @@ struct HomeTeamEntry: TimelineEntry {
   let previousGames: [HomeTeamGame]
   let upcomingGames: [HomeTeamGame]
   let fetchedAt: Date
+  let streamingKeys: Set<String>
 
   var allUpcoming: [HomeTeamGame] { liveGames + upcomingGames }
   var isEmpty: Bool { previousGames.isEmpty && allUpcoming.isEmpty }
@@ -143,6 +145,7 @@ struct HomeTeamEntry: TimelineEntry {
     liveGames: [],
     previousGames: [],
     upcomingGames: [],
-    fetchedAt: .distantPast
+    fetchedAt: .distantPast,
+    streamingKeys: []
   )
 }

@@ -26,6 +26,7 @@ struct HomeTeamWidgetEntryView: View {
           emptyText: "No finals",
           isOffSeason: false,
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
+          streamingKeys: entry.streamingKeys,
           isDark: isDark
         )
         SectionRow(
@@ -34,6 +35,7 @@ struct HomeTeamWidgetEntryView: View {
           emptyText: upcomingEmptyText,
           isOffSeason: entry.isOffSeason,
           favoriteDriverNames: entry.teamDefinition?.driverNames ?? [],
+          streamingKeys: entry.streamingKeys,
           isDark: isDark
         )
         .padding(.top, 4)
@@ -126,6 +128,7 @@ private struct SectionRow: View {
   let emptyText: String
   let isOffSeason: Bool
   let favoriteDriverNames: [String]
+  let streamingKeys: Set<String>
   let isDark: Bool
 
   var body: some View {
@@ -159,6 +162,7 @@ private struct SectionRow: View {
               game: game,
               isPrevious: title == "PREVIOUS",
               favoriteDriverNames: favoriteDriverNames,
+              streamingKeys: streamingKeys,
               isDark: isDark
             )
           }
@@ -174,10 +178,22 @@ private struct GameCard: View {
   let game: HomeTeamGame
   let isPrevious: Bool
   let favoriteDriverNames: [String]
+  let streamingKeys: Set<String>
   let isDark: Bool
 
   private var isLive: Bool { game.status == .live }
   private var isRacing: Bool { game.sport.isRacing }
+
+  // Show the first network the user has; fall back to first network if no match
+  private var badgeNetwork: String? {
+    let networks = game.broadcastNetworks
+    guard !networks.isEmpty else { return nil }
+    if !streamingKeys.isEmpty,
+       let match = networks.first(where: { StreamingServiceMatcher.isMatch(rawName: $0, selectedKeys: streamingKeys) }) {
+      return match
+    }
+    return networks.first
+  }
 
   private var chipLabel: String {
     switch game.status {
@@ -290,7 +306,7 @@ private struct GameCard: View {
       }
 
       // Streaming badge (upcoming only)
-      if !isPrevious, let network = game.broadcastNetworks.first {
+      if !isPrevious, let network = badgeNetwork {
         ServiceBadge(name: network, isDark: isDark)
       }
     }
