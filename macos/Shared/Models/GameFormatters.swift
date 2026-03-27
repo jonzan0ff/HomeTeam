@@ -155,6 +155,19 @@ enum GameFormatters {
     return "LIVE"
   }
 
+  // MARK: - Race points
+
+  /// Championship points earned for a given finishing position.
+  /// Returns nil for non-racing sports or positions outside the points-paying places.
+  static func racePoints(for position: Int, sport: SupportedSport) -> Int? {
+    guard position > 0 else { return nil }
+    switch sport {
+    case .motoGP: return [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1].dropFirst(position - 1).first
+    case .f1:     return [25, 18, 15, 12, 10, 8, 6, 4, 2, 1].dropFirst(position - 1).first
+    default:      return nil
+    }
+  }
+
   // MARK: - Private helpers
 
   private static func periodNumber(from s: String) -> Int? {

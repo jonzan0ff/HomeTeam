@@ -43,7 +43,8 @@ struct HomeTeamWidgetEntryView: View {
         footerView
       }
     }
-    .padding(8)
+    .padding(.horizontal, 4)
+    .padding(.vertical, 8)
   }
 
   private var upcomingEmptyText: String {
@@ -57,8 +58,8 @@ struct HomeTeamWidgetEntryView: View {
       Spacer()
       if entry.fetchedAt != .distantPast {
         Text("Updated \(entry.fetchedAt.formatted(.dateTime.hour().minute()))")
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(isDark ? Color.white.opacity(0.72) : Color.secondary)
+          .font(.system(size: 8.5, weight: .regular))
+          .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
       }
     }
   }
@@ -281,7 +282,7 @@ private struct GameCard: View {
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
         raceNameText
-        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
+        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isCompleted: game.status == .final, isDark: isDark)
       } else if isRacing {
         raceNameText
       } else {
@@ -397,6 +398,7 @@ private struct RacingResultsView: View {
   let results: [RacingResultLine]
   let sport: SupportedSport
   let favoriteDriverNames: [String]
+  let isCompleted: Bool
   let isDark: Bool
 
   private func isFavorite(_ line: RacingResultLine) -> Bool {
@@ -421,13 +423,21 @@ private struct RacingResultsView: View {
       .flatMap { NSImage(contentsOf: $0) }
   }
 
+  /// Abbreviates a full name to "F. Lastname" for compact display (MotoGP only).
+  private func displayName(_ name: String) -> String {
+    guard sport == .motoGP else { return name }
+    let parts = name.split(separator: " ", maxSplits: 1)
+    guard parts.count == 2 else { return name }
+    return "\(parts[0].prefix(1)). \(parts[1])"
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 3) {
       ForEach(displayLines) { line in
         let fav = isFavorite(line)
         HStack(spacing: 3) {
           Text(line.position == 0 ? "DNF" : "P\(line.position)")
-            .font(.system(size: 8, weight: .semibold))
+            .font(.caption2.weight(.semibold))
             .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
             .frame(width: 20, alignment: .leading)
 
@@ -443,8 +453,8 @@ private struct RacingResultsView: View {
           .frame(width: 12, height: 12)
           .clipShape(Circle())
 
-          Text(line.driverName)
-            .font(.system(size: 8, weight: fav ? .bold : .regular))
+          Text(displayName(line.driverName))
+            .font(.caption2.weight(fav ? .bold : .regular))
             .foregroundStyle(
               isDark
                 ? (fav ? Color.white : Color.white.opacity(0.86))
@@ -454,7 +464,12 @@ private struct RacingResultsView: View {
 
           Spacer(minLength: 0)
 
-          if let gap = line.timeOrGap {
+          if isCompleted, let pts = GameFormatters.racePoints(for: line.position, sport: sport) {
+            Text("\(pts)pts")
+              .font(.system(size: 7.5, weight: .regular))
+              .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
+              .lineLimit(1)
+          } else if let gap = line.timeOrGap {
             Text(gap)
               .font(.system(size: 7, weight: .regular))
               .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
