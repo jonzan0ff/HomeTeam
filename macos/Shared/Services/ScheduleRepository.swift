@@ -204,22 +204,44 @@ final class ScheduleRepository: ObservableObject {
     }
   }
 
-  /// Downloads F1 constructor logos (SVG or PNG) from GitHub Pages into the App Group container.
-  /// Driven by favorite teams in the catalog — F1 games have no team IDs in the schedule feed.
+  // MotoGP manufacturer logo sources (Google favicon CDN — stable, correct size for widget)
+  private static let motoGPLogoSources: [String: URL] = {
+    func g(_ domain: String) -> URL {
+      URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=128")!
+    }
+    return [
+      "motogp_ducati_lenovo": g("ducati.com"),
+      "motogp_pramac":         g("pramac.com"),
+      "motogp_gresini":        g("gresiniracing.com"),
+      "motogp_vr46":           g("vr46racingapparel.com"),
+      "motogp_aprilia":        g("aprilia.com"),
+      "motogp_ktm":            g("ktm.com"),
+      "motogp_honda_repsol":   g("honda.com"),
+      "motogp_yamaha":         g("yamaha-motor.com"),
+    ]
+  }()
+
+  /// Downloads F1 (GitHub Pages SVG/PNG) and MotoGP (favicon CDN) logos into the App Group container.
+  /// Driven by favorite teams in the catalog — racing games have no team IDs in the schedule feed.
   private func prefetchRacingLogos(for compositeIDs: [String]) async {
     var seen = Set<String>()
-    var needed: [String] = []
+    var f1Needed: [String] = []
+    var motoGPNeeded: [String] = []
+
     for cid in compositeIDs {
-      guard let team = TeamCatalog.team(for: cid), team.sport == .f1 else { continue }
+      guard let team = TeamCatalog.team(for: cid), team.sport.isRacing else { continue }
       guard seen.insert(team.espnTeamID).inserted else { continue }
-      if AppGroupStore.logoFileURL(sport: .f1, espnTeamID: team.espnTeamID) == nil {
-        needed.append(team.espnTeamID)
+      if AppGroupStore.logoFileURL(sport: team.sport, espnTeamID: team.espnTeamID) == nil {
+        if team.sport == .f1 { f1Needed.append(team.espnTeamID) }
+        else if team.sport == .motoGP { motoGPNeeded.append(team.espnTeamID) }
       }
     }
-    guard !needed.isEmpty else { return }
-    print("[ScheduleRepository] F1 logo prefetch: \(needed.count) missing logo(s)")
+
+    guard !f1Needed.isEmpty || !motoGPNeeded.isEmpty else { return }
+    print("[ScheduleRepository] Racing logo prefetch: \(f1Needed.count) F1, \(motoGPNeeded.count) MotoGP")
+
     await withTaskGroup(of: Void.self) { group in
-      for espnTeamID in needed {
+      for espnTeamID in f1Needed {
         group.addTask {
           guard let dir = AppGroupStore.logosDirectoryURL else { return }
           for ext in ["svg", "png"] {
@@ -232,6 +254,18 @@ final class ScheduleRepository: ObservableObject {
               return
             } catch { continue }
           }
+        }
+      }
+      for espnTeamID in motoGPNeeded {
+        group.addTask { [motoGPSources = Self.motoGPLogoSources] in
+          guard let src = motoGPSources[espnTeamID],
+                let dir = AppGroupStore.logosDirectoryURL else { return }
+          let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
+          do {
+            let (data, response) = try await URLSession.shared.data(from: src)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+            try data.write(to: dest, options: .atomic)
+          } catch {}
         }
       }
     }

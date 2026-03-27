@@ -24,8 +24,8 @@ struct ESPNScheduleParser {
     let home = competition.competitors.first { $0.homeAway == "home" }
     let away = competition.competitors.first { $0.homeAway == "away" }
 
-    let homeScore = home?.score?.displayValue.flatMap(Int.init)
-    let awayScore = away?.score?.displayValue.flatMap(Int.init)
+    let homeScore = home?.score?.intValue
+    let awayScore = away?.score?.intValue
     // Record is an array; grab the ytd/total type first, fall back to first entry
     let homeRecord = home?.record?.first(where: { $0.type == "ytd" || $0.type == "total" })?.displayValue
                   ?? home?.record?.first?.displayValue
@@ -104,6 +104,13 @@ private struct ESPNCompetitor: Decodable {
 
 private struct ESPNScore: Decodable {
   let displayValue: String?
+  let value: Double?
+
+  var intValue: Int? {
+    if let d = displayValue, let i = Int(d) { return i }
+    if let v = value { return Int(v.rounded()) }
+    return nil
+  }
 }
 
 private struct ESPNTeamRef: Decodable {

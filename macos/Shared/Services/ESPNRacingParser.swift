@@ -32,6 +32,27 @@ struct ESPNRacingParser {
 
     let broadcasts = raceComp?.broadcastNames ?? []
 
+    // Populate top-3 finishers when the race is complete
+    let racingResults: [RacingResultLine]? = {
+      guard status == .final, let comp = raceComp else { return nil }
+      let finishers = (comp.competitors ?? [])
+        .compactMap { c -> (Int, ESPNRacingCompetitor)? in
+          guard let pos = c.order, pos > 0 else { return nil }
+          return (pos, c)
+        }
+        .sorted { $0.0 < $1.0 }
+        .prefix(3)
+      let lines = finishers.map { (pos, c) in
+        RacingResultLine(
+          position: pos,
+          driverName: c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown",
+          teamName: c.team?.displayName,
+          timeOrGap: nil
+        )
+      }
+      return lines.isEmpty ? nil : lines
+    }()
+
     return HomeTeamGame(
       id: event.id,
       sport: sport,
@@ -48,7 +69,7 @@ struct ESPNRacingParser {
       broadcastNetworks: broadcasts,
       isPlayoff: false,
       seriesInfo: nil,
-      racingResults: nil
+      racingResults: racingResults
     )
   }
 
@@ -101,10 +122,26 @@ private struct ESPNScoreboardCompetition: Decodable {
   let venue: ESPNScoreboardVenue?
   // ESPN racing broadcasts: [{"market":"national","names":["Apple TV"]}]
   let broadcasts: [ESPNScoreboardBroadcast]?
+  let competitors: [ESPNRacingCompetitor]?
 
   var broadcastNames: [String] {
     broadcasts?.flatMap { $0.names ?? [] } ?? []
   }
+}
+
+private struct ESPNRacingCompetitor: Decodable {
+  let order: Int?
+  let athlete: ESPNRacingAthlete?
+  let team: ESPNRacingTeamRef?
+}
+
+private struct ESPNRacingAthlete: Decodable {
+  let displayName: String?
+  let shortName: String?
+}
+
+private struct ESPNRacingTeamRef: Decodable {
+  let displayName: String?
 }
 
 private struct ESPNCompetitionType: Decodable {
