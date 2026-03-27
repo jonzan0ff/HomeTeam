@@ -104,6 +104,27 @@ struct HomeTeamTeamSummary: Codable, Equatable {
   }
 }
 
+// MARK: - Live score overlay
+
+extension HomeTeamGame {
+  /// Returns a copy with updated scores and statusDetail, keeping all other fields.
+  func patching(homeScore: Int?, awayScore: Int?, statusDetail: String?) -> HomeTeamGame {
+    HomeTeamGame(
+      id: id, sport: sport,
+      homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+      homeTeamName: homeTeamName, awayTeamName: awayTeamName,
+      homeTeamAbbrev: homeTeamAbbrev, awayTeamAbbrev: awayTeamAbbrev,
+      homeScore: homeScore, awayScore: awayScore,
+      homeRecord: homeRecord, awayRecord: awayRecord,
+      scheduledAt: scheduledAt, status: status,
+      statusDetail: statusDetail ?? self.statusDetail,
+      venueName: venueName, broadcastNetworks: broadcastNetworks,
+      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      racingResults: racingResults
+    )
+  }
+}
+
 // MARK: - Schedule snapshot (written to App Group, read by widget)
 
 struct ScheduleSnapshot: Codable {

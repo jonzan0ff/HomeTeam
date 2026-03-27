@@ -77,8 +77,10 @@ final class ScheduleRepository: ObservableObject {
       let (games, summaries) = try await (gamesResult, summariesResult)
       let newSnapshot = ScheduleSnapshot(games: games, fetchedAt: Date(), teamSummaries: summaries)
       let merged = snapshotStore.snapshot.mergingNondestructively(with: newSnapshot)
-      snapshotStore.save(merged)
-      await prefetchLogos(for: merged.games)
+      let patchedGames = await patchLiveScores(into: merged.games)
+      let finalSnapshot = ScheduleSnapshot(games: patchedGames, fetchedAt: merged.fetchedAt, teamSummaries: merged.teamSummaries)
+      snapshotStore.save(finalSnapshot)
+      await prefetchLogos(for: finalSnapshot.games)
       await prefetchRacingLogos(for: favorites)
       WidgetCenter.shared.reloadAllTimelines()
     } catch {
@@ -165,6 +167,36 @@ final class ScheduleRepository: ObservableObject {
     return unique
   }
 
+  // MARK: - Live score overlay
+
+  /// Fetches each sport's scoreboard for sports that have a live game in the snapshot,
+  /// then overlays live scores + statusDetail onto matching games (matched by ESPN event ID).
+  private func patchLiveScores(into games: [HomeTeamGame]) async -> [HomeTeamGame] {
+    let liveSports = Set(games.filter { $0.status == .live && !$0.sport.isRacing }.map { $0.sport })
+    guard !liveSports.isEmpty else { return games }
+
+    var freshByID: [String: HomeTeamGame] = [:]
+    await withTaskGroup(of: [HomeTeamGame].self) { group in
+      for sport in liveSports {
+        group.addTask {
+          let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(sport.sportPath)/\(sport.leaguePath)/scoreboard")!
+          guard let (data, _) = try? await URLSession.shared.data(from: url) else { return [] }
+          return (try? ESPNScheduleParser.parse(data, sport: sport, teamID: "")) ?? []
+        }
+      }
+      for await batch in group {
+        for game in batch { freshByID[game.id] = game }
+      }
+    }
+
+    return games.map { game in
+      guard game.status == .live, !game.sport.isRacing,
+            let fresh = freshByID[game.id] else { return game }
+      return game.patching(homeScore: fresh.homeScore, awayScore: fresh.awayScore,
+                           statusDetail: fresh.statusDetail)
+    }
+  }
+
   private func prefetchLogos(for games: [HomeTeamGame]) async {
     // Collect unique (sport, espnTeamID) pairs that don't already have a cached logo
     var seen = Set<String>()
@@ -208,7 +240,7 @@ final class ScheduleRepository: ObservableObject {
   // which render correctly on both light and dark widget backgrounds (unlike favicons).
   private static let motoGPLogoSources: [String: URL] = {
     func logo(_ domain: String) -> URL {
-      URL(string: "https://logo.clearbit.com/\(domain)?size=128")!
+      URL(string: "https://logo.clearbit.com/\(domain)")!  // no size param — defaults to 128px PNG
     }
     return [
       "motogp_ducati_lenovo": logo("ducati.com"),
@@ -264,7 +296,9 @@ final class ScheduleRepository: ObservableObject {
           let dest = dir.appendingPathComponent("motoGP_\(espnTeamID)_v2.png")
           do {
             let (data, response) = try await URLSession.shared.data(from: src)
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+            guard let http = response as? HTTPURLResponse,
+                  (200...299).contains(http.statusCode),
+                  data.count > 200 else { return }  // guard against empty/error body
             try data.write(to: dest, options: .atomic)
           } catch {}
         }
