@@ -64,7 +64,10 @@ struct HomeTeamTeamSummary: Codable, Equatable {
   var inlineDisplay: String {
     switch style {
     case .standard:
-      return "\(record)  |  \(HomeTeamTeamSummary.shortenPlace(place))  |  L10 \(last10)  |  \(streak)"
+      var parts = [record, HomeTeamTeamSummary.shortenPlace(place)]
+      if last10 != "-" { parts.append("L10 \(last10)") }
+      if streak != "-" { parts.append(streak) }
+      return parts.joined(separator: "  |  ")
     case .racingDriver:
       return "Place \(place)  |  Pts \(record)  |  Wins \(last10)  |  Podiums \(streak)"
     }

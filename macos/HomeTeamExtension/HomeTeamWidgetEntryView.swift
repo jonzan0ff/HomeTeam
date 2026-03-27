@@ -449,28 +449,32 @@ private struct ServiceBadge: View {
     return String(upper.prefix(8))
   }
 
-  // All colors are dark enough to show white text on both light and dark widget backgrounds
+  // Badge colors defined in HSB so dark mode can boost brightness without redefining each color.
+  // Brightness is bumped +0.25 on dark widget backgrounds so colors pop against the dark surface.
   private var badgeColor: Color {
-    if upper.contains("HULU")                              { return Color(red: 0.09, green: 0.74, blue: 0.46) }
-    if upper.contains("ESPN")                              { return Color(red: 0.79, green: 0.14, blue: 0.16) }
-    if upper.contains("FS1") || upper.contains("FS2")      { return Color(red: 0.82, green: 0.28, blue: 0.04) }
-    if upper.contains("FOX")                               { return Color(red: 0.82, green: 0.28, blue: 0.04) }
-    if upper.contains("PARAMOUNT")                         { return Color(red: 0.10, green: 0.40, blue: 0.85) }
-    if upper.contains("AMAZON") || upper.contains("PRIME") { return Color(red: 0.12, green: 0.46, blue: 0.82) }
-    if upper.contains("PEACOCK")                           { return Color(red: 0.80, green: 0.44, blue: 0.00) }
-    if upper.contains("HBO") || upper.contains("MAX") || upper.contains("TNT") {
-      return Color(red: 0.45, green: 0.26, blue: 0.85)
+    let boost: Double = isDark ? 0.25 : 0.0
+    func c(_ h: Double, _ s: Double, _ b: Double) -> Color {
+      Color(hue: h/360, saturation: s, brightness: min(1, b + boost))
     }
-    if upper.contains("TBS")                               { return Color(red: 0.20, green: 0.48, blue: 0.76) }
-    if upper.contains("YOUTUBE")                           { return Color(red: 0.86, green: 0.16, blue: 0.16) }
-    if upper.contains("NETFLIX")                           { return Color(red: 0.78, green: 0.12, blue: 0.16) }
-    if upper.contains("APPLE")                             { return Color(red: 0.30, green: 0.30, blue: 0.33) }
-    if upper.contains("NBC")                               { return Color(red: 0.15, green: 0.30, blue: 0.75) }
-    if upper.contains("CBS")                               { return Color(red: 0.08, green: 0.18, blue: 0.62) }
-    if upper.contains("ABC")                               { return Color(red: 0.08, green: 0.08, blue: 0.48) }
-    if upper.contains("DAZN")                              { return Color(red: 0.92, green: 0.08, blue: 0.16) }
-    if upper.contains("F1 TV") || upper.contains("F1TV")   { return Color(red: 0.88, green: 0.08, blue: 0.16) }
-    return Color(red: 0.25, green: 0.25, blue: 0.28)  // dark neutral — readable on both light and dark
+    if upper.contains("HULU")                              { return c(154, 0.87, 0.74) }
+    if upper.contains("ESPN")                              { return c(358, 0.82, 0.79) }
+    if upper.contains("FS1") || upper.contains("FS2")      { return c( 19, 0.95, 0.82) }
+    if upper.contains("FOX")                               { return c( 19, 0.95, 0.82) }
+    if upper.contains("PARAMOUNT")                         { return c(215, 0.88, 0.85) }
+    if upper.contains("AMAZON") || upper.contains("PRIME") { return c(207, 0.85, 0.82) }
+    if upper.contains("PEACOCK")                           { return c( 38, 1.00, 0.80) }
+    if upper.contains("HBO") || upper.contains("MAX") || upper.contains("TNT") {
+                                                             return c(265, 0.70, 0.85) }
+    if upper.contains("TBS")                               { return c(207, 0.74, 0.76) }
+    if upper.contains("YOUTUBE")                           { return c(  0, 0.82, 0.86) }
+    if upper.contains("NETFLIX")                           { return c(357, 0.85, 0.78) }
+    if upper.contains("APPLE")                             { return c(240, 0.10, 0.40) }
+    if upper.contains("NBC")                               { return c(224, 0.80, 0.75) }
+    if upper.contains("CBS")                               { return c(226, 0.92, 0.62) }
+    if upper.contains("ABC")                               { return c(240, 0.83, 0.55) }
+    if upper.contains("DAZN")                              { return c(355, 0.92, 0.92) }
+    if upper.contains("F1 TV") || upper.contains("F1TV")   { return c(355, 0.91, 0.88) }
+    return c(240, 0.08, 0.28)  // neutral fallback
   }
 
   // Colored pill + white text: visible on dark and light widget backgrounds.

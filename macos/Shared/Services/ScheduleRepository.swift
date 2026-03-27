@@ -204,20 +204,21 @@ final class ScheduleRepository: ObservableObject {
     }
   }
 
-  // MotoGP manufacturer logo sources (Google favicon CDN — stable, correct size for widget)
+  // MotoGP manufacturer logo sources — Clearbit returns transparent-background PNGs,
+  // which render correctly on both light and dark widget backgrounds (unlike favicons).
   private static let motoGPLogoSources: [String: URL] = {
-    func g(_ domain: String) -> URL {
-      URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=128")!
+    func logo(_ domain: String) -> URL {
+      URL(string: "https://logo.clearbit.com/\(domain)?size=128")!
     }
     return [
-      "motogp_ducati_lenovo": g("ducati.com"),
-      "motogp_pramac":         g("pramac.com"),
-      "motogp_gresini":        g("gresiniracing.com"),
-      "motogp_vr46":           g("vr46racingapparel.com"),
-      "motogp_aprilia":        g("aprilia.com"),
-      "motogp_ktm":            g("ktm.com"),
-      "motogp_honda_repsol":   g("honda.com"),
-      "motogp_yamaha":         g("yamaha-motor.com"),
+      "motogp_ducati_lenovo": logo("ducati.com"),
+      "motogp_pramac":         logo("ducati.com"),   // Pramac runs Ducati bikes
+      "motogp_gresini":        logo("ducati.com"),   // Gresini runs Ducati bikes
+      "motogp_vr46":           logo("vr46.com"),
+      "motogp_aprilia":        logo("aprilia.com"),
+      "motogp_ktm":            logo("ktm.com"),
+      "motogp_honda_repsol":   logo("honda.com"),
+      "motogp_yamaha":         logo("yamaha-motor.com"),
     ]
   }()
 
@@ -260,7 +261,7 @@ final class ScheduleRepository: ObservableObject {
         group.addTask { [motoGPSources = Self.motoGPLogoSources] in
           guard let src = motoGPSources[espnTeamID],
                 let dir = AppGroupStore.logosDirectoryURL else { return }
-          let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
+          let dest = dir.appendingPathComponent("motoGP_\(espnTeamID)_v2.png")
           do {
             let (data, response) = try await URLSession.shared.data(from: src)
             guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }

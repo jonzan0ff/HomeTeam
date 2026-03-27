@@ -778,6 +778,19 @@ final class HomeTeamTeamSummaryTests: XCTestCase {
     XCTAssertTrue(d.contains("East. Conf."))
   }
 
+  func test_inlineDisplay_hides_l10_when_missing() {
+    // NFL/off-season: ESPN returns "-" for last10 — don't show "L10 -"
+    let s = summary(place: "14th in NFC", last10: "-", streak: "W1")
+    XCTAssertFalse(s.inlineDisplay.contains("L10"))
+    XCTAssertTrue(s.inlineDisplay.contains("W1"))
+  }
+
+  func test_inlineDisplay_hides_streak_when_missing() {
+    let s = summary(place: "10th in East. Conf.", last10: "6-3-1", streak: "-")
+    XCTAssertTrue(s.inlineDisplay.contains("L10 6-3-1"))
+    XCTAssertFalse(s.inlineDisplay.hasSuffix("-"))
+  }
+
   func test_inlineDisplay_racing_format() {
     let s = HomeTeamTeamSummary(compositeID: "f1:hamilton", record: "131", place: "2",
                                 last10: "2", streak: "5", style: .racingDriver)

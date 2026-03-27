@@ -35,7 +35,8 @@ enum AppGroupStore {
       return nil
     }
     if sport == .motoGP {
-      let pngURL = dir.appendingPathComponent("motoGP_\(espnTeamID).png")
+      // _v2 suffix distinguishes Clearbit (transparent) logos from old Google-favicon cache
+      let pngURL = dir.appendingPathComponent("motoGP_\(espnTeamID)_v2.png")
       if FileManager.default.fileExists(atPath: pngURL.path) { return pngURL }
       return nil
     }

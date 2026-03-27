@@ -106,6 +106,18 @@ private struct ESPNScore: Decodable {
   let displayValue: String?
   let value: Double?
 
+  // ESPN schedule endpoint returns score as a plain string ("3") during live games;
+  // the scoreboard endpoint returns an object {"value":3.0,"displayValue":"3"}.
+  init(from decoder: Decoder) throws {
+    if let raw = try? decoder.singleValueContainer().decode(String.self) {
+      displayValue = raw; value = Double(raw); return
+    }
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    displayValue = try? c.decodeIfPresent(String.self, forKey: .displayValue)
+    value        = try? c.decodeIfPresent(Double.self,  forKey: .value)
+  }
+  private enum CodingKeys: String, CodingKey { case displayValue, value }
+
   var intValue: Int? {
     if let d = displayValue, let i = Int(d) { return i }
     if let v = value { return Int(v.rounded()) }
