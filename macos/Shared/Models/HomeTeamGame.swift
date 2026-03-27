@@ -125,6 +125,23 @@ extension HomeTeamGame {
     )
   }
 
+  /// Returns a copy with updated scheduledAt (e.g. from session-level timestamp).
+  func patchingScheduledAt(_ date: Date) -> HomeTeamGame {
+    HomeTeamGame(
+      id: id, sport: sport,
+      homeTeamID: homeTeamID, awayTeamID: awayTeamID,
+      homeTeamName: homeTeamName, awayTeamName: awayTeamName,
+      homeTeamAbbrev: homeTeamAbbrev, awayTeamAbbrev: awayTeamAbbrev,
+      homeScore: homeScore, awayScore: awayScore,
+      homeRecord: homeRecord, awayRecord: awayRecord,
+      scheduledAt: date, status: status,
+      statusDetail: statusDetail,
+      venueName: venueName, broadcastNetworks: broadcastNetworks,
+      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      racingResults: racingResults
+    )
+  }
+
   /// Returns a copy with updated scores and statusDetail, keeping all other fields.
   func patching(homeScore: Int?, awayScore: Int?, statusDetail: String?) -> HomeTeamGame {
     HomeTeamGame(

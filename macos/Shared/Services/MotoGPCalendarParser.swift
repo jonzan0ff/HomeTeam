@@ -15,12 +15,13 @@ struct MotoGPCalendarParser {
     return events.filter { $0.test != true }.compactMap { game(from: $0) }
   }
 
-  // MotoGP API returns date-only strings: "2026-03-27"
+  // MotoGP API returns date-only strings: "2026-03-27". Parse in local timezone so
+  // the calendar day is correct. Exact race time is patched later from session data.
   private static let dateFormatter: DateFormatter = {
     let f = DateFormatter()
     f.locale = Locale(identifier: "en_US_POSIX")
     f.dateFormat = "yyyy-MM-dd"
-    f.timeZone = TimeZone(identifier: "UTC")
+    f.timeZone = TimeZone.current
     return f
   }()
 

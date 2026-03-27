@@ -55,22 +55,28 @@ struct ScheduleClient {
     let (allEventsData, _) = try await URLSession.shared.data(for: allEventsReq)
     var allGames = try MotoGPCalendarParser.parse(allEventsData)
 
-    // Fetch race results for all finished events concurrently
+    // Fetch race results for finished events and exact RAC timestamps for upcoming events, concurrently
     let finished = allGames.filter { $0.status == .final }
-    if !finished.isEmpty {
-      var resultsByID: [String: [RacingResultLine]] = [:]
-      await withTaskGroup(of: (String, [RacingResultLine]).self) { group in
-        for game in finished {
-          group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id)) }
-        }
-        for await (id, results) in group {
-          if !results.isEmpty { resultsByID[id] = results }
-        }
+    let upcoming = allGames.filter { $0.status != .final }
+    var resultsByID: [String: [RacingResultLine]] = [:]
+    var raceDateByID: [String: Date] = [:]
+    await withTaskGroup(of: (String, [RacingResultLine], Date?).self) { group in
+      for game in finished {
+        group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
       }
-      allGames = allGames.map { game in
-        guard let results = resultsByID[game.id] else { return game }
-        return game.patchingRacingResults(results)
+      for game in upcoming {
+        group.addTask { (game.id, [], await fetchMotoGPRaceDate(eventID: game.id)) }
       }
+      for await (id, results, date) in group {
+        if !results.isEmpty { resultsByID[id] = results }
+        if let date { raceDateByID[id] = date }
+      }
+    }
+    allGames = allGames.map { game in
+      var g = game
+      if let results = resultsByID[game.id] { g = g.patchingRacingResults(results) }
+      if let date = raceDateByID[game.id] { g = g.patchingScheduledAt(date) }
+      return g
     }
     return allGames
   }
@@ -108,6 +114,20 @@ struct ScheduleClient {
     return lines + dnfLines
   }
 
+  /// Fetches the RAC session date for an upcoming MotoGP event to get the exact race time.
+  private static func fetchMotoGPRaceDate(eventID: String) async -> Date? {
+    guard let sessURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/sessions?eventUuid=\(eventID)&categoryUuid=\(motoGPClassUUID)") else { return nil }
+    var sessReq = URLRequest(url: sessURL)
+    sessReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (sessData, _) = try? await URLSession.shared.data(for: sessReq),
+          let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData),
+          let racSession = sessions.first(where: { $0.type == "RAC" }),
+          let dateStr = racSession.date else { return nil }
+    let iso = ISO8601DateFormatter()
+    iso.formatOptions = [.withInternetDateTime]
+    return iso.date(from: dateStr)
+  }
+
   /// Fetch standings summary for a single team. Returns nil on any failure (non-fatal).
   static func fetchStandings(for team: TeamDefinition) async -> HomeTeamTeamSummary? {
     if team.sport.isRacing {
@@ -134,6 +154,7 @@ private struct MotoGPSeason: Decodable {
 private struct MotoGPRaceSession: Decodable {
   let id: String
   let type: String
+  let date: String?
 }
 
 private struct MotoGPClassificationPayload: Decodable {
