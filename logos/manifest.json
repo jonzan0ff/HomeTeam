@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-27T03:21:35.332789+00:00",
+  "generated": "2026-03-27T14:37:52.573413+00:00",
   "teams": {
     "nhl:25": {
       "status": "ok",
@@ -186,6 +186,12 @@
       "file": "teams/nhl_124292.png",
       "source": "espn-dark",
       "size_bytes": 70067
+    },
+    "nhl:129764": {
+      "status": "ok",
+      "file": "teams/nhl_129764.png",
+      "source": "espn-dark",
+      "size_bytes": 74215
     },
     "mlb:1": {
       "status": "ok",
@@ -1034,50 +1040,50 @@
     "motoGP_motogp_ducati_lenovo": {
       "status": "ok",
       "file": "teams/motoGP_motogp_ducati_lenovo.png",
-      "source": "https://photos.motogp.com/teams/8/9/892fff2f-7402-4fbd-99fb-5fd567d8a80c/main-picture.png",
-      "size_bytes": 874817
+      "source": "ducati-shield-logo-manual",
+      "size_bytes": 29512
     },
     "motoGP_motogp_pramac": {
       "status": "ok",
       "file": "teams/motoGP_motogp_pramac.png",
-      "source": "https://photos.motogp.com/teams/5/9/598ccfb2-e0f1-4ad7-92b7-00ec9238a72c/main-picture.png",
-      "size_bytes": 873159
+      "source": "https://commons.wikimedia.org/wiki/File:Pramac_Racing-Logo.png",
+      "size_bytes": 4511
     },
     "motoGP_motogp_aprilia": {
       "status": "ok",
       "file": "teams/motoGP_motogp_aprilia.png",
-      "source": "https://photos.motogp.com/teams/1/1/11d18b37-baba-400a-80c2-f8ddf040f97e/main-picture.png",
-      "size_bytes": 863492
+      "source": "https://commons.wikimedia.org/wiki/File:Aprilia-logo.svg",
+      "size_bytes": 6112
     },
     "motoGP_motogp_ktm": {
       "status": "ok",
       "file": "teams/motoGP_motogp_ktm.png",
-      "source": "https://photos.motogp.com/teams/0/b/0b6cc118-a286-4343-9020-fb53c6f77c1a/main-picture.png",
-      "size_bytes": 742288
+      "source": "https://commons.wikimedia.org/wiki/File:KTM-Logo.svg",
+      "size_bytes": 4641
     },
     "motoGP_motogp_gresini": {
       "status": "ok",
       "file": "teams/motoGP_motogp_gresini.png",
-      "source": "https://photos.motogp.com/teams/1/1/11729e67-d2cb-41ad-b3a8-4a0ac5768a5f/main-picture.png",
-      "size_bytes": 645859
+      "source": "https://seeklogo.com/vector-logo/612334/gresini-racing-motogp-2025",
+      "size_bytes": 14822
     },
     "motoGP_motogp_vr46": {
       "status": "ok",
       "file": "teams/motoGP_motogp_vr46.png",
-      "source": "https://photos.motogp.com/teams/4/1/4130a48f-fa91-48be-a50c-f8a2e3f863a0/main-picture.png",
-      "size_bytes": 6440449
+      "source": "https://commons.wikimedia.org/wiki/File:Pertamina_Enduro_VR46_Racing_Team_-_logo.jpg",
+      "size_bytes": 61167
     },
     "motoGP_motogp_honda_repsol": {
       "status": "ok",
       "file": "teams/motoGP_motogp_honda_repsol.png",
-      "source": "https://photos.motogp.com/teams/c/e/ce837bd3-bc07-40ef-83cf-6a8025bededf/main-picture.png",
-      "size_bytes": 822012
+      "source": "https://commons.wikimedia.org/wiki/File:Honda_Logo.svg",
+      "size_bytes": 19007
     },
     "motoGP_motogp_yamaha": {
       "status": "ok",
       "file": "teams/motoGP_motogp_yamaha.png",
-      "source": "https://photos.motogp.com/teams/1/4/141b6f0f-7e53-4d27-9bdb-0ea8fba7e842/main-picture.png",
-      "size_bytes": 760434
+      "source": "https://commons.wikimedia.org/wiki/File:Yamaha_Motor_logo.svg",
+      "size_bytes": 12434
     }
   },
   "streaming": {
@@ -1098,10 +1104,8 @@
       "reason": "HTTP 429"
     },
     "amazon": {
-      "status": "ok",
-      "file": "streaming/amazon.png",
-      "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Amazon_Prime_Video_logo.svg/200px-Amazon_Prime_Video_logo.svg.png",
-      "size_bytes": 5602
+      "status": "missing",
+      "reason": "HTTP 429"
     },
     "peacock": {
       "status": "missing",
@@ -1128,10 +1132,10 @@
     }
   },
   "summary": {
-    "teams_ok": 179,
+    "teams_ok": 180,
     "teams_missing": 1,
-    "streaming_ok": 2,
-    "streaming_missing": 7,
+    "streaming_ok": 1,
+    "streaming_missing": 8,
     "streaming_skipped": 1
   }
 }
