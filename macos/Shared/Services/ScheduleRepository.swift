@@ -202,7 +202,7 @@ final class ScheduleRepository: ObservableObject {
     var seen = Set<String>()
     var needed: [(SupportedSport, String)] = []
     // Re-download if missing or stale (older than 30 days — catches any wrong-logo cache bugs)
-    let staleThreshold = Date().addingTimeInterval(-30 * 24 * 3600)
+    let staleThreshold = Date().addingTimeInterval(-7 * 24 * 3600)
     for game in games {
       guard !game.sport.isRacing else { continue }
       for teamID in [game.homeTeamID, game.awayTeamID] where !teamID.isEmpty {

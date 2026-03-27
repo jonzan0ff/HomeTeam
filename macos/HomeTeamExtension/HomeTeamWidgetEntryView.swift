@@ -254,6 +254,11 @@ private struct GameCard: View {
 
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
+        Text(GameFormatters.compactRaceName(from: game.homeTeamName))
+          .font(.system(size: 8.5, weight: .semibold))
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
         RacingResultsView(results: results, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
       } else if isRacing {
         Text(GameFormatters.compactRaceName(from: game.homeTeamName))
@@ -396,10 +401,10 @@ private struct RacingResultsView: View {
       ForEach(displayLines) { line in
         let fav = isFavorite(line)
         HStack(spacing: 4) {
-          Text("\(line.position)")
+          Text(line.position == 0 ? "DNF" : "P\(line.position)")
             .font(.system(size: 8, weight: .semibold))
             .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
-            .frame(width: 10, alignment: .leading)
+            .frame(width: 20, alignment: .leading)
           Text(line.driverName)
             .font(.system(size: 8, weight: fav ? .bold : .regular))
             .foregroundStyle(
@@ -419,10 +424,7 @@ private struct RacingResultsView: View {
 
 private struct ServiceBadge: View {
   let name: String
-  let isDark: Bool  // kept for API compat; colorScheme read directly below to bypass any propagation gap
-
-  @Environment(\.colorScheme) private var colorScheme
-  private var dark: Bool { colorScheme == .dark }
+  let isDark: Bool
 
   private var upper: String { name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() }
 
@@ -452,71 +454,18 @@ private struct ServiceBadge: View {
     return String(upper.prefix(8))
   }
 
-  // Two explicit palettes — dark mode uses higher brightness/saturation so badges
-  // pop against the dark widget background (~#2C2C2E). Uses colorScheme from env
-  // directly (not passed isDark) to avoid any WidgetKit propagation gap.
-  private var badgeColor: Color {
-    if dark {
-      if upper.contains("HULU")                               { return Color(red: 0.20, green: 0.90, blue: 0.56) }
-      if upper.contains("ESPN")                               { return Color(red: 1.00, green: 0.28, blue: 0.30) }
-      if upper.contains("FS1") || upper.contains("FS2")       { return Color(red: 1.00, green: 0.52, blue: 0.15) }
-      if upper.contains("FOX")                                { return Color(red: 1.00, green: 0.52, blue: 0.15) }
-      if upper.contains("PARAMOUNT")                          { return Color(red: 0.30, green: 0.62, blue: 1.00) }
-      if upper.contains("AMAZON") || upper.contains("PRIME")  { return Color(red: 0.22, green: 0.62, blue: 1.00) }
-      if upper.contains("PEACOCK")                            { return Color(red: 1.00, green: 0.66, blue: 0.15) }
-      if upper.contains("HBO") || upper.contains("MAX") || upper.contains("TNT") {
-                                                                return Color(red: 0.70, green: 0.50, blue: 1.00) }
-      if upper.contains("TBS")                                { return Color(red: 0.34, green: 0.66, blue: 1.00) }
-      if upper.contains("YOUTUBE")                            { return Color(red: 1.00, green: 0.30, blue: 0.30) }
-      if upper.contains("NETFLIX")                            { return Color(red: 1.00, green: 0.24, blue: 0.28) }
-      if upper.contains("APPLE")                              { return Color(red: 0.58, green: 0.58, blue: 0.62) }
-      if upper.contains("NBC")                                { return Color(red: 0.34, green: 0.60, blue: 1.00) }
-      if upper.contains("CBS")                                { return Color(red: 0.24, green: 0.50, blue: 1.00) }
-      if upper.contains("ABC")                                { return Color(red: 0.38, green: 0.38, blue: 1.00) }
-      if upper.contains("DAZN")                               { return Color(red: 1.00, green: 0.24, blue: 0.30) }
-      if upper.contains("F1 TV") || upper.contains("F1TV")    { return Color(red: 1.00, green: 0.24, blue: 0.28) }
-      return Color(red: 0.52, green: 0.52, blue: 0.56)
-    }
-    // Light mode: official brand palette
-    if upper.contains("HULU")                               { return Color(red: 0.09, green: 0.74, blue: 0.46) }
-    if upper.contains("ESPN")                               { return Color(red: 0.79, green: 0.14, blue: 0.16) }
-    if upper.contains("FS1") || upper.contains("FS2")       { return Color(red: 0.82, green: 0.28, blue: 0.04) }
-    if upper.contains("FOX")                                { return Color(red: 0.82, green: 0.28, blue: 0.04) }
-    if upper.contains("PARAMOUNT")                          { return Color(red: 0.10, green: 0.40, blue: 0.85) }
-    if upper.contains("AMAZON") || upper.contains("PRIME")  { return Color(red: 0.12, green: 0.46, blue: 0.82) }
-    if upper.contains("PEACOCK")                            { return Color(red: 0.80, green: 0.44, blue: 0.00) }
-    if upper.contains("HBO") || upper.contains("MAX") || upper.contains("TNT") {
-                                                              return Color(red: 0.45, green: 0.26, blue: 0.85) }
-    if upper.contains("TBS")                                { return Color(red: 0.20, green: 0.48, blue: 0.76) }
-    if upper.contains("YOUTUBE")                            { return Color(red: 0.86, green: 0.16, blue: 0.16) }
-    if upper.contains("NETFLIX")                            { return Color(red: 0.78, green: 0.12, blue: 0.16) }
-    if upper.contains("APPLE")                              { return Color(red: 0.30, green: 0.30, blue: 0.33) }
-    if upper.contains("NBC")                                { return Color(red: 0.15, green: 0.30, blue: 0.75) }
-    if upper.contains("CBS")                                { return Color(red: 0.08, green: 0.18, blue: 0.62) }
-    if upper.contains("ABC")                                { return Color(red: 0.08, green: 0.08, blue: 0.48) }
-    if upper.contains("DAZN")                               { return Color(red: 0.92, green: 0.08, blue: 0.16) }
-    if upper.contains("F1 TV") || upper.contains("F1TV")    { return Color(red: 0.88, green: 0.08, blue: 0.16) }
-    return Color(red: 0.25, green: 0.25, blue: 0.28)
-  }
-
-  // Colored pill + white text: visible on dark and light widget backgrounds.
-  // Survives OS-level desaturation (dimmed) — gray background + white text stays readable.
-
   var body: some View {
     HStack(spacing: 3) {
       if upper.contains("APPLE") {
         Image(systemName: "appletv")
           .font(.system(size: 7))
-          .foregroundStyle(Color.white)
+          .foregroundStyle(Color.secondary)
       }
       Text(label)
-        .font(.system(size: label.count > 8 ? 6.8 : 7.5, weight: .black, design: .rounded))
-        .foregroundStyle(Color.white)
+        .font(.system(size: label.count > 8 ? 6.8 : 7.5, weight: .bold, design: .rounded))
+        .foregroundStyle(Color.secondary)
         .lineLimit(1)
     }
-    .padding(.horizontal, 3)
-    .padding(.vertical, 1)
-    .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(badgeColor))
   }
 }
 

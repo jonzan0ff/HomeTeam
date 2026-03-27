@@ -32,24 +32,23 @@ struct ESPNRacingParser {
 
     let broadcasts = raceComp?.broadcastNames ?? []
 
-    // Populate top-3 finishers when the race is complete
+    // Populate all finishers when the race is complete (widget shows top-3 + favorite)
     let racingResults: [RacingResultLine]? = {
       guard status == .final, let comp = raceComp else { return nil }
-      let finishers = (comp.competitors ?? [])
+      let lines = (comp.competitors ?? [])
         .compactMap { c -> (Int, ESPNRacingCompetitor)? in
           guard let pos = c.order, pos > 0 else { return nil }
           return (pos, c)
         }
         .sorted { $0.0 < $1.0 }
-        .prefix(3)
-      let lines = finishers.map { (pos, c) in
-        RacingResultLine(
-          position: pos,
-          driverName: c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown",
-          teamName: c.team?.displayName,
-          timeOrGap: nil
-        )
-      }
+        .map { (pos, c) in
+          RacingResultLine(
+            position: pos,
+            driverName: c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown",
+            teamName: c.team?.displayName,
+            timeOrGap: nil
+          )
+        }
       return lines.isEmpty ? nil : lines
     }()
 

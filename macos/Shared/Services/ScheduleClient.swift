@@ -99,10 +99,18 @@ struct ScheduleClient {
     guard let (classData, _) = try? await URLSession.shared.data(for: classReq),
           let payload = try? JSONDecoder().decode(MotoGPClassificationPayload.self, from: classData) else { return [] }
 
-    return payload.classification.compactMap { entry in
-      guard let pos = entry.position, let name = entry.rider?.fullName, !name.isEmpty else { return nil }
-      return RacingResultLine(position: pos, driverName: name, teamName: entry.team?.name, timeOrGap: entry.gap)
+    var lines: [RacingResultLine] = []
+    var dnfLines: [RacingResultLine] = []
+    for entry in payload.classification {
+      guard let name = entry.rider?.fullName, !name.isEmpty else { continue }
+      if let pos = entry.position {
+        lines.append(RacingResultLine(position: pos, driverName: name, teamName: entry.team?.name, timeOrGap: entry.timeOrGap))
+      } else {
+        // DNF/retired — position 0 used as sentinel; widget shows "DNF"
+        dnfLines.append(RacingResultLine(position: 0, driverName: name, teamName: entry.team?.name, timeOrGap: nil))
+      }
     }
+    return lines + dnfLines
   }
 
   /// Fetch standings summary for a single team. Returns nil on any failure (non-fatal).
@@ -141,7 +149,18 @@ private struct MotoGPClassEntry: Decodable {
   let position: Int?
   let rider: MotoGPRider?
   let team: MotoGPTeamRef?
-  let gap: String?
+  let time: String?
+  let gap: MotoGPGap?
+
+  struct MotoGPGap: Decodable {
+    let first: String?
+  }
+
+  /// Human-readable gap: "+5.543" for non-winners, "39:36.270" for winner (gap.first == "0.000").
+  var timeOrGap: String? {
+    if let f = gap?.first, f != "0.000", !f.isEmpty { return "+\(f)" }
+    return time
+  }
 }
 
 private struct MotoGPRider: Decodable {

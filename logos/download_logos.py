@@ -161,7 +161,7 @@ nhl_teams = [
     ("nhl:11","NJ"),("nhl:12","NYI"),("nhl:13","NYR"),("nhl:14","OTT"),
     ("nhl:15","PHI"),("nhl:16","PIT"),("nhl:18","SJ"),("nhl:19","STL"),
     ("nhl:20","TB"),("nhl:21","TOR"),("nhl:22","VAN"),("nhl:37","VGK"),
-    ("nhl:23","WSH"),("nhl:28","WPG"),("nhl:124292","SEA"),
+    ("nhl:23","WSH"),("nhl:28","WPG"),("nhl:124292","SEA"),("nhl:129764","UTAH"),
 ]
 print("\nNHL:")
 for cid, abbrev in nhl_teams:
