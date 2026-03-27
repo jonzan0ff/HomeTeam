@@ -91,14 +91,12 @@ final class ScheduleRepository: ObservableObject {
   // MARK: - Private
 
   private func fetchAllStandings(for compositeIDs: [String]) async -> [HomeTeamTeamSummary] {
-    // One standings fetch per unique compositeID (dedup racing sports — same sport, different drivers)
+    // One standings fetch per unique compositeID — racing drivers each have their own championship standing
     var seen = Set<String>()
     var teams: [TeamDefinition] = []
     for cid in compositeIDs {
       guard let team = TeamCatalog.team(for: cid) else { continue }
-      // Racing: one fetch per sport, not per driver
-      let key = team.sport.isRacing ? team.sport.rawValue : cid
-      if seen.insert(key).inserted { teams.append(team) }
+      if seen.insert(cid).inserted { teams.append(team) }
     }
     return await withTaskGroup(of: HomeTeamTeamSummary?.self) { group in
       for team in teams {

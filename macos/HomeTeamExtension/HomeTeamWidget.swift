@@ -21,6 +21,7 @@ struct HomeTeamWidget: Widget {
     .configurationDisplayName("Team")
     .description("See upcoming and live games for your favourite teams.")
     .supportedFamilies([.systemLarge])
+    .contentMarginsDisabled()
   }
 }
 

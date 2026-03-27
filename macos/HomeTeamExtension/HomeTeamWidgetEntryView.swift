@@ -475,7 +475,7 @@ private struct RacingResultsView: View {
 
           Spacer(minLength: 0)
 
-          if let gap = line.timeOrGap {
+          if sport != .motoGP, let gap = line.timeOrGap {
             Text(gap)
               .font(.system(size: 7, weight: .regular))
               .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
