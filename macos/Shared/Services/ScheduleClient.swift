@@ -103,11 +103,12 @@ struct ScheduleClient {
     var dnfLines: [RacingResultLine] = []
     for entry in payload.classification {
       guard let name = entry.rider?.fullName, !name.isEmpty else { continue }
+      let teamID = TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
       if let pos = entry.position {
-        lines.append(RacingResultLine(position: pos, driverName: name, teamName: entry.team?.name, timeOrGap: entry.timeOrGap))
+        lines.append(RacingResultLine(position: pos, driverName: name, teamName: entry.team?.name, timeOrGap: entry.timeOrGap, espnTeamID: teamID))
       } else {
         // DNF/retired — position 0 used as sentinel; widget shows "DNF"
-        dnfLines.append(RacingResultLine(position: 0, driverName: name, teamName: entry.team?.name, timeOrGap: nil))
+        dnfLines.append(RacingResultLine(position: 0, driverName: name, teamName: entry.team?.name, timeOrGap: nil, espnTeamID: teamID))
       }
     }
     return lines + dnfLines

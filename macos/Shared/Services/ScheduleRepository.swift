@@ -237,7 +237,7 @@ final class ScheduleRepository: ObservableObject {
   }
 
   /// Downloads F1 (SVG/PNG) and MotoGP (PNG) logos from GitHub Pages into the App Group container.
-  /// Driven by favorite teams in the catalog — racing games have no team IDs in the schedule feed.
+  /// Downloads logos for favorites AND all teams appearing in race results (so every finisher has a logo).
   private func prefetchRacingLogos(for compositeIDs: [String]) async {
     guard let dir = AppGroupStore.logosDirectoryURL else { return }
     let base = "https://jonzan0ff.github.io/HomeTeam/logos/teams"
@@ -245,19 +245,32 @@ final class ScheduleRepository: ObservableObject {
     var seen = Set<String>()
     var needed: [(SupportedSport, String)] = []
 
-    for cid in compositeIDs {
-      guard let team = TeamCatalog.team(for: cid), team.sport.isRacing else { continue }
-      guard seen.insert(team.espnTeamID).inserted else { continue }
+    func checkAndAdd(sport: SupportedSport, teamID: String) {
+      guard seen.insert(teamID).inserted else { return }
       let exists: Bool
-      if team.sport == .f1 {
-        let svg = dir.appendingPathComponent("f1_\(team.espnTeamID).svg")
-        let png = dir.appendingPathComponent("f1_\(team.espnTeamID).png")
+      if sport == .f1 {
+        let svg = dir.appendingPathComponent("f1_\(teamID).svg")
+        let png = dir.appendingPathComponent("f1_\(teamID).png")
         exists = FileManager.default.fileExists(atPath: svg.path) || FileManager.default.fileExists(atPath: png.path)
       } else {
-        let png = dir.appendingPathComponent("motoGP_\(team.espnTeamID).png")
+        let png = dir.appendingPathComponent("motoGP_\(teamID).png")
         exists = FileManager.default.fileExists(atPath: png.path)
       }
-      if !exists { needed.append((team.sport, team.espnTeamID)) }
+      if !exists { needed.append((sport, teamID)) }
+    }
+
+    // Favorites
+    for cid in compositeIDs {
+      guard let team = TeamCatalog.team(for: cid), team.sport.isRacing else { continue }
+      checkAndAdd(sport: team.sport, teamID: team.espnTeamID)
+    }
+
+    // All teams appearing in race results in the snapshot
+    for game in snapshot.games where game.sport.isRacing {
+      for line in game.racingResults ?? [] {
+        guard let teamID = line.espnTeamID else { continue }
+        checkAndAdd(sport: game.sport, teamID: teamID)
+      }
     }
 
     guard !needed.isEmpty else { return }

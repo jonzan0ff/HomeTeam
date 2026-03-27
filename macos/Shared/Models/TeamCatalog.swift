@@ -401,6 +401,18 @@ extension TeamCatalog {
     teams.filter { $0.sport == sport }
   }
 
+  /// Returns the espnTeamID (constructor/team logo key) for a racing driver by partial name match.
+  static func racingTeamID(forDriverName name: String, sport: SupportedSport) -> String? {
+    let lower = name.lowercased()
+    return teams.first(where: { team in
+      guard team.sport == sport else { return false }
+      return team.driverNames.contains { dn in
+        let dnLower = dn.lowercased()
+        return lower.contains(dnLower) || dnLower.contains(lower)
+      }
+    })?.espnTeamID
+  }
+
   static func widgetConfigurationTeams(settings: AppSettings) -> [TeamDefinition] {
     let favorites = settings.favoriteTeamCompositeIDs.compactMap(team(withCompositeID:))
     if !favorites.isEmpty { return favorites }

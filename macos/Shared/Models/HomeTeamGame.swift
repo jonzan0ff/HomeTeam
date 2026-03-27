@@ -41,6 +41,7 @@ struct RacingResultLine: Codable, Equatable, Identifiable {
   let driverName: String
   let teamName: String?
   let timeOrGap: String?
+  let espnTeamID: String?   // constructor/team logo key (nil for unknown drivers)
 
   var id: String { "\(position)-\(driverName)" }
 }

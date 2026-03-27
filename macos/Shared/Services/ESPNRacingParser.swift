@@ -27,7 +27,8 @@ struct ESPNRacingParser {
     let raceComp = raceCompetition(from: event)
     let dateStr = raceComp?.date ?? event.date
     guard let date = dateFormatter.date(from: dateStr) else { return nil }
-    let status = mapStatus(event.status)
+    // Use the race competition's own status when available (prevents weekend-start marking whole event final)
+    let status = mapStatus(raceComp?.status ?? event.status)
     let venue = event.circuit?.fullName ?? raceComp?.venue?.fullName
 
     let broadcasts = raceComp?.broadcastNames ?? []
@@ -42,11 +43,13 @@ struct ESPNRacingParser {
         }
         .sorted { $0.0 < $1.0 }
         .map { (pos, c) in
-          RacingResultLine(
+          let driverName = c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown"
+          return RacingResultLine(
             position: pos,
-            driverName: c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown",
+            driverName: driverName,
             teamName: c.team?.displayName,
-            timeOrGap: nil
+            timeOrGap: nil,
+            espnTeamID: TeamCatalog.racingTeamID(forDriverName: driverName, sport: sport)
           )
         }
       return lines.isEmpty ? nil : lines
@@ -118,6 +121,7 @@ private struct ESPNScoreboardStatusType: Decodable {
 private struct ESPNScoreboardCompetition: Decodable {
   let date: String?
   let type: ESPNCompetitionType?
+  let status: ESPNScoreboardStatus?
   let venue: ESPNScoreboardVenue?
   // ESPN racing broadcasts: [{"market":"national","names":["Apple TV"]}]
   let broadcasts: [ESPNScoreboardBroadcast]?

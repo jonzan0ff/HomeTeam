@@ -627,10 +627,10 @@ final class AppGroupStoreTests: XCTestCase {
     XCTAssertEqual(original, loaded)
   }
 
-  // MotoGP has no logos — logoFileURL must return nil regardless of App Group availability.
-  func test_logoFileURL_motoGP_alwaysNil() {
-    XCTAssertNil(AppGroupStore.logoFileURL(sport: .motoGP, espnTeamID: "motogp_ducati_lenovo"),
-      "MotoGP has no logos; logoFileURL must always return nil for MotoGP")
+  // MotoGP logoFileURL returns nil for a non-existent team ID.
+  func test_logoFileURL_motoGP_nonexistentID_isNil() {
+    XCTAssertNil(AppGroupStore.logoFileURL(sport: .motoGP, espnTeamID: "motogp_does_not_exist_xyzzy"),
+      "logoFileURL must return nil for a MotoGP teamID with no file on disk")
   }
 
   // Empty espnTeamID must always return nil regardless of sport.

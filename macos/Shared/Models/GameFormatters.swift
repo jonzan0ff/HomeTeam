@@ -57,6 +57,62 @@ enum GameFormatters {
     return s
   }
 
+  // MARK: - Race flag
+
+  /// Returns a country flag emoji for an F1 or MotoGP race name, or nil if not recognised.
+  static func raceFlag(for rawName: String) -> String? {
+    let lower = rawName.lowercased()
+    for (keyword, flag) in raceFlags where lower.contains(keyword) { return flag }
+    return nil
+  }
+
+  private static let raceFlags: [String: String] = [
+    // F1
+    "japanese":   "🇯🇵",
+    "miami":      "🇺🇸",
+    "australian": "🇦🇺",
+    "saudi":      "🇸🇦",
+    "bahrain":    "🇧🇭",
+    "chinese":    "🇨🇳",
+    "barcelona":  "🇪🇸",
+    "canadian":   "🇨🇦",
+    "monaco":     "🇲🇨",
+    "spanish":    "🇪🇸",
+    "austrian":   "🇦🇹",
+    "hungarian":  "🇭🇺",
+    "belgian":    "🇧🇪",
+    "dutch":      "🇳🇱",
+    "italian":    "🇮🇹",
+    "singapore":  "🇸🇬",
+    "states":     "🇺🇸",   // United States GP (COTA)
+    "vegas":      "🇺🇸",   // Las Vegas GP
+    "mexico":     "🇲🇽",
+    "paulo":      "🇧🇷",   // São Paulo GP
+    "qatar":      "🇶🇦",
+    "abu":        "🇦🇪",   // Abu Dhabi GP
+    "british":    "🇬🇧",
+    "azerbai":    "🇦🇿",   // Azerbaijan GP
+    // MotoGP
+    "thailand":   "🇹🇭",
+    "brazil":     "🇧🇷",
+    "argentina":  "🇦🇷",
+    "americas":   "🇺🇸",
+    "france":     "🇫🇷",
+    "germany":    "🇩🇪",
+    "netherlands":"🇳🇱",
+    "finland":    "🇫🇮",
+    "san marino": "🇸🇲",
+    "aragon":     "🇪🇸",
+    "japan":      "🇯🇵",
+    "indonesia":  "🇮🇩",
+    "malaysia":   "🇲🇾",
+    "portugal":   "🇵🇹",
+    "valencia":   "🇪🇸",
+    "hungary":    "🇭🇺",
+    "czechia":    "🇨🇿",
+    "kingdom":    "🇬🇧",   // United Kingdom GP
+  ]
+
   // MARK: - Live status
 
   /// Compresses verbose live status strings to short form for compact display.

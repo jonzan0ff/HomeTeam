@@ -240,6 +240,16 @@ private struct GameCard: View {
       .flatMap { NSImage(contentsOf: $0) }
   }
 
+  private var raceNameText: some View {
+    let compact = GameFormatters.compactRaceName(from: game.homeTeamName)
+    let flag = GameFormatters.raceFlag(for: game.homeTeamName)
+    return Text(flag != nil ? "\(flag!) \(compact)" : compact)
+      .font(.system(size: 8.5, weight: .semibold))
+      .lineLimit(1)
+      .minimumScaleFactor(0.7)
+      .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       // Header: date chip + status
@@ -270,18 +280,10 @@ private struct GameCard: View {
 
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
-        Text(GameFormatters.compactRaceName(from: game.homeTeamName))
-          .font(.system(size: 8.5, weight: .semibold))
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
-        RacingResultsView(results: results, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
+        raceNameText
+        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
       } else if isRacing {
-        Text(GameFormatters.compactRaceName(from: game.homeTeamName))
-          .font(.system(size: 8.5, weight: .semibold))
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
+        raceNameText
       } else {
         VStack(spacing: 4) {
           if !game.awayTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -393,6 +395,7 @@ private struct TeamRow: View {
 
 private struct RacingResultsView: View {
   let results: [RacingResultLine]
+  let sport: SupportedSport
   let favoriteDriverNames: [String]
   let isDark: Bool
 
@@ -412,15 +415,34 @@ private struct RacingResultsView: View {
     return top3
   }
 
+  private func logoImage(for line: RacingResultLine) -> NSImage? {
+    guard let teamID = line.espnTeamID else { return nil }
+    return AppGroupStore.logoFileURL(sport: sport, espnTeamID: teamID)
+      .flatMap { NSImage(contentsOf: $0) }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 3) {
       ForEach(displayLines) { line in
         let fav = isFavorite(line)
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
           Text(line.position == 0 ? "DNF" : "P\(line.position)")
             .font(.system(size: 8, weight: .semibold))
             .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
             .frame(width: 20, alignment: .leading)
+
+          // Team logo
+          Group {
+            if let img = logoImage(for: line) {
+              Image(nsImage: img)
+                .resizable().aspectRatio(contentMode: .fit)
+            } else {
+              Color.clear
+            }
+          }
+          .frame(width: 12, height: 12)
+          .clipShape(Circle())
+
           Text(line.driverName)
             .font(.system(size: 8, weight: fav ? .bold : .regular))
             .foregroundStyle(
@@ -429,7 +451,16 @@ private struct RacingResultsView: View {
                 : (fav ? Color.primary : Color.primary.opacity(0.75))
             )
             .lineLimit(1)
+
           Spacer(minLength: 0)
+
+          if let gap = line.timeOrGap {
+            Text(gap)
+              .font(.system(size: 7, weight: .regular))
+              .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color.secondary)
+              .lineLimit(1)
+              .minimumScaleFactor(0.8)
+          }
         }
       }
     }
