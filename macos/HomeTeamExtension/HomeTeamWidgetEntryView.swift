@@ -437,7 +437,7 @@ private struct RacingResultsView: View {
           Text(line.position == 0 ? "DNF" : "P\(line.position)")
             .font(.caption2.weight(.semibold))
             .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
-            .frame(width: 20, alignment: .leading)
+            .frame(width: 28, alignment: .leading)
 
           // Team logo
           Group {
