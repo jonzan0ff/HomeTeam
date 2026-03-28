@@ -289,8 +289,8 @@ final class ScheduleRepository: ObservableObject {
               } catch { continue }
             }
           } else {
-            // Try SVG first (transparent), fall back to PNG
-            for ext in ["svg", "png"] {
+            // Try PNG first (preferred), fall back to SVG
+            for ext in ["png", "svg"] {
               guard let src = URL(string: "\(base)/motoGP_\(espnTeamID).\(ext)") else { continue }
               let dest = dir.appendingPathComponent("motoGP_\(espnTeamID).\(ext)")
               do {
