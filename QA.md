@@ -193,22 +193,29 @@ Tests for `AppGroupStore.write/read` with `AppSettings`.
 
 Tests for `MotoGPCalendarParser.parse(_:)` and `circuitTimezones(from:)`.
 
-| Test | Asserts |
-|---|---|
-| `usesDateEnd_asRaceDay` | `scheduledAt` weekday = Sunday (from `date_end`) |
-| `fallsBackToDateStart_whenNoDateEnd` | Uses `date_start` when `date_end` is nil |
-| `hardcodesFS1_broadcast` | `broadcastNetworks == ["FS1"]` |
-| `grandPrix_shortenedToGP` | `homeTeamName` contains "GP", not "Grand Prix" |
-| `filtersOutTestEvents` | `test: true` events produce 0 games |
-| `status_finished_mapsFinal` | `"FINISHED"` → `.final` |
-| `status_inProgress_mapsLive` | `"IN-PROGRESS"` → `.live` |
-| `status_started_mapsScheduled` | `"STARTED"` → `.scheduled` |
-| `status_nil_futureDate_mapsScheduled` | nil status, future date → `.scheduled` |
-| `status_nil_pastDate_mapsFinal` | nil status, past date → `.final` |
-| `circuitTimezone_COTA_isChicago` | legacy_id 101 → `America/Chicago` |
-| `circuitTimezone_Silverstone_isLondon` | legacy_id 42 → `Europe/London` |
-| `circuitTimezone_Motegi_isTokyo` | legacy_id 76 → `Asia/Tokyo` |
-| `circuitTimezone_unknownID_returnsEmpty` | legacy_id 999 → not in map |
+| Test | Asserts | Status |
+|---|---|---|
+| `usesDateEnd_asRaceDay` | `scheduledAt` weekday = Sunday (from `date_end`) | done |
+| `fallsBackToDateStart_whenNoDateEnd` | Uses `date_start` when `date_end` is nil | done |
+| `hardcodesFS1_broadcast` | `broadcastNetworks == ["FS1"]` | done |
+| `fs1_matchesStreamingFilter` | FS1 broadcast passes `["fs1"]` streaming filter | done |
+| `grandPrix_shortenedToGP` | `homeTeamName` contains "GP", not "Grand Prix" | done |
+| `sponsoredName_fallback` | Sponsored name also normalized to GP | done |
+| `filtersOutTestEvents` | `test: true` events produce 0 games | done |
+| `includesNonTestEvents` | `test: false` events produce 1 game | done |
+| `status_finished_mapsFinal` | `"FINISHED"` → `.final` | done |
+| `status_inProgress_mapsLive` | `"IN-PROGRESS"` → `.live` | done |
+| `status_started_mapsScheduled` | `"STARTED"` → `.scheduled` | **not impl** |
+| `status_nil_futureDate_mapsScheduled` | nil status, future date → `.scheduled` | done |
+| `status_nil_pastDate_mapsFinal` | nil status, past date → `.final` | done |
+| `status_unknown_pastDate_mapsFinal` | `"CLOSED"`/`"COMPLETED"`/`"ENDED"` all → `.final` | done |
+| `status_closed_futureDate_mapsScheduled` | unknown status + future date → `.scheduled` | done |
+| `circuitTimezone_COTA_isChicago` | legacy_id 101 → `America/Chicago` | done |
+| `circuitTimezone_Silverstone_isLondon` | legacy_id 42 → `Europe/London` | done |
+| `circuitTimezone_Motegi_isTokyo` | legacy_id 76 → `Asia/Tokyo` | done |
+| `circuitTimezone_PhillipIsland_isMelbourne` | legacy_id 32 → `Australia/Melbourne` | done |
+| `circuitTimezone_Sepang_isKualaLumpur` | legacy_id 75 → `Asia/Kuala_Lumpur` | done |
+| `circuitTimezone_unknownID_returnsEmpty` | legacy_id 999 → not in map | done |
 
 ### 1J. ESPN racing parser
 
@@ -218,10 +225,12 @@ Tests for `ESPNRacingParser.parse(_:sport:)`.
 |---|---|
 | `usesTypeId3_asRaceCompetition` | Race date from competition with `type_id: 3` |
 | `fallsBackToLastCompetition_whenNoTypeId3` | Uses last competition as fallback |
-| `extractsBroadcastNames` | Broadcast names from `names` array |
+| `extractsBroadcastNames_fromNamesArray` | Broadcast names from `names` array |
 | `broadcastNames_emptyWhenNoBroadcasts` | Empty array when no broadcasts |
 | `appleTV_matchesStreamingFilter` | `"Apple TV"` → `appletvplus` key |
-| `homeTeamName_storedVerbatim` | Raw name preserved (sponsor stripping at display time) |
+| `homeTeamName_storedVerbatim` | Raw name preserved; `compactRaceName` strips sponsor at display time |
+| `sponsorPlusLocation_compactsToLocationGP` | `"Crypto.com Miami Grand Prix"` → `"Miami GP"` via `compactRaceName` |
+| `nonGrandPrixName_unchanged` | Non-GP names stored verbatim |
 | `status_pre_mapsScheduled` | `"pre"` → `.scheduled` |
 | `status_in_mapsLive` | `"in"` → `.live` |
 | `status_post_completed_mapsFinal` | `"post"` + `completed: true` → `.final` |
@@ -295,41 +304,40 @@ Tests for `patchingRacingResults`, `patchingScheduledAt`, `patching(homeScore:..
 
 ---
 
-## Layer 2 — Snapshot / Preview tests (no network, visual regression)
+## Layer 2 — Snapshot tests (no network, visual regression)
 
-Use `swift-snapshot-testing` against `HomeTeamWidgetEntryView`.
+Dependency-free: renders `HomeTeamWidgetEntryView` via `NSHostingView` →
+`bitmapImageRepForCachingDisplay` → PNG. No external packages needed.
 
-### 2A. Fixture scenarios
+Reference PNGs committed to `Tests/__Snapshots__/`. Toggle `recordMode` in
+`WidgetSnapshotTests.swift` to re-record after intentional visual changes.
+
+### 2A. Fixture scenarios (all implemented)
 
 | Fixture | Sport | Previous | Upcoming | Notes |
 |---|---|---|---|---|
-| `nhl_typical` | NHL | 3 finals with scores | 3 scheduled with records | Standard case |
-| `nhl_live_game` | NHL | 2 finals | 1 live + 2 scheduled | Live red border |
-| `nhl_offseason` | NHL | 3 finals | empty | Off-season message |
-| `f1_typical` | F1 | 2 GP finals with results | 3 GP scheduled | Race results + names |
-| `motogp_typical` | MotoGP | 2 GP finals | 3 GP scheduled | Abbreviated driver names |
-| `unconfigured` | — | — | — | Placeholder state |
+| `nhl_typical` | NHL | 3 finals with scores | 2 scheduled with streaming badges | Standard case |
+| `nhl_live_game` | NHL | 1 final | 1 live (2ND • 8:42) + 1 scheduled | Live chip + score |
+| `nhl_offseason` | NHL | 1 final | empty | Off-season zzz message |
+| `f1_typical` | F1 | 2 GP finals with P1-P3 results | 3 GP scheduled with TV+ | Race results |
+| `motogp_typical` | MotoGP | 2 GP finals (DNF + P4) | 3 GP scheduled with FS1 | Abbreviated names |
+| `unconfigured` | — | — | — | "No team selected" placeholder |
 | `no_games` | NHL | empty | empty | "No games available" |
 
-### 2B. Approach
+### 2B. How it works
 
 ```swift
-func testNHLTypical() {
-    let entry = HomeTeamEntry(
-        date: .fixture,
-        teamDefinition: .fixture_capitals,
-        teamSummary: .fixture_nhl,
-        isOffSeason: false,
-        liveGames: [],
-        previousGames: .fixture_nhl_previous,
-        upcomingGames: .fixture_nhl_upcoming,
-        fetchedAt: .fixture,
-        streamingKeys: []
-    )
-    let view = HomeTeamWidgetEntryView(entry: entry)
-        .frame(width: 329, height: 345)
-    assertSnapshot(matching: view, as: .image)
-}
+// Render widget view to PNG — no external dependencies
+let view = HomeTeamWidgetEntryView(entry: entry)
+    .frame(width: 329, height: 345)
+    .environment(\.colorScheme, .light)
+let hostingView = NSHostingView(rootView: view)
+hostingView.frame = NSRect(origin: .zero, size: widgetSize)
+hostingView.layoutSubtreeIfNeeded()
+let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)!
+hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
+let pngData = bitmapRep.representation(using: .png, properties: [:])!
+// Compare pngData against committed reference PNG
 ```
 
 ---
