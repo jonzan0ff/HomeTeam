@@ -336,6 +336,16 @@ func testNHLTypical() {
 
 ## Layer 3 — UI tests (XCUITest, real app process)
 
+> **Status: Not implemented.** High maintenance cost, low bug-catch rate for this project's
+> change patterns. Build these when a bug ships that only a UI test would have caught.
+>
+> **Trigger to build:** If a bug is found where settings/favorites were lost across relaunch,
+> or onboarding broke silently, add the specific UI test that would have caught it and
+> note the incident below.
+>
+> **Incidents that would have justified Layer 3:**
+> *(none yet)*
+
 ### 3A. Onboarding flows
 - Onboarding shown after reset
 - Quick links route to correct Settings sections
@@ -363,6 +373,20 @@ func testNHLTypical() {
 ---
 
 ## Layer 4 — Network smoke tests (opt-in, CI nightly)
+
+> **Status: Not implemented.** Valuable for catching API schema drift and endpoint
+> deprecation, but only useful when running on a schedule (nightly CI). Build these
+> when CI infrastructure is set up, or when an API change breaks the app silently.
+>
+> **Trigger to build:** If an API returns empty/changed data and the app silently shows
+> stale or missing content (e.g. ESPN MotoGP standings returning empty `children`,
+> Pulselive session endpoint changing schema), add the specific smoke test and note
+> the incident below.
+>
+> **Incidents that would have justified Layer 4:**
+> - *2026-03-26: ESPN MotoGP standings endpoint returns empty `children` array — had to
+>   switch to Pulselive standings API. A smoke test asserting `children.count >= 1` would
+>   have flagged this before the widget showed missing stats.*
 
 Run with `HOMETEAM_RUN_NETWORK_TESTS=1`.
 
