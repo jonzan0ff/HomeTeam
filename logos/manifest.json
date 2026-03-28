@@ -1040,8 +1040,8 @@
     "motoGP_motogp_ducati_lenovo": {
       "status": "ok",
       "file": "teams/motoGP_motogp_ducati_lenovo.png",
-      "source": "ducati-shield-logo-manual",
-      "size_bytes": 29512
+      "source": "https://commons.wikimedia.org/wiki/File:Ducati_red_logo.PNG",
+      "size_bytes": 93165
     },
     "motoGP_motogp_pramac": {
       "status": "ok",
