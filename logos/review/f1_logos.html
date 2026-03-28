@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Team Logo Review</title>
+<style>
+  body { font-family: -apple-system, sans-serif; margin: 40px; background: #1a1a1a; color: #fff; }
+  h1 { text-align: center; margin-bottom: 30px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .card {
+    border-radius: 12px; padding: 20px; text-align: center;
+    transition: background 0.2s;
+  }
+  .card.dark { background: #2a2a2a; }
+  .card.light { background: #f0f0f0; color: #111; }
+  .card img { max-width: 120px; max-height: 120px; object-fit: contain; margin: 15px auto; display: block; }
+  .card h3 { margin: 0 0 5px; font-size: 14px; }
+  .card .id { font-size: 11px; opacity: 0.5; font-family: monospace; }
+  .card .size { font-size: 11px; opacity: 0.5; margin-top: 8px; }
+  .toggle { margin: 20px auto; display: block; padding: 10px 20px; border-radius: 8px;
+    border: 1px solid #555; background: #333; color: #fff; cursor: pointer; font-size: 14px; }
+  .toggle:hover { background: #444; }
+</style>
+</head>
+<body>
+<h1>F1 Team Logos - Review</h1>
+<button class="toggle" onclick="toggleBg()">Toggle Dark / Light Background</button>
+<div class="grid" id="grid">
+  <div class="card dark"><h3>Ferrari</h3><div class="id">106842</div><img src="../teams/f1_106842.png"><div class="size">Prancing Horse</div></div>
+  <div class="card dark"><h3>McLaren</h3><div class="id">106892</div><img src="../teams/f1_106892.png"><div class="size">Speedmark</div></div>
+  <div class="card dark"><h3>Mercedes</h3><div class="id">106893</div><img src="../teams/f1_106893.png"><div class="size">Three-pointed star</div></div>
+  <div class="card dark"><h3>Red Bull Racing</h3><div class="id">106921</div><img src="../teams/f1_106921.png"><div class="size">Twin bulls</div></div>
+  <div class="card dark"><h3>Alpine</h3><div class="id">106922</div><img src="../teams/f1_106922.png"><div class="size">A emblem</div></div>
+  <div class="card dark"><h3>Williams</h3><div class="id">106967</div><img src="../teams/f1_106967.png"><div class="size">Crest</div></div>
+  <div class="card dark"><h3>Haas</h3><div class="id">111427</div><img src="../teams/f1_111427.png"><div class="size">HAAS wordmark</div></div>
+  <div class="card dark"><h3>Aston Martin</h3><div class="id">123986</div><img src="../teams/f1_123986.png"><div class="size">Wings badge</div></div>
+  <div class="card dark"><h3>Racing Bulls</h3><div class="id">123988</div><img src="../teams/f1_123988.png"><div class="size">VCARB (no clean bull-only available)</div></div>
+  <div class="card dark"><h3>Kick Sauber</h3><div class="id">132211 / 132212</div><img src="../teams/f1_132211.png"><div class="size">Sauber C mark</div></div>
+</div>
+<script>
+  let dark = true;
+  function toggleBg() {
+    dark = !dark;
+    document.querySelectorAll('.card').forEach(c => {
+      c.classList.toggle('dark', dark);
+      c.classList.toggle('light', !dark);
+    });
+  }
+</script>
+</body>
+</html>
