@@ -38,7 +38,10 @@ struct HomeTeamTimelineProvider: AppIntentTimelineProvider {
   func timeline(for configuration: HomeTeamWidgetIntent, in context: Context) async -> Timeline<HomeTeamEntry> {
     let entry = makeEntry(for: configuration)
     let nextReload: Date
-    if let next = entry.upcomingGames.first {
+    if !entry.liveGames.isEmpty {
+      // Live game: request refresh every 60s to match app's auto-refresh cadence
+      nextReload = Date().addingTimeInterval(60)
+    } else if let next = entry.upcomingGames.first {
       nextReload = min(next.scheduledAt, Date().addingTimeInterval(1800))
     } else {
       nextReload = Date().addingTimeInterval(1800)
