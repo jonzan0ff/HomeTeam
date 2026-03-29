@@ -312,7 +312,7 @@ private struct GameCard: View {
       }
     }
     .padding(6)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(
       RoundedRectangle(cornerRadius: 9, style: .continuous)
         .fill(isDark ? Color.white.opacity(0.09) : Color.primary.opacity(0.06))
