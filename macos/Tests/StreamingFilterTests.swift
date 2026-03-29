@@ -174,14 +174,14 @@ final class MotoGPCalendarParserTests: XCTestCase {
   }
 
   func test_status_inProgress_mapsLive() throws {
-    let json = motogpJSON(dateStart: "2026-03-29", status: "IN-PROGRESS")
+    let json = motogpJSON(dateStart: "2027-03-29", status: "IN-PROGRESS")
     let games = try MotoGPCalendarParser.parse(json)
     XCTAssertEqual(games[0].status, .live)
   }
 
   func test_status_nil_futureDate_mapsScheduled() throws {
     // Future date with nil status → still scheduled
-    let json = motogpJSON(dateStart: "2026-03-29", status: nil)
+    let json = motogpJSON(dateStart: "2027-03-29", status: nil)
     let games = try MotoGPCalendarParser.parse(json)
     XCTAssertEqual(games[0].status, .scheduled)
   }

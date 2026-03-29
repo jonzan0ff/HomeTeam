@@ -33,26 +33,32 @@ struct ESPNRacingParser {
 
     let broadcasts = raceComp?.broadcastNames ?? []
 
-    // Populate all finishers when the race is complete (widget shows top-3 + favorite)
+    // Populate all finishers when the race is complete (widget shows top-3 + favorite),
+    // or qualifying grid when the race is upcoming but qualifying is done.
     let racingResults: [RacingResultLine]? = {
-      guard status == .final, let comp = raceComp else { return nil }
-      let lines = (comp.competitors ?? [])
-        .compactMap { c -> (Int, ESPNRacingCompetitor)? in
-          guard let pos = c.order, pos > 0 else { return nil }
-          return (pos, c)
-        }
-        .sorted { $0.0 < $1.0 }
-        .map { (pos, c) in
-          let driverName = c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown"
-          return RacingResultLine(
-            position: pos,
-            driverName: driverName,
-            teamName: c.team?.displayName,
-            timeOrGap: nil,
-            espnTeamID: TeamCatalog.racingTeamID(forDriverName: driverName, sport: sport)
-          )
-        }
-      return lines.isEmpty ? nil : lines
+      if status == .final, let comp = raceComp {
+        let lines = (comp.competitors ?? [])
+          .compactMap { c -> (Int, ESPNRacingCompetitor)? in
+            guard let pos = c.order, pos > 0 else { return nil }
+            return (pos, c)
+          }
+          .sorted { $0.0 < $1.0 }
+          .map { (pos, c) in
+            let driverName = c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown"
+            return RacingResultLine(
+              position: pos,
+              driverName: driverName,
+              teamName: c.team?.displayName,
+              timeOrGap: nil,
+              espnTeamID: TeamCatalog.racingTeamID(forDriverName: driverName, sport: sport)
+            )
+          }
+        return lines.isEmpty ? nil : lines
+      }
+      if status == .scheduled {
+        return qualifyingResults(from: event, sport: sport)
+      }
+      return nil
     }()
 
     return HomeTeamGame(
@@ -73,6 +79,35 @@ struct ESPNRacingParser {
       seriesInfo: nil,
       racingResults: racingResults
     )
+  }
+
+  /// Extracts qualifying grid from the most recent completed non-race competition.
+  /// Returns nil if no qualifying data is available (e.g. qualifying hasn't happened yet).
+  private static func qualifyingResults(from event: ESPNScoreboardEvent, sport: SupportedSport) -> [RacingResultLine]? {
+    // Find the last completed non-race competition with competitors (chronological order in array)
+    let qualComps = event.competitions
+      .filter { ($0.type?.id ?? 0) != 3 }
+      .filter { $0.status?.type?.state == "post" }
+      .filter { !($0.competitors ?? []).isEmpty }
+    guard let qualComp = qualComps.last else { return nil }
+
+    let lines = (qualComp.competitors ?? [])
+      .compactMap { c -> (Int, ESPNRacingCompetitor)? in
+        guard let pos = c.order, pos > 0 else { return nil }
+        return (pos, c)
+      }
+      .sorted { $0.0 < $1.0 }
+      .map { (pos, c) in
+        let driverName = c.athlete?.shortName ?? c.athlete?.displayName ?? "Unknown"
+        return RacingResultLine(
+          position: pos,
+          driverName: driverName,
+          teamName: c.team?.displayName,
+          timeOrGap: nil,
+          espnTeamID: TeamCatalog.racingTeamID(forDriverName: driverName, sport: sport)
+        )
+      }
+    return lines.isEmpty ? nil : lines
   }
 
   private static func mapStatus(_ s: ESPNScoreboardStatus) -> GameStatus {

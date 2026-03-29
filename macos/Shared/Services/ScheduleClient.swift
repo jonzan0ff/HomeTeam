@@ -67,7 +67,11 @@ struct ScheduleClient {
       }
       for game in upcoming {
         let tz = circuitTimezones[game.id]
-        group.addTask { (game.id, [], await fetchMotoGPRaceDate(eventID: game.id, circuitTimezone: tz)) }
+        group.addTask {
+          async let date = fetchMotoGPRaceDate(eventID: game.id, circuitTimezone: tz)
+          async let qual = fetchMotoGPQualifyingResults(eventID: game.id)
+          return (game.id, await qual, await date)
+        }
       }
       for await (id, results, date) in group {
         if !results.isEmpty { resultsByID[id] = results }
@@ -114,6 +118,57 @@ struct ScheduleClient {
       }
     }
     return lines + dnfLines
+  }
+
+  /// Fetches qualifying grid (Q2 + Q1 overflow) for an upcoming MotoGP event.
+  /// Only returns results when Q2 classification is available (qualifying complete).
+  private static func fetchMotoGPQualifyingResults(eventID: String) async -> [RacingResultLine] {
+    guard let sessURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/sessions?eventUuid=\(eventID)&categoryUuid=\(motoGPClassUUID)") else { return [] }
+    var sessReq = URLRequest(url: sessURL)
+    sessReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (sessData, _) = try? await URLSession.shared.data(for: sessReq),
+          let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData) else { return [] }
+
+    // Q2 determines pole — require it to be complete before showing grid
+    guard let q2 = sessions.first(where: { $0.type == "Q2" }) else { return [] }
+    let q2Lines = await fetchMotoGPSessionClassification(sessionID: q2.id)
+    guard !q2Lines.isEmpty else { return [] }
+    let q2Names = Set(q2Lines.map { $0.driverName.lowercased() })
+
+    // Q1 riders who didn't advance fill remaining grid spots
+    var overflow: [RacingResultLine] = []
+    if let q1 = sessions.first(where: { $0.type == "Q1" }) {
+      let q1All = await fetchMotoGPSessionClassification(sessionID: q1.id)
+      let offset = q2Lines.count
+      overflow = q1All
+        .filter { !q2Names.contains($0.driverName.lowercased()) }
+        .enumerated()
+        .map { i, line in
+          RacingResultLine(position: offset + 1 + i, driverName: line.driverName, teamName: line.teamName, timeOrGap: nil, espnTeamID: line.espnTeamID)
+        }
+    }
+
+    return q2Lines + overflow
+  }
+
+  /// Fetches classification for a single MotoGP session (qualifying or race).
+  private static func fetchMotoGPSessionClassification(sessionID: String) async -> [RacingResultLine] {
+    guard let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/session/\(sessionID)/classification") else { return [] }
+    var req = URLRequest(url: url)
+    req.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (data, _) = try? await URLSession.shared.data(for: req),
+          let payload = try? JSONDecoder().decode(MotoGPClassificationPayload.self, from: data) else { return [] }
+
+    return payload.classification.compactMap { entry in
+      guard let name = entry.rider?.fullName, !name.isEmpty, let pos = entry.position else { return nil }
+      return RacingResultLine(
+        position: pos,
+        driverName: name,
+        teamName: entry.team?.name,
+        timeOrGap: nil,
+        espnTeamID: TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
+      )
+    }
   }
 
   /// Fetches the RAC session date for an upcoming MotoGP event.
