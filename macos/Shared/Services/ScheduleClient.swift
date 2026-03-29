@@ -56,16 +56,23 @@ struct ScheduleClient {
     var allGames = try MotoGPCalendarParser.parse(allEventsData)
     let circuitTimezones = MotoGPCalendarParser.circuitTimezones(from: allEventsData)
 
-    // Fetch race results for finished events and exact RAC timestamps for upcoming events, concurrently
+    // Fetch race results/grid/timestamps concurrently:
+    //  - finished → RAC classification (final results)
+    //  - live → RAC classification (running order, updates every refresh)
+    //  - scheduled → starting grid + exact RAC timestamp
     let finished = allGames.filter { $0.status == .final }
-    let upcoming = allGames.filter { $0.status != .final }
+    let live = allGames.filter { $0.status == .live }
+    let scheduled = allGames.filter { $0.status == .scheduled }
     var resultsByID: [String: [RacingResultLine]] = [:]
     var raceDateByID: [String: Date] = [:]
     await withTaskGroup(of: (String, [RacingResultLine], Date?).self) { group in
       for game in finished {
         group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
       }
-      for game in upcoming {
+      for game in live {
+        group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
+      }
+      for game in scheduled {
         let tz = circuitTimezones[game.id]
         group.addTask {
           async let date = fetchMotoGPRaceDate(eventID: game.id, circuitTimezone: tz)
