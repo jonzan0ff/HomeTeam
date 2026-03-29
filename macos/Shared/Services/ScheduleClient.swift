@@ -84,12 +84,14 @@ struct ScheduleClient {
 
     // Fetch race results/grid/timestamps concurrently:
     //  - finished → RAC classification (final results)
-    //  - scheduled → starting grid + exact RAC timestamp
+    //  - scheduled with "CURRENT" event status → try RAC classification first (race may have just ended),
+    //    fall back to grid + race timestamp if no results
     //  - live games already patched above from live timing
     let finished = allGames.filter { $0.status == .final }
     let scheduled = allGames.filter { $0.status == .scheduled }
     var resultsByID: [String: [RacingResultLine]] = [:]
     var raceDateByID: [String: Date] = [:]
+    var promoteToFinal: Set<String> = []
     await withTaskGroup(of: (String, [RacingResultLine], Date?).self) { group in
       for game in finished {
         group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
@@ -97,6 +99,12 @@ struct ScheduleClient {
       for game in scheduled {
         let tz = circuitTimezones[game.id]
         group.addTask {
+          // Try RAC classification first — catches just-finished races where event status lags
+          let raceResults = await fetchMotoGPRaceResults(eventID: game.id)
+          if !raceResults.isEmpty {
+            return (game.id, raceResults, nil)
+          }
+          // Not finished — get grid + race timestamp
           async let date = fetchMotoGPRaceDate(eventID: game.id, circuitTimezone: tz)
           async let qual = fetchMotoGPQualifyingResults(eventID: game.id)
           return (game.id, await qual, await date)
@@ -107,11 +115,35 @@ struct ScheduleClient {
         if let date { raceDateByID[id] = date }
       }
     }
+    // Detect scheduled games that have race results — promote to final
+    for game in scheduled {
+      if let results = resultsByID[game.id], !results.isEmpty,
+         raceDateByID[game.id] == nil {
+        // Has race results but no race date = came from fetchMotoGPRaceResults, not grid
+        promoteToFinal.insert(game.id)
+      }
+    }
     allGames = allGames.map { game in
       guard game.status != .live else { return game }  // already patched
       var g = game
-      if let results = resultsByID[game.id] { g = g.patchingRacingResults(results) }
-      if let date = raceDateByID[game.id] { g = g.patchingScheduledAt(date) }
+      if promoteToFinal.contains(game.id) {
+        g = HomeTeamGame(
+          id: g.id, sport: g.sport,
+          homeTeamID: g.homeTeamID, awayTeamID: g.awayTeamID,
+          homeTeamName: g.homeTeamName, awayTeamName: g.awayTeamName,
+          homeTeamAbbrev: g.homeTeamAbbrev, awayTeamAbbrev: g.awayTeamAbbrev,
+          homeScore: g.homeScore, awayScore: g.awayScore,
+          homeRecord: g.homeRecord, awayRecord: g.awayRecord,
+          scheduledAt: g.scheduledAt, status: .final,
+          statusDetail: nil, venueName: g.venueName,
+          broadcastNetworks: g.broadcastNetworks,
+          isPlayoff: g.isPlayoff, seriesInfo: g.seriesInfo,
+          racingResults: resultsByID[game.id]
+        )
+      } else {
+        if let results = resultsByID[game.id] { g = g.patchingRacingResults(results) }
+        if let date = raceDateByID[game.id] { g = g.patchingScheduledAt(date) }
+      }
       return g
     }
     return allGames
@@ -133,9 +165,11 @@ struct ScheduleClient {
     guard let (data, _) = try? await URLSession.shared.data(for: req),
           let payload = try? JSONDecoder().decode(MotoGPLiveTimingPayload.self, from: data) else { return nil }
 
-    // Only handle MotoGP race sessions
+    // Only handle MotoGP race sessions that are actively in progress
+    // session_status_id: "S" = started/running, "F" = finished
     guard payload.head.category == "MotoGP",
-          payload.head.sessionShortname == "RAC" else { return nil }
+          payload.head.sessionShortname == "RAC",
+          payload.head.sessionStatusID != "F" else { return nil }
 
     let eventShortName = payload.head.eventShortname
     let remaining = payload.head.remaining ?? ""
@@ -270,6 +304,7 @@ private struct MotoGPLiveTimingHead: Decodable {
   let category: String
   let sessionShortname: String
   let eventShortname: String
+  let sessionStatusID: String?
   let numLaps: Int?
   let remaining: String?
 
@@ -277,6 +312,7 @@ private struct MotoGPLiveTimingHead: Decodable {
     case category
     case sessionShortname = "session_shortname"
     case eventShortname = "event_shortname"
+    case sessionStatusID = "session_status_id"
     case numLaps = "num_laps"
     case remaining
   }
