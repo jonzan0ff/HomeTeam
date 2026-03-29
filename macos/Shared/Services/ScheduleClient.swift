@@ -129,15 +129,23 @@ struct ScheduleClient {
     guard let (sessData, _) = try? await URLSession.shared.data(for: sessReq),
           let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData) else { return [] }
 
-    // Q2 determines pole — require it to be complete before showing grid
-    guard let q2 = sessions.first(where: { $0.type == "Q2" }) else { return [] }
-    let q2Lines = await fetchMotoGPSessionClassification(sessionID: q2.id)
+    // Pulselive uses type "Q" for both Q1 and Q2 sessions (ordered chronologically).
+    // Last Q session = Q2 (sets pole), first Q session = Q1.
+    // Also support "Q1"/"Q2" in case the API changes format.
+    let qSessions = sessions.filter { $0.type == "Q" || $0.type == "Q1" || $0.type == "Q2" }
+    guard !qSessions.isEmpty else { return [] }
+
+    // Q2 (pole session) — last Q session, or explicit "Q2"
+    let q2Session = sessions.first(where: { $0.type == "Q2" }) ?? qSessions.last!
+    let q2Lines = await fetchMotoGPSessionClassification(sessionID: q2Session.id)
     guard !q2Lines.isEmpty else { return [] }
     let q2Names = Set(q2Lines.map { $0.driverName.lowercased() })
 
     // Q1 riders who didn't advance fill remaining grid spots
     var overflow: [RacingResultLine] = []
-    if let q1 = sessions.first(where: { $0.type == "Q1" }) {
+    let q1Session = sessions.first(where: { $0.type == "Q1" })
+      ?? (qSessions.count > 1 ? qSessions.first : nil)
+    if let q1 = q1Session, q1.id != q2Session.id {
       let q1All = await fetchMotoGPSessionClassification(sessionID: q1.id)
       let offset = q2Lines.count
       overflow = q1All
