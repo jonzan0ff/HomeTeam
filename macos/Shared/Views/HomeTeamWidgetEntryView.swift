@@ -215,7 +215,9 @@ private struct GameCard: View {
 
   private var chipLabel: String {
     switch game.status {
-    case .live:      return "LIVE"
+    case .live:
+      if isRacing, let detail = game.statusDetail, !detail.isEmpty { return detail }
+      return "LIVE"
     case .final:     return "FINAL"
     case .postponed: return "PPD"
     case .scheduled:
