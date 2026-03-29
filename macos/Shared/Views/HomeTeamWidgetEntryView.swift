@@ -298,7 +298,7 @@ private struct GameCard: View {
       // Body
       if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
         raceNameText
-        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isCompact: game.status == .scheduled, isDark: isDark)
+        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
       } else if isRacing {
         raceNameText
       } else {
@@ -414,7 +414,6 @@ private struct RacingResultsView: View {
   let results: [RacingResultLine]
   let sport: SupportedSport
   let favoriteDriverNames: [String]
-  let isCompact: Bool
   let isDark: Bool
 
   private func isFavorite(_ line: RacingResultLine) -> Bool {
@@ -423,17 +422,8 @@ private struct RacingResultsView: View {
     return favoriteDriverNames.contains { name.contains($0.lowercased()) || $0.lowercased().contains(name) }
   }
 
-  // Compact (upcoming): pole + favorite only (1-2 lines)
-  // Full (previous/live): P1/P2/P3 + favorite if outside top 3
+  // Show P1/P2/P3 always; append favorite driver if they finished outside top 3
   private var displayLines: [RacingResultLine] {
-    if isCompact {
-      guard let pole = results.first else { return [] }
-      if isFavorite(pole) { return [pole] }
-      if let fav = results.dropFirst(1).first(where: { isFavorite($0) }) {
-        return [pole, fav]
-      }
-      return [pole]
-    }
     let top3 = Array(results.prefix(3))
     if top3.contains(where: { isFavorite($0) }) { return top3 }
     if let fav = results.dropFirst(3).first(where: { isFavorite($0) }) {
