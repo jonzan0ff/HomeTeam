@@ -143,22 +143,21 @@ struct ScheduleClient {
     let currentLap = numLaps - (Int(remaining) ?? 0)
     let statusDetail = "Lap \(currentLap)/\(numLaps)"
 
-    let lines = payload.rider.values
-      .sorted { ($0.pos ?? 999) < ($1.pos ?? 999) }
-      .compactMap { r -> RacingResultLine? in
-        // Surname is ALL CAPS from the API — title-case it (handles "DI GIANNANTONIO" → "Di Giannantonio")
-        let surname = r.riderSurname?.lowercased().split(separator: " ").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
-        let name = [r.riderName, surname].compactMap { $0 }.joined(separator: " ")
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
-        let pos = r.pos ?? 0
-        return RacingResultLine(
-          position: pos,
-          driverName: name,
-          teamName: nil,
-          timeOrGap: nil,
-          espnTeamID: TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
-        )
+    var classified: [RacingResultLine] = []
+    var dnfLines: [RacingResultLine] = []
+    for r in payload.rider.values {
+      let surname = r.riderSurname?.lowercased().split(separator: " ").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
+      let name = [r.riderName, surname].compactMap { $0 }.joined(separator: " ")
+      guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { continue }
+      let teamID = TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
+      if let pos = r.pos, pos > 0 {
+        classified.append(RacingResultLine(position: pos, driverName: name, teamName: nil, timeOrGap: nil, espnTeamID: teamID))
+      } else {
+        // pos <= 0 or nil = retired/DNF — position 0 sentinel, widget shows "DNF"
+        dnfLines.append(RacingResultLine(position: 0, driverName: name, teamName: nil, timeOrGap: nil, espnTeamID: teamID))
       }
+    }
+    let lines = classified.sorted { $0.position < $1.position } + dnfLines
     guard !lines.isEmpty else { return nil }
     return MotoGPLiveTimingResult(eventShortName: eventShortName, statusDetail: statusDetail, results: lines)
   }
