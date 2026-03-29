@@ -56,20 +56,42 @@ struct ScheduleClient {
     var allGames = try MotoGPCalendarParser.parse(allEventsData)
     let circuitTimezones = MotoGPCalendarParser.circuitTimezones(from: allEventsData)
 
+    // Check for live MotoGP race via live timing endpoint (event status stays "CURRENT" during races)
+    let liveTiming = await fetchMotoGPLiveTiming()
+
+    // Patch live event: override status to .live and apply live positions
+    if let liveEventShortName = liveTiming?.eventShortName {
+      allGames = allGames.map { game in
+        guard game.status != .final,
+              MotoGPCalendarParser.shortName(from: game.id, in: allEventsData) == liveEventShortName
+        else { return game }
+        return HomeTeamGame(
+          id: game.id, sport: game.sport,
+          homeTeamID: game.homeTeamID, awayTeamID: game.awayTeamID,
+          homeTeamName: game.homeTeamName, awayTeamName: game.awayTeamName,
+          homeTeamAbbrev: game.homeTeamAbbrev, awayTeamAbbrev: game.awayTeamAbbrev,
+          homeScore: game.homeScore, awayScore: game.awayScore,
+          homeRecord: game.homeRecord, awayRecord: game.awayRecord,
+          scheduledAt: game.scheduledAt, status: .live,
+          statusDetail: liveTiming?.statusDetail,
+          venueName: game.venueName,
+          broadcastNetworks: game.broadcastNetworks,
+          isPlayoff: game.isPlayoff, seriesInfo: game.seriesInfo,
+          racingResults: liveTiming?.results
+        )
+      }
+    }
+
     // Fetch race results/grid/timestamps concurrently:
     //  - finished → RAC classification (final results)
-    //  - live → RAC classification (running order, updates every refresh)
     //  - scheduled → starting grid + exact RAC timestamp
+    //  - live games already patched above from live timing
     let finished = allGames.filter { $0.status == .final }
-    let live = allGames.filter { $0.status == .live }
     let scheduled = allGames.filter { $0.status == .scheduled }
     var resultsByID: [String: [RacingResultLine]] = [:]
     var raceDateByID: [String: Date] = [:]
     await withTaskGroup(of: (String, [RacingResultLine], Date?).self) { group in
       for game in finished {
-        group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
-      }
-      for game in live {
         group.addTask { (game.id, await fetchMotoGPRaceResults(eventID: game.id), nil) }
       }
       for game in scheduled {
@@ -86,12 +108,59 @@ struct ScheduleClient {
       }
     }
     allGames = allGames.map { game in
+      guard game.status != .live else { return game }  // already patched
       var g = game
       if let results = resultsByID[game.id] { g = g.patchingRacingResults(results) }
       if let date = raceDateByID[game.id] { g = g.patchingScheduledAt(date) }
       return g
     }
     return allGames
+  }
+
+  /// Live timing result from the Pulselive gateway.
+  private struct MotoGPLiveTimingResult {
+    let eventShortName: String
+    let statusDetail: String
+    let results: [RacingResultLine]
+  }
+
+  /// Fetches live MotoGP race positions from the timing gateway.
+  /// Returns nil if no MotoGP race is currently in progress.
+  private static func fetchMotoGPLiveTiming() async -> MotoGPLiveTimingResult? {
+    guard let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/timing-gateway/livetiming-lite") else { return nil }
+    var req = URLRequest(url: url)
+    req.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+    guard let (data, _) = try? await URLSession.shared.data(for: req),
+          let payload = try? JSONDecoder().decode(MotoGPLiveTimingPayload.self, from: data) else { return nil }
+
+    // Only handle MotoGP race sessions
+    guard payload.head.category == "MotoGP",
+          payload.head.sessionShortname == "RAC" else { return nil }
+
+    let eventShortName = payload.head.eventShortname
+    let remaining = payload.head.remaining ?? ""
+    let numLaps = payload.head.numLaps ?? 0
+    let currentLap = numLaps - (Int(remaining) ?? 0)
+    let statusDetail = "Lap \(currentLap)/\(numLaps)"
+
+    let lines = payload.rider.values
+      .sorted { ($0.pos ?? 999) < ($1.pos ?? 999) }
+      .compactMap { r -> RacingResultLine? in
+        // Surname is ALL CAPS from the API — title-case it (handles "DI GIANNANTONIO" → "Di Giannantonio")
+        let surname = r.riderSurname?.lowercased().split(separator: " ").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
+        let name = [r.riderName, surname].compactMap { $0 }.joined(separator: " ")
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        let pos = r.pos ?? 0
+        return RacingResultLine(
+          position: pos,
+          driverName: name,
+          teamName: nil,
+          timeOrGap: nil,
+          espnTeamID: TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
+        )
+      }
+    guard !lines.isEmpty else { return nil }
+    return MotoGPLiveTimingResult(eventShortName: eventShortName, statusDetail: statusDetail, results: lines)
   }
 
   /// Fetches the RAC session classification for a finished MotoGP event.
@@ -188,6 +257,41 @@ struct ScheduleClient {
     let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(sport)/\(league)/teams/\(teamID)/schedule")!
     let (data, _) = try await URLSession.shared.data(from: url)
     return try ESPNScheduleParser.parse(data, sport: sportEnum, teamID: teamID)
+  }
+}
+
+// MARK: - MotoGP live timing Decodable models
+
+private struct MotoGPLiveTimingPayload: Decodable {
+  let head: MotoGPLiveTimingHead
+  let rider: [String: MotoGPLiveTimingRider]
+}
+
+private struct MotoGPLiveTimingHead: Decodable {
+  let category: String
+  let sessionShortname: String
+  let eventShortname: String
+  let numLaps: Int?
+  let remaining: String?
+
+  enum CodingKeys: String, CodingKey {
+    case category
+    case sessionShortname = "session_shortname"
+    case eventShortname = "event_shortname"
+    case numLaps = "num_laps"
+    case remaining
+  }
+}
+
+private struct MotoGPLiveTimingRider: Decodable {
+  let pos: Int?
+  let riderName: String?
+  let riderSurname: String?
+
+  enum CodingKeys: String, CodingKey {
+    case pos
+    case riderName = "rider_name"
+    case riderSurname = "rider_surname"
   }
 }
 

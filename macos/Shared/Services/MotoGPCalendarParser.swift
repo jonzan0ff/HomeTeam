@@ -15,6 +15,13 @@ struct MotoGPCalendarParser {
     return events.filter { $0.test != true }.compactMap { game(from: $0) }
   }
 
+  /// Looks up the event short_name for a given event UUID from raw events data.
+  /// Used to match live timing data (which has short_name) to our game objects (which have UUID).
+  static func shortName(from eventID: String, in data: Data) -> String? {
+    guard let events = try? JSONDecoder().decode([MotoGPEvent].self, from: data) else { return nil }
+    return events.first(where: { $0.id == eventID })?.shortName
+  }
+
   /// Maps event UUID → circuit TimeZone for session timestamp correction.
   /// The Pulselive API stores session times in circuit-local time but labels
   /// the offset as +00:00, so callers must re-interpret using the circuit TZ.
@@ -116,10 +123,11 @@ struct MotoGPCalendarParser {
   }
 }
 
-private struct MotoGPEvent: Decodable {
+struct MotoGPEvent: Decodable {
   let id: String
   let name: String?
   let sponsoredName: String?
+  let shortName: String?
   let dateStart: String
   let dateEnd: String?
   let status: String?
@@ -129,12 +137,13 @@ private struct MotoGPEvent: Decodable {
   enum CodingKeys: String, CodingKey {
     case id, name, status, circuit, test
     case sponsoredName = "sponsored_name"
+    case shortName = "short_name"
     case dateStart = "date_start"
     case dateEnd = "date_end"
   }
 }
 
-private struct MotoGPCircuit: Decodable {
+struct MotoGPCircuit: Decodable {
   let name: String?
   let place: String?
   let nation: String?
