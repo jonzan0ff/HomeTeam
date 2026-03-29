@@ -120,59 +120,24 @@ struct ScheduleClient {
     return lines + dnfLines
   }
 
-  /// Fetches qualifying grid (Q2 + Q1 overflow) for an upcoming MotoGP event.
-  /// Only returns results when Q2 classification is available (qualifying complete).
+  /// Fetches the official starting grid for an upcoming MotoGP event.
+  /// Uses the undocumented /grid endpoint which returns post-penalty positions.
+  /// Returns empty if the grid hasn't been published yet.
   private static func fetchMotoGPQualifyingResults(eventID: String) async -> [RacingResultLine] {
-    guard let sessURL = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/sessions?eventUuid=\(eventID)&categoryUuid=\(motoGPClassUUID)") else { return [] }
-    var sessReq = URLRequest(url: sessURL)
-    sessReq.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
-    guard let (sessData, _) = try? await URLSession.shared.data(for: sessReq),
-          let sessions = try? JSONDecoder().decode([MotoGPRaceSession].self, from: sessData) else { return [] }
-
-    // Pulselive uses type "Q" for both Q1 and Q2 sessions (ordered chronologically).
-    // Last Q session = Q2 (sets pole), first Q session = Q1.
-    // Also support "Q1"/"Q2" in case the API changes format.
-    let qSessions = sessions.filter { $0.type == "Q" || $0.type == "Q1" || $0.type == "Q2" }
-    guard !qSessions.isEmpty else { return [] }
-
-    // Q2 (pole session) — last Q session, or explicit "Q2"
-    let q2Session = sessions.first(where: { $0.type == "Q2" }) ?? qSessions.last!
-    let q2Lines = await fetchMotoGPSessionClassification(sessionID: q2Session.id)
-    guard !q2Lines.isEmpty else { return [] }
-    let q2Names = Set(q2Lines.map { $0.driverName.lowercased() })
-
-    // Q1 riders who didn't advance fill remaining grid spots
-    var overflow: [RacingResultLine] = []
-    let q1Session = sessions.first(where: { $0.type == "Q1" })
-      ?? (qSessions.count > 1 ? qSessions.first : nil)
-    if let q1 = q1Session, q1.id != q2Session.id {
-      let q1All = await fetchMotoGPSessionClassification(sessionID: q1.id)
-      let offset = q2Lines.count
-      overflow = q1All
-        .filter { !q2Names.contains($0.driverName.lowercased()) }
-        .enumerated()
-        .map { i, line in
-          RacingResultLine(position: offset + 1 + i, driverName: line.driverName, teamName: line.teamName, timeOrGap: nil, espnTeamID: line.espnTeamID)
-        }
-    }
-
-    return q2Lines + overflow
-  }
-
-  /// Fetches classification for a single MotoGP session (qualifying or race).
-  private static func fetchMotoGPSessionClassification(sessionID: String) async -> [RacingResultLine] {
-    guard let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/session/\(sessionID)/classification") else { return [] }
+    guard let url = URL(string: "https://api.pulselive.motogp.com/motogp/v1/results/event/\(eventID)/category/\(motoGPClassUUID)/grid") else { return [] }
     var req = URLRequest(url: url)
     req.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
     guard let (data, _) = try? await URLSession.shared.data(for: req),
-          let payload = try? JSONDecoder().decode(MotoGPClassificationPayload.self, from: data) else { return [] }
+          let entries = try? JSONDecoder().decode([MotoGPGridEntry].self, from: data),
+          !entries.isEmpty else { return [] }
 
-    return payload.classification.compactMap { entry in
-      guard let name = entry.rider?.fullName, !name.isEmpty, let pos = entry.position else { return nil }
+    // Array order IS the grid order (index 0 = pole, index 1 = P2, etc.)
+    return entries.enumerated().compactMap { (i, entry) in
+      guard let name = entry.rider?.fullName, !name.isEmpty else { return nil }
       return RacingResultLine(
-        position: pos,
+        position: i + 1,
         driverName: name,
-        teamName: entry.team?.name,
+        teamName: entry.teamName,
         timeOrGap: nil,
         espnTeamID: TeamCatalog.racingTeamID(forDriverName: name, sport: .motoGP)
       )
@@ -228,6 +193,15 @@ private struct MotoGPRaceSession: Decodable {
   let id: String
   let type: String
   let date: String?
+}
+
+private struct MotoGPGridEntry: Decodable {
+  let rider: MotoGPRider?
+  let teamName: String?
+  enum CodingKeys: String, CodingKey {
+    case rider
+    case teamName = "team_name"
+  }
 }
 
 private struct MotoGPClassificationPayload: Decodable {
