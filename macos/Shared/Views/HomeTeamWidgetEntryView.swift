@@ -38,7 +38,7 @@ struct HomeTeamWidgetEntryView: View {
           streamingKeys: entry.streamingKeys,
           isDark: isDark
         )
-        .padding(.top, 4)
+        .padding(.top, 2)
         Spacer(minLength: 0)
         footerView
       }
@@ -131,30 +131,28 @@ private struct SectionRow: View {
   let streamingKeys: Set<String>
   let isDark: Bool
 
+  private var labelColor: Color {
+    isDark ? Color.white.opacity(0.3) : Color.secondary.opacity(0.45)
+  }
+
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title)
-        .font(.caption2.weight(.bold))
-        .textCase(.uppercase)
-        .foregroundStyle(isDark ? Color.white.opacity(0.62) : Color.secondary)
+    HStack(spacing: 0) {
+      // Vertical section label — frees ~15pt of vertical space per section
+      Color.clear
+        .frame(width: 14)
+        .overlay(
+          Text(title)
+            .font(.system(size: 7.5, weight: .heavy))
+            .textCase(.uppercase)
+            .tracking(0.5)
+            .foregroundStyle(labelColor)
+            .fixedSize()
+            .rotationEffect(.degrees(-90))
+        )
 
       if games.isEmpty {
-        if isOffSeason {
-          HStack(spacing: 5) {
-            Image(systemName: "zzz")
-              .font(.system(size: 13, weight: .semibold))
-              .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
-            Text(emptyText)
-              .font(.system(size: 13, weight: .medium))
-              .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
-              .lineLimit(1)
-              .minimumScaleFactor(0.75)
-          }
-        } else {
-          Text(emptyText)
-            .font(.caption2)
-            .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
-        }
+        emptyContent
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
         HStack(spacing: 6) {
           ForEach(games.prefix(3)) { game in
@@ -168,6 +166,26 @@ private struct SectionRow: View {
           }
         }
       }
+    }
+  }
+
+  @ViewBuilder
+  private var emptyContent: some View {
+    if isOffSeason {
+      HStack(spacing: 5) {
+        Image(systemName: "zzz")
+          .font(.system(size: 13, weight: .semibold))
+          .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
+        Text(emptyText)
+          .font(.system(size: 13, weight: .medium))
+          .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
+          .lineLimit(1)
+          .minimumScaleFactor(0.75)
+      }
+    } else {
+      Text(emptyText)
+        .font(.caption2)
+        .foregroundStyle(isDark ? Color.white.opacity(0.54) : Color.secondary)
     }
   }
 }
