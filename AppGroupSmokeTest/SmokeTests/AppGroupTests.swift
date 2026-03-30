@@ -1,7 +1,7 @@
 import XCTest
 import Foundation
 
-let testAppGroupID = "group.com.jonzanoff.hometeam"
+let testAppGroupID = "group.com.hometeam.shared"
 
 final class AppGroupTests: XCTestCase {
 

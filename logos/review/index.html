@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Logo Review — Ducati</title>
+<style>
+  body { background: #1a1a1a; color: #fff; font-family: -apple-system, sans-serif; padding: 40px; }
+  h1 { font-size: 16px; color: #888; margin-bottom: 32px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .grid { display: flex; gap: 32px; flex-wrap: wrap; }
+  .card {
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 24px;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-box {
+    width: 160px; height: 160px;
+    background: #111;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; box-sizing: border-box;
+  }
+  .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-box.white { background: #fff; }
+  .label { font-size: 13px; font-weight: 600; color: #ccc; }
+  .source { font-size: 11px; color: #555; text-align: center; word-break: break-all; }
+  .toggle { font-size: 11px; color: #666; cursor: pointer; user-select: none; }
+  .toggle:hover { color: #aaa; }
+</style>
+</head>
+<body>
+<h1>Logo Review — Ducati</h1>
+<div class="grid">
+
+  <div class="card">
+    <div class="logo-box" id="box1">
+      <img src="ducati_option1.png" alt="Option 1">
+    </div>
+    <span class="toggle" onclick="toggleBg('box1')">toggle background</span>
+    <div class="label">Option 1 — Corse Crest (red)</div>
+    <div class="source">Wikimedia: Ducati_red_logo.svg render</div>
+  </div>
+
+  <div class="card">
+    <div class="logo-box" id="box2">
+      <img src="ducati_option2.png" alt="Option 2">
+    </div>
+    <span class="toggle" onclick="toggleBg('box2')">toggle background</span>
+    <div class="label">Option 2 — Wordmark</div>
+    <div class="source">Wikimedia: Logo_Ducati.svg render</div>
+  </div>
+
+  <div class="card">
+    <div class="logo-box" id="box3">
+      <img src="ducati_option3.png" alt="Option 3">
+    </div>
+    <span class="toggle" onclick="toggleBg('box3')">toggle background</span>
+    <div class="label">Option 3 — Corse Crest (hi-res)</div>
+    <div class="source">Wikimedia: Ducati_red_logo.PNG original raster</div>
+  </div>
+
+</div>
+<script>
+  function toggleBg(id) {
+    document.getElementById(id).classList.toggle('white');
+  }
+</script>
+</body>
+</html>

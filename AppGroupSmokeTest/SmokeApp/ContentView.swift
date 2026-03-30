@@ -1,6 +1,6 @@
 import SwiftUI
 
-let appGroupID = "group.com.jonzanoff.hometeam"
+let appGroupID = "group.com.hometeam.shared"
 let smokeTestFileName = "smoke_test.json"
 
 struct SmokePayload: Codable {

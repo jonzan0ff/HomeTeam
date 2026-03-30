@@ -1,6 +1,6 @@
 name: AppGroupSmokeTest
 options:
-  bundleIdPrefix: com.jonzanoff
+  bundleIdPrefix: com.hometeam
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15"
@@ -19,12 +19,18 @@ targets:
       - path: SmokeApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.smokeapp
+        PRODUCT_NAME: SmokeApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.smokeapp
         CODE_SIGN_ENTITLEMENTS: SmokeApp/SmokeApp.entitlements
         INFOPLIST_FILE: SmokeApp/Info.plist
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+        SWIFT_MODULE_NAME: SmokeApp
+        ALWAYS_SEARCH_USER_PATHS: NO
+    dependencies:
+      - target: SmokeWidget
+        embed: true
 
   SmokeWidget:
     type: app-extension
@@ -33,15 +39,18 @@ targets:
       - path: SmokeWidget
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.smokeapp.widget
+        PRODUCT_NAME: SmokeWidget
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.smokeapp.widget
         CODE_SIGN_ENTITLEMENTS: SmokeWidget/SmokeWidget.entitlements
         INFOPLIST_FILE: SmokeWidget/Info.plist
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
-    dependencies:
-      - target: SmokeApp
+        SWIFT_MODULE_NAME: SmokeWidget
+        DEFINES_MODULE: NO
+        ALWAYS_SEARCH_USER_PATHS: NO
+        SKIP_INSTALL: YES
 
   SmokeTests:
     type: bundle.unit-test
@@ -50,9 +59,34 @@ targets:
       - path: SmokeTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonzanoff.smoketests
+        PRODUCT_NAME: SmokeTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.smoketests
         CODE_SIGN_ENTITLEMENTS: SmokeTests/SmokeTests.entitlements
         INFOPLIST_FILE: SmokeTests/Info.plist
         GENERATE_INFOPLIST_FILE: YES
+        SWIFT_MODULE_NAME: SmokeTests
+        ALWAYS_SEARCH_USER_PATHS: NO
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/SmokeApp.app/Contents/MacOS/SmokeApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
       - target: SmokeApp
+
+schemes:
+  SmokeApp:
+    build:
+      targets:
+        SmokeApp: all
+        SmokeWidget: [build]
+        SmokeTests: [test]
+    run:
+      targets:
+        - SmokeApp
+      config: Debug
+    test:
+      targets:
+        - SmokeTests
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release

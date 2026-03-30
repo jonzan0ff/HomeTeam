@@ -11,16 +11,17 @@
 		4FA4DB0F500C9B9F796BA3A8 /* SmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DF12A5CF54F0B14B994382 /* SmokeApp.swift */; };
 		56CEC66F695764D17F987B7C /* SmokeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */; };
 		84DA9F5A3CA2575F52A6B213 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */; };
+		D981E7472BC3782D4748021A /* SmokeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8EBEB5787BB8AA181EF4AF36 /* SmokeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EBE8F9AE9D760432B1245BC9 /* AppGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494FAB48F854B77F83FA446B /* AppGroupTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		746DFAB3799D662D083B0DA3 /* PBXContainerItemProxy */ = {
+		C6950235018493E9491A66B9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1722B97D79FFDF8A676404EB /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A5DF54D6362360AF69AB93FB;
-			remoteInfo = SmokeApp;
+			remoteGlobalIDString = 537748DF15D708B74ADB5371;
+			remoteInfo = SmokeWidget;
 		};
 		E04EA484C9495EE40C417D16 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -31,9 +32,25 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		64C5814B7DE64C906D52ECA1 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D981E7472BC3782D4748021A /* SmokeWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		12379A569D5355691D57DF3E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		29D882C3D299C8E0554A9F70 /* SmokeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeWidget.swift; sourceTree = "<group>"; };
 		3B287CB8A738BE9BF61506BF /* SmokeWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeWidget.entitlements; sourceTree = "<group>"; };
+		46DB4176CB348F3978B29187 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		494FAB48F854B77F83FA446B /* AppGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupTests.swift; sourceTree = "<group>"; };
 		63F2C3781B6B4B9DD91B5D23 /* SmokeTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeTests.entitlements; sourceTree = "<group>"; };
 		682E58AA7030C7B060CF3078 /* SmokeApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmokeApp.entitlements; sourceTree = "<group>"; };
@@ -41,6 +58,7 @@
 		86DED762A572EF3E39B534A3 /* SmokeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8EBEB5787BB8AA181EF4AF36 /* SmokeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SmokeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A4F957046D976F1395A9FB28 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeWidgetBundle.swift; sourceTree = "<group>"; };
 		E65308B1242A36EEB2B1C96B /* SmokeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmokeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -49,6 +67,7 @@
 		096F886D93AFDEA1726A4961 /* SmokeWidget */ = {
 			isa = PBXGroup;
 			children = (
+				46DB4176CB348F3978B29187 /* Info.plist */,
 				3B287CB8A738BE9BF61506BF /* SmokeWidget.entitlements */,
 				29D882C3D299C8E0554A9F70 /* SmokeWidget.swift */,
 				B0163B43A7CEAFCE510915E1 /* SmokeWidgetBundle.swift */,
@@ -60,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				494FAB48F854B77F83FA446B /* AppGroupTests.swift */,
+				A4F957046D976F1395A9FB28 /* Info.plist */,
 				63F2C3781B6B4B9DD91B5D23 /* SmokeTests.entitlements */,
 			);
 			path = SmokeTests;
@@ -69,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				A3E51324CB7C6EFDC2D8FC5E /* ContentView.swift */,
+				12379A569D5355691D57DF3E /* Info.plist */,
 				682E58AA7030C7B060CF3078 /* SmokeApp.entitlements */,
 				69DF12A5CF54F0B14B994382 /* SmokeApp.swift */,
 			);
@@ -125,7 +146,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				2E59432FC3C6F0AE64844E5D /* PBXTargetDependency */,
 			);
 			name = SmokeWidget;
 			packageProductDependencies = (
@@ -139,10 +159,12 @@
 			buildConfigurationList = 6B65EDF4734F3451CAA04AAD /* Build configuration list for PBXNativeTarget "SmokeApp" */;
 			buildPhases = (
 				FEB7E2BC5D9F6CD6600A601B /* Sources */,
+				64C5814B7DE64C906D52ECA1 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				79EDF4E3C8974999599CDF57 /* PBXTargetDependency */,
 			);
 			name = SmokeApp;
 			packageProductDependencies = (
@@ -222,15 +244,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		2E59432FC3C6F0AE64844E5D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A5DF54D6362360AF69AB93FB /* SmokeApp */;
-			targetProxy = 746DFAB3799D662D083B0DA3 /* PBXContainerItemProxy */;
-		};
 		448C16DD4697391D395BE6B3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A5DF54D6362360AF69AB93FB /* SmokeApp */;
 			targetProxy = E04EA484C9495EE40C417D16 /* PBXContainerItemProxy */;
+		};
+		79EDF4E3C8974999599CDF57 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 537748DF15D708B74ADB5371 /* SmokeWidget */;
+			targetProxy = C6950235018493E9491A66B9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -238,10 +260,15 @@
 		029FCDFDDF4CDF0D018B75AE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_ENTITLEMENTS = SmokeTests/SmokeTests.entitlements;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeTests/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smoketests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smoketests;
+				PRODUCT_NAME = SmokeTests;
+				SWIFT_MODULE_NAME = SmokeTests;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeApp.app/Contents/MacOS/SmokeApp";
 			};
 			name = Debug;
@@ -260,37 +287,51 @@
 		38915D771EE420708865F8C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = SmokeApp/SmokeApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeApp/Info.plist;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smokeapp;
+				PRODUCT_NAME = SmokeApp;
+				SWIFT_MODULE_NAME = SmokeApp;
 			};
 			name = Release;
 		};
 		48BFDABD01F81FE4D8B25217 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = SmokeWidget/SmokeWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = NO;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeWidget/Info.plist;
 				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smokeapp.widget;
+				PRODUCT_NAME = SmokeWidget;
+				SKIP_INSTALL = YES;
+				SWIFT_MODULE_NAME = SmokeWidget;
 			};
 			name = Release;
 		};
 		4944549CF8D450F50C6EE2FE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = SmokeApp/SmokeApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeApp/Info.plist;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smokeapp;
+				PRODUCT_NAME = SmokeApp;
+				SWIFT_MODULE_NAME = SmokeApp;
 			};
 			name = Debug;
 		};
@@ -308,10 +349,15 @@
 		60AE239BF0B6C91844FF98CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_ENTITLEMENTS = SmokeTests/SmokeTests.entitlements;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeTests/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smoketests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smoketests;
+				PRODUCT_NAME = SmokeTests;
+				SWIFT_MODULE_NAME = SmokeTests;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeApp.app/Contents/MacOS/SmokeApp";
 			};
 			name = Release;
@@ -319,13 +365,19 @@
 		7019E659F7018D074B90A836 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_ENTITLEMENTS = SmokeWidget/SmokeWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = NO;
+				DEVELOPMENT_TEAM = Q4MZVR4MU5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SmokeWidget/Info.plist;
 				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jonzanoff.smokeapp.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.smokeapp.widget;
+				PRODUCT_NAME = SmokeWidget;
+				SKIP_INSTALL = YES;
+				SWIFT_MODULE_NAME = SmokeWidget;
 			};
 			name = Debug;
 		};

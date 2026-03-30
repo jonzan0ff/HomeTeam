@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-let widgetAppGroupID = "group.com.jonzanoff.hometeam"
+let widgetAppGroupID = "group.com.hometeam.shared"
 let widgetSmokeTestFileName = "smoke_test.json"
 
 struct SmokePayload: Codable {
