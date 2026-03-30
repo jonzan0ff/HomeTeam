@@ -1,4 +1,6 @@
-# HomeTeam — QA Strategy
+# HomeTeam — QA Test Plan
+
+> Implements the strategy defined in [`QA_MASTER.MD`](QA_MASTER.MD). This file contains HomeTeam-specific test layers, fixtures, and engineering rules.
 
 > Goal: eliminate UAT guesswork. Every behavior that can be asserted in code should be. Manual UAT
 > should only cover what automation structurally cannot reach (visual pixel-polish, system UI surfaces).

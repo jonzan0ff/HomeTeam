@@ -57,12 +57,13 @@ macos/
   Config/               — .entitlements files
   project.yml           — xcodegen spec (source of truth for project structure)
 AppGroupSmokeTest/      — Throwaway 2-target project proving App Group plumbing works
-QA.md                   — Full QA strategy and layer breakdown
+QA_MASTER.MD            — Cross-project QA strategy (philosophy, bug handling, regression rules)
+QA_HOMETEAM.md          — HomeTeam-specific test plan (layers, fixtures, engineering rules)
 REQUIREMENTS.md         — Product requirements
 WIDGET_APPGROUP_DEBUGGING.md — Provisioning dead-ends log (resolved as of 2026-03-26)
 ```
 
-## Architecture rules (from QA.md)
+## Architecture rules (from QA_HOMETEAM.md)
 
 1. **One normalization path** — all streaming service names go through `StreamingServiceMatcher.canonicalKey()`
 2. **Injectable `now: Date`** — all date-sensitive filtering functions accept `now` as a parameter
@@ -103,9 +104,16 @@ F1 and MotoGP games in the snapshot have `homeTeamID = ""` and `awayTeamID = ""`
 The widget and any game-filtering code must use `sport == team.sport` to match racing
 events, not `homeTeamID == espnTeamID`. Use `SupportedSport.isRacing` to branch.
 
+## QA structure
+
+- **`QA_MASTER.MD`** — universal QA standards: bug handling (reproduce before fixing), regression rules, change impact checks, definition of done. Applies to all projects.
+- **`QA_HOMETEAM.md`** — this project's test plan: layer breakdown, test tables, fixtures, engineering rules. Implements the master strategy for HomeTeam specifically.
+
+When writing tests or handling bugs, follow the master strategy. When looking up specific test cases or layer definitions, use the HomeTeam plan.
+
 ## Test coverage status
 
-See `QA.md` for full spec. Current coverage ~20%:
+See `QA_HOMETEAM.md` for full spec. Current coverage ~20%:
 - Layer 1B/1C streaming filter — covered (`StreamingFilterTests.swift`)
 - Layer 1G snapshot merge — covered
 - Layers 1D, 1E, 1F, 1I — 0% (functions not yet implemented)
