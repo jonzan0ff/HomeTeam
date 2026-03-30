@@ -282,7 +282,7 @@ These are the tools and services we have experience with across our projects. No
 
 ## Email
 
-- **Resend** — Transactional email delivery via custom SMTP *(Camp Clintondale)*
+- **Resend** — SMTP provider used by Supabase for transactional email delivery *(Camp Clintondale)*
 
 ## Hosting & Deployment
 
