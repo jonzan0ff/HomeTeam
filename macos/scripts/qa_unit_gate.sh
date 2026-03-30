@@ -18,6 +18,9 @@ xcodebuild test \
   -destination 'platform=macOS' \
   -allowProvisioningUpdates \
   ENABLE_TESTABILITY=YES \
+  CODE_SIGN_IDENTITY="-" \
+  CODE_SIGNING_REQUIRED=NO \
+  CODE_SIGNING_ALLOWED=NO \
   -only-testing HomeTeamTests \
   -resultBundlePath "$RESULT_BUNDLE"
 
