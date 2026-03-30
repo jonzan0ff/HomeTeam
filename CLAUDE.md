@@ -294,7 +294,7 @@ These are the tools and services we have experience with across our projects. No
 
 ## Mac / iOS Apps
 
-- **Swift 5.9** — Language for all native Apple targets *(HomeTeam, What to Watch)*
+- **Swift (latest)** — Language for all native Apple targets *(HomeTeam, What to Watch)*
 - **SwiftUI** — Declarative UI framework for menu bar popover and widget *(HomeTeam, What to Watch)*
 - **AppKit** — Menu bar integration (NSStatusItem, NSPopover, NSMenu) *(HomeTeam, What to Watch)*
 - **WidgetKit** — macOS widget extension *(HomeTeam, What to Watch)*
