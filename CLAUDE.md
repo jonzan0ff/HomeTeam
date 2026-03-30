@@ -337,18 +337,12 @@ These are the tools and services we have experience with across our projects. No
 
 ### QA Scripts
 
-- **qa_unit_gate.sh** — Layer 1: xcodegen + xcodebuild unit tests
-- **qa_widget_snapshot.sh** — Layer 2: Widget snapshot tests (coverage/record modes)
-- **qa_api_tests.sh** — Layer 4: Playwright against localhost
-- **qa_api_prod.sh** — Layer 4: Playwright against production
+- **qa_unit_gate.sh** — Layer 1: xcodebuild unit tests (no signing)
+- **capture_widget_screenshot.sh** — Layer 2: Widget snapshot tests (coverage/record modes)
+- **qa_frontend_ui.sh** — Layer 2: Frontend snapshot tests
+- **qa_ui_tests.sh** — Layer 3: XCUITest (requires signing, workflow_dispatch only)
 - **collect_test_telemetry.sh** — Extract metrics from xcresult bundles
 - **persist_test_history.sh** — Append telemetry to qa-history branch
-
-### Makefile Targets
-
-- `make qa` — Full local gate (unit + snapshot + API)
-- `make qa-prod` — Post-deploy verification against production
-- `make qa-record` — Re-record snapshot baselines
 
 ### QA Principles (from QA Master Standards)
 
@@ -481,14 +475,13 @@ Schedule URL pattern: `https://site.api.espn.com/apis/site/v2/sports/{sportPath}
 
 ## 3. Logo hosting [NEW]
 
-All team and streaming provider logos are served from the HomeTeam server, not ESPN or Google Favicon CDN.
+All team and streaming provider logos are served from GitHub Pages, not ESPN or Google Favicon CDN.
 
-- **Team logos**: `https://assets.hometeam.app/logos/teams/{compositeID}.png` (or similar)
-- **Streaming provider logos**: `https://assets.hometeam.app/logos/streaming/{normalizedID}.png`
-- The app and widget fetch and cache logos from this URL. No calls to ESPN image CDN or Google Favicon service at runtime.
-- The server must serve logos at 2x resolution minimum (64px for streaming, 128px for teams).
-- If a logo URL 404s, the UI falls back to the text abbreviation (no broken image state).
-- Logo URLs are embedded in the `TeamDefinition` and `StreamingProviderCatalog` catalogs — not constructed at render time.
+- **Team logos**: `https://jonzan0ff.github.io/HomeTeam/logos/teams/{sport}_{espnTeamID}.png`
+- **Racing logos**: `https://jonzan0ff.github.io/HomeTeam/logos/teams/{sport}_{espnTeamID}.{png,svg}`
+- The app prefetches logos into the App Group container on each refresh (`ScheduleRepository.prefetchLogos` / `prefetchRacingLogos`). The widget reads cached files directly — no network calls.
+- If a logo file is missing, the UI falls back to circle-initial (widget) or text abbreviation (app).
+- Logo URLs are constructed at runtime from sport + espnTeamID, not embedded in catalogs.
 
 ---
 
@@ -498,55 +491,24 @@ Logo assets are built **once** as a pre-release tool, not fetched at app runtime
 
 ### Sources
 
-**Team logos** — ESPN publishes light/white variants designed for dark backgrounds:
-```
-https://a.espncdn.com/i/teamlogos/{sportPath}/500-dark/{abbrev}.png
-```
-These are the correct variants for HomeTeam's dark UI. Download once per team, validate, host.
+Logo PNG/SVG files are committed to the `logos/teams/` directory in the repo and served via GitHub Pages at `https://jonzan0ff.github.io/HomeTeam/logos/teams/`.
 
-**Streaming service logos** — fetched from each provider's official press/brand kit (white variants). These are publicly available from Apple, ESPN, Hulu, Netflix, Paramount, Peacock, Amazon, YouTube, and HBO brand asset pages.
-
-### Pipeline behavior (one-time build tool, not runtime)
-
-1. For each `TeamDefinition` in the catalog:
-   - Fetch the ESPN `-dark` PNG variant
-   - Validate: HTTP 200, image dimensions ≥ 64×64 px, not a placeholder/generic logo
-   - Save as `{compositeID}.png` (e.g. `nhl:23.png`)
-2. For each streaming provider in the catalog:
-   - Fetch from a curated list of official white-logo source URLs
-   - Validate: HTTP 200, dimensions ≥ 64×64 px
-   - Save as `{normalizedID}.png` (e.g. `espn-plus.png`)
-3. Output a `manifest.json` mapping each ID to its hosted URL + SHA-256 checksum
-4. Any logo that fails validation is flagged in a `missing_logos.txt` for manual replacement — the pipeline does not fail silently
-
-### Server structure
-```
-assets.hometeam.app/
-  logos/
-    teams/
-      nhl:23.png
-      mlb:111.png
-      f1:max-verstappen.png
-      ...
-    streaming/
-      espn-plus.png
-      hulu.png
-      hulu-tv.png
-      ...
-  manifest.json
-```
+### Naming convention
+- Team sports: `{sport}_{espnTeamID}.png` (e.g. `nhl_23.png`)
+- F1: `f1_{espnTeamID}.{svg,png}` (SVG preferred, PNG fallback)
+- MotoGP: `motoGP_{espnTeamID}.png`
 
 ### App/widget behavior
-- Logo URLs are embedded in `TeamDefinition.logoURL` and `StreamingProviderCatalog` at build time
-- `TeamLogoStore` fetches from these URLs and caches in memory (and optionally on disk)
-- If a URL returns non-200 or the image fails to decode: fall back to text abbreviation (app) or circle-initial (widget) — never show a broken image
-- **No runtime calls to ESPN CDN or Google Favicon service**
+- `ScheduleRepository.prefetchLogos` downloads missing team logos on each refresh into the App Group container
+- `ScheduleRepository.prefetchRacingLogos` downloads logos for favorites AND all drivers in race results
+- Stale logos (>7 days) are re-downloaded automatically
+- Widget reads cached files from the App Group container — no network calls at render time
+- If a logo file is missing: circle-initial fallback (widget) or text abbreviation (app)
 
 ### Ongoing maintenance
-Not needed on a recurring basis. Re-run the pipeline only when:
+Add new logo files to `logos/teams/` and push when:
 - A new team or sport is added to the catalog
 - A team rebrands (new logo)
-- A streaming service updates its branding
 
 ---
 
@@ -662,38 +624,14 @@ The app runs a background refresh loop from launch. Interval is determined after
 
 | Condition | Interval |
 |---|---|
-| Any tracked team has a live game | 5 minutes |
-| All tracked teams have errors AND no games | 30 minutes |
-| Otherwise | 24 hours |
+| Any tracked team has a live game | 60 seconds |
+| Otherwise | 60 minutes |
 
 This is distinct from the widget's refresh policy (5.3).
 
 ### 4.7 Runtime Status indicator
 
-A floating pill button at the **bottom-right** of the main window.
-
-**Default state** (no issues):
-- Label: "Status"
-- Background: green capsule
-- Border: green
-
-**Issue state** (any error in snapshots or runtime log):
-- Background: black capsule
-- Border: white 22% opacity
-- Red badge in top-right corner showing issue count
-
-**Hover** (either state): shows a card above the pill containing:
-- Title: "Data Issues ({N})" or "System Healthy"
-- Divider
-- Scrollable, text-selectable list of all issue messages (numbered)
-- Footer hint: "Click Status to copy these details."
-- Card background: black 90% opacity, red border (issue state) or neutral (healthy)
-
-**Click**: copies full issue description to clipboard (`NSPasteboard`).
-
-Issues come from two sources:
-1. `RuntimeIssueCenter` — API failures, cache write failures, etc.
-2. Snapshot `errorMessage` fields — per-team data errors
+> **Status: Not implemented.** `RuntimeIssueCenter` existed in `_OLD_APP/` but was not carried forward to the current codebase. Errors are logged via `print()` to stdout only.
 
 ---
 
@@ -710,7 +648,7 @@ The widget uses `AppIntentConfiguration` with a `@Parameter(default: nil)` for t
 2. The picker shows favorites first (prioritized), then all other teams.
 3. Onboarding must block completion until the App Group file is written with at least one favorite — this is the gate that makes the widget picker useful from the first add.
 
-**Unconfigured widget deep link** [NEW]: If the widget is somehow in an unconfigured state (e.g. after app reinstall), tapping the widget opens the app via URL scheme `hometeam://settings/favorites`, routing the user directly to the Favorites settings section. The entire widget surface is tappable via `widgetURL` in the unconfigured state.
+**Unconfigured widget deep link**: Not yet implemented. Planned: tapping an unconfigured widget opens the app via URL scheme `hometeam://settings/favorites`.
 
 ### 5.2 Configuration picker behavior
 
@@ -723,27 +661,31 @@ The widget uses `AppIntentConfiguration` with a `@Parameter(default: nil)` for t
 
 | Condition | Interval |
 |---|---|
-| Any game in snapshot is live | 5 minutes |
-| No live game | 24 hours |
+| Any game in snapshot is live | 60 seconds |
+| Upcoming game exists | min(game start time, 30 minutes) |
+| No live or upcoming games | 30 minutes |
 
 ### 5.4 Widget layout (systemLarge only)
 
 ```
-[Team Name]
-[Summary stats]         ← optional
-PREVIOUS
-  [card] [card] [card]
-UPCOMING
-  [card] [card] [card]
-                   Updated HH:MM
+[Team Name]  [Summary stats]
+─────────────────────────────
+P ┌────────┐ ┌────────┐
+R │ card 1 │ │ card 2 │
+E └────────┘ └────────┘
+V
+U ┌────────┐ ┌────────┐ ┌────────┐
+P │ card 1 │ │ card 2 │ │ card 3 │
+C └────────┘ └────────┘ └────────┘
+                         Updated HH:MM
 ```
 
-Padding: 8pt all sides. Spacing: 6pt between sections.
+Padding: 10pt all sides. Spacing: 6pt between header elements, 2pt between sections.
 
-**Title**: `.caption.weight(.semibold)`, white 88% opacity, single line
-**Summary**: `.caption2.weight(.medium)`, white 66% opacity, single line
-**Section labels**: `.caption2.weight(.bold)`, uppercased, white 62% opacity
-**Timestamp**: `.caption2.weight(.semibold)`, white 72% opacity, right-aligned. Uses the timeline entry `date`, not `snapshot.lastUpdated`.
+**Title**: `.system(size: 13, weight: .bold)`, primary color, single line
+**Summary**: `.system(size: 10.5, weight: .medium)`, white 62% opacity (dark) / secondary (light), single line
+**Section labels**: vertical rotated text, `.system(size: 7.5, weight: .heavy)`, uppercased, white 30% opacity (dark) / secondary 45% (light), positioned left of card row
+**Timestamp**: `.system(size: 8.5, weight: .regular)`, white 55% opacity (dark) / secondary (light), right-aligned
 
 ### 5.5 Widget game card
 
@@ -1003,8 +945,7 @@ Incomplete row: empty circle icon, subtitle "Required" or "Optional for onboardi
 ## 10. Settings persistence and sync
 
 - Settings stored as `app_settings.json` in the **shared App Group container** (accessible by both app and widget extension)
-- Also mirrored to `NSUbiquitousKeyValueStore` (iCloud key-value store)
-- **iCloud sync**: on launch and on external change notification, cloud settings are loaded and applied if they differ from local. This enables multi-device sync.
+- **iCloud sync**: intentionally omitted — `ubiquity-kvstore-identifier` entitlement is not yet provisioned
 - All settings writes trigger `WidgetCenter.shared.reloadAllTimelines()` so the widget reflects changes immediately
 - Settings survive app relaunch; onboarding state survives relaunch
 
@@ -1014,7 +955,7 @@ Incomplete row: empty circle icon, subtitle "Required" or "Optional for onboardi
 
 - **App Group container** is shared between app target and widget extension
 - `app_settings.json`: `AppSettings` (favorites, streaming, location, notifications)
-- `schedule_snapshot_{compositeID}.json`: per-team `ScheduleSnapshot`
+- `schedule_snapshot.json`: single `ScheduleSnapshot` containing all games across all sports
 - **Non-destructive merge**: if a refresh returns an empty game list (no error), the prior cached game list is kept. Prevents stale-cache wipes from transient empty API responses.
 - Widget reads settings and snapshot directly on timeline refresh — no IPC to app needed
 
