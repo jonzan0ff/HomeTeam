@@ -33,7 +33,13 @@ struct ESPNScheduleParser {
                   ?? away?.record?.first?.displayValue
 
     // Broadcasts: [{media: {shortName: "ESPN+"}, ...}]
-    let broadcasts = competition.broadcasts?.compactMap { $0.media?.shortName } ?? []
+    // When ESPN+ and plain "Hulu" appear together, Hulu is just the ESPN+ simulcast —
+    // not an independent way to watch. Strip it so the badge shows ESPN+, not HULU.
+    var broadcasts = competition.broadcasts?.compactMap { $0.media?.shortName } ?? []
+    if broadcasts.contains(where: { $0.uppercased().contains("ESPN+") || $0.uppercased() == "ESPNPLUS" }),
+       broadcasts.contains(where: { $0.uppercased() == "HULU" }) {
+      broadcasts.removeAll { $0.uppercased() == "HULU" }
+    }
 
     let status = mapStatus(competition.status)
 
