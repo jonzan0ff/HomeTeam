@@ -20,6 +20,10 @@ struct HomeTeamSettingsView: View {
       AdvancedSettingsTab()
         .tabItem { Label("Advanced", systemImage: "gearshape.2") }
         .tag(AppState.SettingsTab.advanced)
+
+      AboutSettingsTab()
+        .tabItem { Label("About", systemImage: "info.circle") }
+        .tag(AppState.SettingsTab.about)
     }
     .padding()
   }
@@ -252,6 +256,84 @@ struct AdvancedSettingsTab: View {
           get: { settings.settings.zipCode },
           set: { v in settings.update { $0.zipCode = v } }
         ))
+      }
+    }
+    .formStyle(.grouped)
+  }
+}
+
+// MARK: - About tab
+
+struct AboutSettingsTab: View {
+  @EnvironmentObject var appState: AppState
+  @State private var isChecking = false
+
+  private var currentVersion: String {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+  }
+
+  var body: some View {
+    Form {
+      Section("Version") {
+        HStack {
+          Text("HomeTeam")
+            .font(.system(size: 13, weight: .medium))
+          Spacer()
+          Text(currentVersion)
+            .font(.system(size: 13, design: .monospaced))
+            .textSelection(.enabled)
+        }
+      }
+
+      Section("Updates") {
+        if appState.isInstallingUpdate {
+          VStack(alignment: .leading, spacing: 8) {
+            ProgressView(value: appState.updateProgress)
+              .tint(.orange)
+            Text("Installing update... \(Int(appState.updateProgress * 100))%")
+              .font(.caption)
+              .foregroundColor(.orange)
+          }
+        } else if let release = appState.availableUpdate {
+          HStack {
+            VStack(alignment: .leading, spacing: 2) {
+              Text("Version \(release.version) available")
+                .font(.system(size: 13, weight: .medium))
+              if let name = release.name {
+                Text(name)
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+              }
+            }
+            Spacer()
+            Button("Install Update") {
+              appState.installUpdate()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+          }
+        } else {
+          HStack {
+            Text("Up to date")
+              .font(.system(size: 13))
+              .foregroundColor(.secondary)
+            Spacer()
+            Button {
+              isChecking = true
+              Task {
+                await appState.checkForUpdate()
+                isChecking = false
+              }
+            } label: {
+              if isChecking {
+                ProgressView().scaleEffect(0.6)
+              } else {
+                Text("Check for Updates")
+              }
+            }
+            .disabled(isChecking)
+          }
+        }
       }
     }
     .formStyle(.grouped)

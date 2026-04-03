@@ -35,6 +35,7 @@ struct HomeTeamApp: App {
     } label: {
       MenuBarIcon()
         .environmentObject(repository)
+        .environmentObject(appState)
     }
     .menuBarExtraStyle(.window)
 

@@ -32,6 +32,9 @@ struct MenuBarContentView: View {
         await repository.refresh()
       }
     }
+    .task {
+      appState.startDailyUpdateCheck()
+    }
   }
 }
 
@@ -146,52 +149,78 @@ private struct OnboardingPromptView: View {
 
 private struct FooterView: View {
   @EnvironmentObject var repository: ScheduleRepository
+  @EnvironmentObject var appState: AppState
 
   var body: some View {
-    HStack {
-      if let err = repository.lastError {
-        Text("Error: \(err.localizedDescription)")
+    VStack(spacing: 0) {
+      // Update install progress bar (full width, above footer)
+      if appState.isInstallingUpdate {
+        ProgressView(value: appState.updateProgress)
+          .tint(.orange)
+        Text("Installing update...")
           .font(.caption2)
-          .foregroundColor(.red)
-          .lineLimit(1)
-      } else if repository.snapshot.fetchedAt != .distantPast {
-        Text("Updated \(repository.snapshot.fetchedAt.formatted(.relative(presentation: .named)))")
-          .font(.caption2)
-          .foregroundColor(.secondary)
+          .foregroundColor(.orange)
+          .padding(.vertical, 2)
       }
-      if let built = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
-        Text("build \(built)")
-          .font(.caption2)
-          .foregroundColor(.secondary.opacity(0.4))
-      }
-      Spacer()
-      SettingsLink {
-        Image(systemName: "gearshape")
-      }
-      .buttonStyle(.plain)
-      .help("Settings")
 
-      Button {
-        Task { await repository.refresh() }
-      } label: {
-        Image(systemName: "arrow.clockwise")
-      }
-      .buttonStyle(.plain)
-      .help("Refresh now")
-      .disabled(repository.isRefreshing)
+      HStack {
+        if appState.isInstallingUpdate {
+          // Installing — show progress text
+          Text("\(Int(appState.updateProgress * 100))%")
+            .font(.caption2)
+            .foregroundColor(.orange)
+        } else if appState.availableUpdate != nil {
+          // Update available — clickable label
+          Button {
+            appState.installUpdate()
+          } label: {
+            Text("Update Available")
+              .font(.caption2.weight(.semibold))
+              .foregroundColor(.orange)
+          }
+          .buttonStyle(.plain)
+          .help("Click to install update")
+        } else if let err = repository.lastError {
+          Text("Error: \(err.localizedDescription)")
+            .font(.caption2)
+            .foregroundColor(.red)
+            .lineLimit(1)
+        } else if repository.snapshot.fetchedAt != .distantPast {
+          Text("Updated \(repository.snapshot.fetchedAt.formatted(.relative(presentation: .named)))")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
 
-      Button {
-        let bundleID = Bundle.main.bundleIdentifier ?? ""
-        NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
-          .forEach { $0.terminate() }
-      } label: {
-        Image(systemName: "power")
+        Spacer()
+
+        SettingsLink {
+          Image(systemName: "gearshape")
+        }
+        .buttonStyle(.plain)
+        .help("Settings")
+
+        Button {
+          Task { await repository.refresh() }
+        } label: {
+          Image(systemName: "arrow.clockwise")
+        }
+        .buttonStyle(.plain)
+        .help("Refresh now")
+        .disabled(repository.isRefreshing)
+
+        Button {
+          let bundleID = Bundle.main.bundleIdentifier ?? ""
+          NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            .forEach { $0.terminate() }
+        } label: {
+          Image(systemName: "power")
+        }
+        .buttonStyle(.plain)
+        .help("Quit HomeTeam")
       }
-      .buttonStyle(.plain)
-      .help("Quit HomeTeam")
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 6)
   }
 }
 
