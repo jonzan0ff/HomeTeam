@@ -6,7 +6,7 @@ struct HomeTeamApp: App {
 
   @StateObject private var settings = AppSettingsStore.shared
   @StateObject private var repository = ScheduleRepository.shared
-  @StateObject private var appState  = AppState()
+  @ObservedObject private var appState  = AppState.shared
 
   init() {
     // Enforce single instance: terminate any older running copy before starting
@@ -20,6 +20,8 @@ struct HomeTeamApp: App {
 
     // Refresh on launch + adaptive background schedule (60 s live / 60 min idle)
     Task { ScheduleRepository.shared.startAutoRefresh() }
+    // Check for updates on launch + every 24h
+    Task { AppState.shared.startDailyUpdateCheck() }
   }
 
   var body: some Scene {
@@ -34,8 +36,6 @@ struct HomeTeamApp: App {
         }
     } label: {
       MenuBarIcon()
-        .environmentObject(repository)
-        .environmentObject(appState)
     }
     .menuBarExtraStyle(.window)
 
