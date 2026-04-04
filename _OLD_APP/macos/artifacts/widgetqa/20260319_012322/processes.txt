@@ -1,1 +1,0 @@
-44868 /private/tmp/HomeTeamDerived/Build/Products/Debug/HomeTeam.app/Contents/PlugIns/HomeTeamWidgetExtension.appex/Contents/MacOS/HomeTeamWidgetExtension -LaunchArguments eyJzZXJ2aWNlTmFtZSI6ImNvbS5qb256YW5vZmYuaG9tZXRlYW0ud2lkZ2V0IiwiZW5oYW5jZWRTZWN1cml0eSI6ZmFsc2UsInR5cGUiOjF9

@@ -1,5 +1,0 @@
-timestamp=20260319_020810
-result_bundle=/tmp/HomeTeamWidgetSnapshot_20260319_020810.xcresult
-test_log=/tmp/hometeam_widget_snapshot_20260319_020810.log
-snapshot_manifest=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_020810/manifest.json
-snapshot_png_count=2

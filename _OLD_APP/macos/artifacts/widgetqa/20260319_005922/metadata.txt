@@ -1,3 +1,0 @@
-timestamp=20260319_005922
-desktop_screenshot=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_005922/widget-desktop-full.png
-note=Pin HomeTeam widget on desktop to guarantee widget visibility in capture.

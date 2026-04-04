@@ -1,8 +1,0 @@
-{
-  "retirement": {
-    "min_runs_no_failure": 10000,
-    "min_runs_for_demotion": 1000,
-    "min_runs_for_flaky": 200
-  },
-  "protected_test_patterns": []
-}

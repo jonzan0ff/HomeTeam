@@ -1,8 +1,0 @@
-timestamp=20260319_032431
-result_bundle=/tmp/HomeTeamWidgetSnapshot_20260319_032431.xcresult
-test_log=/tmp/hometeam_widget_snapshot_20260319_032431.log
-snapshot_manifest=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_032431/manifest.json
-hash_manifest=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_032431/hash_manifest.json
-xcresult_attachments=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_032431/xcresult_attachments
-xcresult_manifest=/Users/jonzanoff/Documents/jonzanoffsbugs/Projects/HomeTeam/macos/artifacts/widgetqa/20260319_032431/xcresult_attachments/manifest.json
-snapshot_png_count=2

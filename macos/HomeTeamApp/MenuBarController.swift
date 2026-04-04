@@ -165,19 +165,18 @@ final class MenuBarController: NSObject {
       statusItem?.length = iconWidth + gap + ringSize + 6
     } else if let dot {
       let dotSize: CGFloat = 6
-      let gap: CGFloat = 2
       let color: NSColor = dot == .orange ? .systemOrange : .systemGreen
       button.image = iconImage
       let dotView = NSView(frame: NSRect(
-        x: iconWidth + gap,
-        y: (button.bounds.height - dotSize) / 2,
+        x: iconWidth - dotSize / 2,
+        y: 14,
         width: dotSize, height: dotSize
       ))
       dotView.wantsLayer = true
       dotView.layer?.backgroundColor = color.cgColor
       dotView.layer?.cornerRadius = dotSize / 2
       button.addSubview(dotView)
-      statusItem?.length = iconWidth + gap + dotSize + 6
+      statusItem?.length = iconWidth + dotSize / 2 + 2
     } else {
       button.image = iconImage
       statusItem?.length = NSStatusItem.variableLength
