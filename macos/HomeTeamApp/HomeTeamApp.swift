@@ -13,13 +13,9 @@ struct HomeTeamApp: App {
     let bundleID = Bundle.main.bundleIdentifier ?? ""
     let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
       .filter { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }
-    for app in others {
-      app.forceTerminate()
-      // Wait up to 2 seconds for the old process to exit
-      let deadline = Date().addingTimeInterval(2)
-      while app.isTerminated == false, Date() < deadline {
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-      }
+    if !others.isEmpty {
+      others.forEach { $0.forceTerminate() }
+      Thread.sleep(forTimeInterval: 0.5)
     }
 
     // Clear HTTP cache so AsyncImage always fetches fresh logos on launch
