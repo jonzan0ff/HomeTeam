@@ -31,7 +31,7 @@ targets:
         PRODUCT_NAME: HomeTeam
         PRODUCT_BUNDLE_IDENTIFIER: com.hometeam.app
         SWIFT_MODULE_NAME: HomeTeam
-        MARKETING_VERSION: "1.1.0"
+        MARKETING_VERSION: "1.2.0"
         CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_FILE: HomeTeamApp/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -54,7 +54,7 @@ targets:
         SWIFT_MODULE_NAME: HomeTeamExtension
         DEFINES_MODULE: NO
         SKIP_INSTALL: YES
-        MARKETING_VERSION: "1.1.0"
+        MARKETING_VERSION: "1.2.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
