@@ -32,9 +32,6 @@ struct MenuBarContentView: View {
         await repository.refresh()
       }
     }
-    .task {
-      appState.startDailyUpdateCheck()
-    }
   }
 }
 

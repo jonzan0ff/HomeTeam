@@ -4,8 +4,8 @@ import AppKit
 @main
 struct HomeTeamApp: App {
 
-  @StateObject private var settings = AppSettingsStore.shared
-  @StateObject private var repository = ScheduleRepository.shared
+  @ObservedObject private var settings = AppSettingsStore.shared
+  @ObservedObject private var repository = ScheduleRepository.shared
   @ObservedObject private var appState  = AppState.shared
 
   init() {
@@ -22,23 +22,11 @@ struct HomeTeamApp: App {
     Task { ScheduleRepository.shared.startAutoRefresh() }
     // Check for updates on launch + every 24h
     Task { AppState.shared.startDailyUpdateCheck() }
+    // Install AppKit menu bar item (NSStatusItem + NSPopover)
+    MenuBarController.shared.install()
   }
 
   var body: some Scene {
-    MenuBarExtra {
-      MenuBarContentView()
-        .environmentObject(settings)
-        .environmentObject(repository)
-        .environmentObject(appState)
-        .onReceive(settings.$settings.map(\.favoriteTeamCompositeIDs).removeDuplicates().dropFirst()) { favs in
-          guard !favs.isEmpty else { return }
-          Task { await repository.refresh() }
-        }
-    } label: {
-      MenuBarIcon()
-    }
-    .menuBarExtraStyle(.window)
-
     Settings {
       HomeTeamSettingsView()
         .environmentObject(settings)
