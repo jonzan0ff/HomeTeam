@@ -105,6 +105,13 @@ final class UpdateService: NSObject, @unchecked Sendable {
     }
     try FileManager.default.moveItem(at: appBundle, to: destination)
 
+    // Kill stale widget extension so macOS loads the new one on relaunch
+    let killWidget = Process()
+    killWidget.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+    killWidget.arguments = ["-f", "HomeTeamWidget"]
+    try? killWidget.run()
+    killWidget.waitUntilExit()
+
     // Relaunch from /Applications and quit
     let open = Process()
     open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
