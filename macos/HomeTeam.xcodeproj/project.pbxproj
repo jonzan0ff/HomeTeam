@@ -634,7 +634,7 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HomeTeam.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = HomeTeamApp/Info.plist;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.app;
 				PRODUCT_NAME = HomeTeam;
 				SWIFT_MODULE_NAME = HomeTeam;
@@ -672,7 +672,7 @@
 				CODE_SIGN_ENTITLEMENTS = Config/HomeTeam.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = HomeTeamApp/Info.plist;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.app;
 				PRODUCT_NAME = HomeTeam;
 				SWIFT_MODULE_NAME = HomeTeam;
@@ -688,7 +688,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HomeTeamExtension/Info.plist;
 				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.app.extension;
 				PRODUCT_NAME = HomeTeamExtension;
 				SKIP_INSTALL = YES;
@@ -705,7 +705,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HomeTeamExtension/Info.plist;
 				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hometeam.app.extension;
 				PRODUCT_NAME = HomeTeamExtension;
 				SKIP_INSTALL = YES;

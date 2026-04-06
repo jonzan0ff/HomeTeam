@@ -83,7 +83,7 @@ struct HomeTeamTimelineProvider: AppIntentTimelineProvider {
 
     let teamSummary = snapshot.teamSummaries.first { $0.compositeID == team.compositeID }
 
-    log.info("streamingKeys=\(streamingKeys.sorted()) live=\(filtered.live.count) previous=\(filtered.previous.count) upcoming=\(filtered.upcoming.count)")
+    log.info("streamingKeys=\(streamingKeys.sorted()) live=\(filtered.live.count) previous=\(filtered.previous.count) upcoming=\(filtered.upcoming.count) summaries=\(snapshot.teamSummaries.count) hasSummary=\(teamSummary != nil)")
 
     return HomeTeamEntry(
       date: now,

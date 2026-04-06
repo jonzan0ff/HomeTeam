@@ -105,12 +105,20 @@ final class UpdateService: NSObject, @unchecked Sendable {
     }
     try FileManager.default.moveItem(at: appBundle, to: destination)
 
-    // Kill stale widget extension so macOS loads the new one on relaunch
-    let killWidget = Process()
-    killWidget.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
-    killWidget.arguments = ["-f", "HomeTeamWidget"]
-    try? killWidget.run()
-    killWidget.waitUntilExit()
+    // Recycle widget extension: unregister old, kill stale process, re-register new.
+    // This forces macOS to load the updated binary instead of respawning from cache.
+    let widgetPath = destination.appendingPathComponent("Contents/PlugIns/HomeTeamExtension.appex").path
+    for (tool, args) in [
+      ("/usr/bin/pluginkit", ["-r", widgetPath]),
+      ("/usr/bin/pkill", ["-f", "HomeTeamExtension"]),
+      ("/usr/bin/pluginkit", ["-a", widgetPath]),
+    ] {
+      let proc = Process()
+      proc.executableURL = URL(fileURLWithPath: tool)
+      proc.arguments = args
+      try? proc.run()
+      proc.waitUntilExit()
+    }
 
     // Relaunch from /Applications and quit
     let open = Process()
