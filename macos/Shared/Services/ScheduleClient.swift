@@ -142,7 +142,7 @@ struct ScheduleClient {
         )
       } else {
         if let results = resultsByID[game.id] { g = g.patchingRacingResults(results) }
-        if let date = raceDateByID[game.id] { g = g.patchingScheduledAt(date) }
+        if let date = raceDateByID[game.id] { g = g.patchingScheduledAtIfClose(date) }
       }
       return g
     }

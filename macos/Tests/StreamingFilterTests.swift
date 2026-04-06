@@ -1259,6 +1259,47 @@ final class HomeTeamGamePatchingTests: XCTestCase {
     XCTAssertEqual(patched.homeScore, game.homeScore)
   }
 
+  func test_patchingScheduledAtIfClose_appliesWithinWindow() {
+    let game = makeGame() // scheduledAt = baseDate (timeIntervalSince1970: 1_700_000_000)
+    let closeDate = game.scheduledAt.addingTimeInterval(3 * 24 * 3600) // 3 days later
+    let patched = game.patchingScheduledAtIfClose(closeDate)
+    XCTAssertEqual(patched.scheduledAt, closeDate)
+  }
+
+  func test_patchingScheduledAtIfClose_rejectsStaleSessionDate() {
+    // Simulates Qatar postponement: event date is in November but session API still says April
+    let novemberDate = Date(timeIntervalSince1970: 1_794_000_000)  // ~Nov 2026
+    let game = HomeTeamGame(
+      id: "qatar", sport: .motoGP,
+      homeTeamID: "", awayTeamID: "",
+      homeTeamName: "GP Of Qatar", awayTeamName: "",
+      homeTeamAbbrev: "", awayTeamAbbrev: "",
+      homeScore: nil, awayScore: nil,
+      homeRecord: nil, awayRecord: nil,
+      scheduledAt: novemberDate, status: .scheduled,
+      statusDetail: nil, venueName: nil,
+      broadcastNetworks: ["FS1"],
+      isPlayoff: false, seriesInfo: nil, racingResults: nil
+    )
+    let staleAprilDate = novemberDate.addingTimeInterval(-210 * 24 * 3600) // ~7 months earlier
+    let patched = game.patchingScheduledAtIfClose(staleAprilDate)
+    XCTAssertEqual(patched.scheduledAt, novemberDate, "Stale session date should be rejected")
+  }
+
+  func test_patchingScheduledAtIfClose_acceptsExactly7Days() {
+    let game = makeGame()
+    let edgeDate = game.scheduledAt.addingTimeInterval(7 * 24 * 3600) // exactly 7 days
+    let patched = game.patchingScheduledAtIfClose(edgeDate)
+    XCTAssertEqual(patched.scheduledAt, edgeDate, "Exactly 7 days should be accepted")
+  }
+
+  func test_patchingScheduledAtIfClose_rejectsJustOver7Days() {
+    let game = makeGame()
+    let overDate = game.scheduledAt.addingTimeInterval(7 * 24 * 3600 + 1) // 7 days + 1 second
+    let patched = game.patchingScheduledAtIfClose(overDate)
+    XCTAssertEqual(patched.scheduledAt, game.scheduledAt, "Over 7 days should be rejected")
+  }
+
   func test_patching_updatesScoresAndDetail() {
     let game = makeGame()
     let patched = game.patching(homeScore: 3, awayScore: 1, statusDetail: "3rd Period")

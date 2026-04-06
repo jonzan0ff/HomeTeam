@@ -9,7 +9,7 @@ on:
 
 jobs:
   snapshot-qa:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
   # XCTest UI bundle: launches the app (Accessibility). Requires valid code signing on the runner.
   ui-tests:
     if: github.event_name == 'workflow_dispatch'
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4

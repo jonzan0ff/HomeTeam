@@ -125,6 +125,15 @@ extension HomeTeamGame {
     )
   }
 
+  /// Returns a copy with updated scheduledAt only if the new date is within 7 days of the
+  /// current event date. Session-level timestamps can be stale when a race is postponed
+  /// but the sessions API hasn't been updated yet.
+  func patchingScheduledAtIfClose(_ date: Date) -> HomeTeamGame {
+    let drift = abs(date.timeIntervalSince(scheduledAt))
+    guard drift <= 7 * 24 * 3600 else { return self }
+    return patchingScheduledAt(date)
+  }
+
   /// Returns a copy with updated scheduledAt (e.g. from session-level timestamp).
   func patchingScheduledAt(_ date: Date) -> HomeTeamGame {
     HomeTeamGame(
