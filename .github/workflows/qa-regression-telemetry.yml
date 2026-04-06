@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Widget Snapshot QA
-        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh macos/artifacts/widgetqa
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh qa/screenshots
 
       - name: Frontend Snapshot QA
         run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/qa_frontend_ui.sh
@@ -54,6 +54,6 @@ jobs:
           name: hometeam-regression-telemetry-${{ github.run_id }}
           path: |
             qa/telemetry/current
-            macos/artifacts/widgetqa
-            macos/artifacts/uiqa
+            qa/screenshots
+            qa/screenshots
           if-no-files-found: warn

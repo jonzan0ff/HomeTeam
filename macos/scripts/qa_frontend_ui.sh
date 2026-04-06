@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT="$SCRIPT_DIR/../HomeTeam.xcodeproj"
-OUTPUT_DIR="macos/artifacts/uiqa"
+OUTPUT_DIR="qa/screenshots"
 SNAPSHOT_MODE="${HOMETEAM_QA_WIDGET_SNAPSHOT_MODE:-coverage}"
 STAMP="$(date +%s)"
 RESULT_BUNDLE="/tmp/HomeTeamUIQA_${STAMP}.xcresult"

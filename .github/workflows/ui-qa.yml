@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Widget Snapshot QA
-        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh macos/artifacts/widgetqa
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh qa/screenshots
 
       - name: Frontend Snapshot QA
         run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/qa_frontend_ui.sh
@@ -25,8 +25,8 @@ jobs:
         with:
           name: hometeam-ui-qa-artifacts
           path: |
-            macos/artifacts/widgetqa
-            macos/artifacts/uiqa
+            qa/screenshots
+            qa/screenshots
             /tmp/HomeTeamUIQA_*.xcresult
             /tmp/HomeTeamWidgetSnapshot_*.xcresult
           if-no-files-found: warn

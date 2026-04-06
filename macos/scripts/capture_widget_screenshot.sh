@@ -10,7 +10,7 @@
 # Used by: .github/workflows/ui-qa.yml, .github/workflows/qa-regression-telemetry.yml
 set -euo pipefail
 
-OUTPUT_DIR="${1:-macos/artifacts/widgetqa}"
+OUTPUT_DIR="${1:-qa/screenshots}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT="$SCRIPT_DIR/../HomeTeam.xcodeproj"
 SNAPSHOT_MODE="${HOMETEAM_QA_WIDGET_SNAPSHOT_MODE:-coverage}"

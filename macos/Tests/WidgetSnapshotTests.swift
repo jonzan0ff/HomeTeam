@@ -5,7 +5,7 @@ import AppKit
 
 // MARK: - Layer 2: Widget snapshot tests
 // Renders HomeTeamWidgetEntryView to PNG images for visual regression testing.
-// Reference images are committed to Tests/__Snapshots__/.
+// Reference images are committed to qa/baselines/.
 // On first run (or when `recordMode = true`), images are written. On subsequent runs,
 // new renders are compared pixel-by-pixel against the reference.
 
@@ -19,8 +19,11 @@ final class WidgetSnapshotTests: XCTestCase {
 
   private var snapshotDir: URL {
     URL(fileURLWithPath: #file)
-      .deletingLastPathComponent()
-      .appendingPathComponent("__Snapshots__")
+      .deletingLastPathComponent()        // macos/Tests/
+      .deletingLastPathComponent()        // macos/
+      .deletingLastPathComponent()        // project root
+      .appendingPathComponent("qa")
+      .appendingPathComponent("baselines")
   }
 
   // MARK: - NHL
