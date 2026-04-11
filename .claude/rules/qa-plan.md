@@ -34,18 +34,47 @@ Strategy: make every layer **below** the OS surface airtight so manual UAT is mi
 
 ---
 
+## Execution environment
+
+All XCTest and XCUITest runs happen on the **QA Mac** (`qa@iMac.local`) via SSH.
+Never run tests on the dev machine — it interrupts the user's work.
+
+```bash
+# Sync code before every test run
+rsync -az --exclude='.git' --exclude='DerivedData' --exclude='node_modules' \
+  "/Users/jonzanoff/Documents/jonzan0ff/Projects/HomeTeam/" qa@iMac.local:~/Projects/HomeTeam/
+
+# After xcodegen: SCP entitlements from dev machine (no .git on QA Mac)
+scp macos/Config/*.entitlements qa@iMac.local:~/Projects/HomeTeam/macos/Config/
+
+# Build + test on QA Mac
+ssh qa@iMac.local 'security unlock-keychain -p "anthropic" ~/Library/Keychains/login.keychain-db && \
+  cd ~/Projects/HomeTeam/macos && \
+  xcodebuild test -project HomeTeam.xcodeproj -scheme HomeTeam -configuration Debug \
+  -allowProvisioningUpdates -only-testing HomeTeamTests'
+```
+
+App installed at `~/Applications/HomeTeam.app` (qa user is not admin).
+
+---
+
 ## Test pyramid
 
 ```
          ┌──────────────────────────────┐
-         │   UAT (human)                │  ← pixel polish, OS widget picker UX
+         │   UAT (human)                │  ← OS widget picker, pixel polish
+         ├──────────────────────────────┤
+         │   Live Widget Screenshots    │  ← dim/lit on QA Mac, real data
+         │   (QA Mac, pre-build)        │     via scripts/qa_screenshots.sh
          ├──────────────────────────────┤
          │   UI Tests (XCUITest)        │  ← app navigation, onboarding,
-         │                              │     App Group JSON correctness
+         │   (QA Mac)                   │     App Group JSON correctness
          ├──────────────────────────────┤
          │   Snapshot / Preview Tests   │  ← widget view with fixture data
+         │   (QA Mac)                   │     pixel-perfect against baselines
          ├──────────────────────────────┤
          │   Unit Tests (no network)    │  ← all business logic
+         │   (QA Mac)                   │
          └──────────────────────────────┘
 ```
 
@@ -53,7 +82,7 @@ Strategy: make every layer **below** the OS surface airtight so manual UAT is mi
 
 ## Layer 1 — Unit tests (no network, no UI, instant)
 
-Run via `xcodebuild test -only-testing HomeTeamTests`.
+Run on QA Mac via `xcodebuild test -only-testing HomeTeamTests`.
 
 ### 1A. Widget game filtering
 
@@ -308,11 +337,15 @@ Tests for `patchingRacingResults`, `patchingScheduledAt`, `patching(homeScore:..
 
 ## Layer 2 — Snapshot tests (no network, visual regression)
 
-Dependency-free: renders `HomeTeamWidgetEntryView` via `NSHostingView` →
+Run on QA Mac. Dependency-free: renders `HomeTeamWidgetEntryView` via `NSHostingView` →
 `bitmapImageRepForCachingDisplay` → PNG. No external packages needed.
 
-Reference PNGs committed to `Tests/__Snapshots__/`. Toggle `recordMode` in
+Reference PNGs committed to `qa/baselines/`. Toggle `recordMode` in
 `WidgetSnapshotTests.swift` to re-record after intentional visual changes.
+
+**Baselines must be recorded on the QA Mac.** Font hinting and anti-aliasing can differ
+between machines. If baselines were recorded on the dev machine, re-record them on the
+QA Mac by running with `recordMode = true` once, then committing the updated PNGs.
 
 ### 2A. Fixture scenarios (all implemented)
 
@@ -341,6 +374,67 @@ hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
 let pngData = bitmapRep.representation(using: .png, properties: [:])!
 // Compare pngData against committed reference PNG
 ```
+
+---
+
+## Layer 2B — Live widget screenshots (QA Mac, real data)
+
+Captures real widgets running on the QA Mac desktop with real ESPN data in both
+dim and lit modes. Fundamentally different from Layer 2:
+
+| | Layer 2 (Snapshot) | Layer 2B (Live Screenshots) |
+|---|---|---|
+| Data | Fixture data, deterministic | Real ESPN data, changes daily |
+| Render | `NSHostingView` in test process | Real WidgetKit on macOS desktop |
+| Modes | Light mode only | Dim AND lit mode |
+| Comparison | Automated pixel-perfect diff | Human review via `review.html` |
+| Catches | Code regressions in view layout | Logo loading, dim mode contrast, real data edge cases, widget-OS integration |
+
+### Setup
+
+Three HomeTeam widgets on QA Mac desktop (left to right): NHL, MotoGP, F1.
+Widget placement is manual (OS limitation) and only needs to happen once.
+
+### Workflow
+
+Run `scripts/qa_screenshots.sh <version>` **before every build**.
+
+1. Captures full desktop in lit mode (hide all processes → desktop focus)
+2. Captures full desktop in dim mode (Terminal in foreground)
+3. Crops 3 widgets from each capture (6 images total)
+4. Scales to 1800px max width
+5. Saves to `qa/screenshots/{version}_{sport}_{mode}.png`
+6. Regenerates `qa/review.html` with all captured builds
+7. Auto-prunes to latest 10 builds
+
+### Images per build (6)
+
+| File | Sport | Mode |
+|---|---|---|
+| `{ver}_nhl_lit.png` | NHL (Capitals) | Lit |
+| `{ver}_nhl_dim.png` | NHL (Capitals) | Dim |
+| `{ver}_motogp_lit.png` | MotoGP (Ducati/Marquez) | Lit |
+| `{ver}_motogp_dim.png` | MotoGP (Ducati/Marquez) | Dim |
+| `{ver}_f1_lit.png` | F1 (Haas/Bearman) | Lit |
+| `{ver}_f1_dim.png` | F1 (Haas/Bearman) | Dim |
+
+### Crop coordinates (4480x2520 Retina 4.5K iMac)
+
+```
+CROP_H=730  CROP_W=720  CROP_Y=30
+NHL_X=2150  MOTOGP_X=2880  F1_X=3600
+```
+
+If widget positions change on the QA Mac desktop, these values must be recalibrated.
+
+### Dim/lit capture method
+
+- **Lit**: `osascript -e 'tell application "System Events" to set visible of every process whose visible is true to false'`
+- **Dim**: `osascript -e 'tell application "Terminal" to activate'`
+
+### Review
+
+Open `qa/review.html` in a browser to compare builds side-by-side. Newest build at top.
 
 ---
 
@@ -439,30 +533,31 @@ Run with `HOMETEAM_RUN_NETWORK_TESTS=1`.
 - [ ] Toggle streaming → upcoming updates immediately
 
 ### Widget
-- [ ] Add from gallery → config sheet appears (not blank)
-- [ ] Config sheet shows favorite teams at top
-- [ ] Select team → widget renders with data
-- [ ] Previous shows real results
-- [ ] Upcoming shows real games with correct times
-- [ ] Right-click → Edit → change team → updates
-- [ ] F1/MotoGP shows race names, driver results, favorite highlighted
-- [ ] Logos crisp on dark background
+- [ ] Add from gallery → config sheet appears (not blank) *(manual only — OS process)*
+- [ ] Config sheet shows favorite teams at top *(manual only — OS process)*
+- [ ] Select team → widget renders with data *(manual only — OS process)*
+- [ ] Previous shows real results *(covered by Layer 2B lit screenshots)*
+- [ ] Upcoming shows real games with correct times *(covered by Layer 2B lit screenshots)*
+- [ ] Right-click → Edit → change team → updates *(manual only — OS process)*
+- [ ] F1/MotoGP shows race names, driver results, favorite highlighted *(covered by Layer 2B lit screenshots)*
+- [ ] Logos crisp on dark background *(covered by Layer 2B dim screenshots)*
 
 ---
 
 ## CI pipeline
 
 ```
-PR gate (every commit):
-  1. xcodebuild test -only-testing HomeTeamTests    ← all unit tests
-  2. HomeTeamUITests                                 ← app + App Group correctness
+Every build (agent runs on QA Mac via SSH):
+  1. scripts/qa_screenshots.sh <version>             ← 6 live widget screenshots (pre-build baseline)
+  2. xcodebuild test -only-testing HomeTeamTests      ← all unit tests + snapshot tests
+  3. HomeTeamUITests                                  ← app + App Group correctness (when implemented)
 
-Nightly:
-  3. Network smoke tests (HOMETEAM_RUN_NETWORK_TESTS=1)
-  4. Snapshot tests (swift-snapshot-testing)
+Nightly (when CI infrastructure is set up):
+  4. Network smoke tests (HOMETEAM_RUN_NETWORK_TESTS=1)
 
 Pre-release:
   5. Full UAT checklist (human, ~5 min)
+  6. Review qa/review.html for visual regressions across recent builds
 ```
 
 ---
@@ -476,3 +571,6 @@ Pre-release:
 5. **Accessibility identifiers are a contract** — don't rename without updating UI tests.
 6. **Racing uses sport-level matching** — `sport == team.sport`, not `homeTeamID` matching.
 7. **Circuit timezones are explicit** — Pulselive session timestamps are circuit-local; `MotoGPCalendarParser.circuitTimezones` maps legacy_id → IANA timezone.
+8. **All tests run on QA Mac** — never run XCTest or XCUITest on the dev machine. Sync code via rsync, build and test via SSH.
+9. **Pre-build screenshots are mandatory** — run `scripts/qa_screenshots.sh <version>` before every build to capture dim/lit widget baselines.
+10. **Snapshot baselines recorded on QA Mac** — `qa/baselines/` PNGs must be generated on the QA Mac (run `WidgetSnapshotTests` with `recordMode = true`). Never commit baselines recorded on the dev machine.
