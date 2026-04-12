@@ -33,9 +33,9 @@ echo "=== HomeTeam QA Screenshots: $VERSION ==="
 # Unlock keychain
 ssh "$QA_HOST" "security unlock-keychain -p 'anthropic' ~/Library/Keychains/login.keychain-db"
 
-# Capture LIT mode (hide all windows -> desktop gets focus)
+# Capture LIT mode (hide all windows + activate Finder -> desktop gets focus)
 echo "Capturing lit mode..."
-ssh "$QA_HOST" 'osascript -e "tell application \"System Events\" to set visible of every process whose visible is true to false"'
+ssh "$QA_HOST" 'osascript -e "tell application \"System Events\" to set visible of every process whose visible is true to false" -e "tell application \"Finder\" to activate"'
 sleep 2
 ssh "$QA_HOST" "screencapture -x /tmp/ht_lit.png"
 

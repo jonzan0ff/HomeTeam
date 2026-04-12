@@ -36,25 +36,7 @@ Strategy: make every layer **below** the OS surface airtight so manual UAT is mi
 
 ## Execution environment
 
-All XCTest and XCUITest runs happen on the **QA Mac** (`qa@iMac.local`) via SSH.
-Never run tests on the dev machine — it interrupts the user's work.
-
-```bash
-# Sync code before every test run
-rsync -az --exclude='.git' --exclude='DerivedData' --exclude='node_modules' \
-  "/Users/jonzanoff/Documents/jonzan0ff/Projects/HomeTeam/" qa@iMac.local:~/Projects/HomeTeam/
-
-# After xcodegen: SCP entitlements from dev machine (no .git on QA Mac)
-scp macos/Config/*.entitlements qa@iMac.local:~/Projects/HomeTeam/macos/Config/
-
-# Build + test on QA Mac
-ssh qa@iMac.local 'security unlock-keychain -p "anthropic" ~/Library/Keychains/login.keychain-db && \
-  cd ~/Projects/HomeTeam/macos && \
-  xcodebuild test -project HomeTeam.xcodeproj -scheme HomeTeam -configuration Debug \
-  -allowProvisioningUpdates -only-testing HomeTeamTests'
-```
-
-App installed at `~/Applications/HomeTeam.app` (qa user is not admin).
+All tests and screenshots run on the **QA Mac** (`qa@iMac.local`) via SSH. See `~/.claude/rules/qa-mac.md` for the sync/build pattern. Never run tests on the dev machine — it interrupts the user's work.
 
 ---
 
@@ -359,150 +341,36 @@ QA Mac by running with `recordMode = true` once, then committing the updated PNG
 | `unconfigured` | -- | -- | -- | "No team selected" placeholder |
 | `no_games` | NHL | empty | empty | "No games available" |
 
-### 2B. How it works
-
-```swift
-// Render widget view to PNG — no external dependencies
-let view = HomeTeamWidgetEntryView(entry: entry)
-    .frame(width: 329, height: 345)
-    .environment(\.colorScheme, .light)
-let hostingView = NSHostingView(rootView: view)
-hostingView.frame = NSRect(origin: .zero, size: widgetSize)
-hostingView.layoutSubtreeIfNeeded()
-let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)!
-hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
-let pngData = bitmapRep.representation(using: .png, properties: [:])!
-// Compare pngData against committed reference PNG
-```
+Implementation details live in `macos/Tests/WidgetSnapshotTests.swift`.
 
 ---
 
 ## Layer 2B — Live widget screenshots (QA Mac, real data)
 
-Captures real widgets running on the QA Mac desktop with real ESPN data in both
-dim and lit modes. Fundamentally different from Layer 2:
+Run `scripts/qa_screenshots.sh <version>` **before every build**. Captures 6 images (3 sports × dim/lit) with real ESPN data on the QA Mac desktop. Catches what snapshot tests can't: logo loading, dim mode contrast, real-data edge cases, widget-OS integration.
 
-| | Layer 2 (Snapshot) | Layer 2B (Live Screenshots) |
-|---|---|---|
-| Data | Fixture data, deterministic | Real ESPN data, changes daily |
-| Render | `NSHostingView` in test process | Real WidgetKit on macOS desktop |
-| Modes | Light mode only | Dim AND lit mode |
-| Comparison | Automated pixel-perfect diff | Human review via `review.html` |
-| Catches | Code regressions in view layout | Logo loading, dim mode contrast, real data edge cases, widget-OS integration |
-
-### Setup
-
-Three HomeTeam widgets on QA Mac desktop (left to right): NHL, MotoGP, F1.
-Widget placement is manual (OS limitation) and only needs to happen once.
-
-### Workflow
-
-Run `scripts/qa_screenshots.sh <version>` **before every build**.
-
-1. Captures full desktop in lit mode (hide all processes → desktop focus)
-2. Captures full desktop in dim mode (Terminal in foreground)
-3. Crops 3 widgets from each capture (6 images total)
-4. Scales to 1800px max width
-5. Saves to `qa/screenshots/{version}_{sport}_{mode}.png`
-6. Regenerates `qa/review.html` with all captured builds
-7. Auto-prunes to latest 10 builds
-
-### Images per build (6)
-
-| File | Sport | Mode |
-|---|---|---|
-| `{ver}_nhl_lit.png` | NHL (Capitals) | Lit |
-| `{ver}_nhl_dim.png` | NHL (Capitals) | Dim |
-| `{ver}_motogp_lit.png` | MotoGP (Ducati/Marquez) | Lit |
-| `{ver}_motogp_dim.png` | MotoGP (Ducati/Marquez) | Dim |
-| `{ver}_f1_lit.png` | F1 (Haas/Bearman) | Lit |
-| `{ver}_f1_dim.png` | F1 (Haas/Bearman) | Dim |
-
-### Crop coordinates (4480x2520 Retina 4.5K iMac)
-
-```
-CROP_H=730  CROP_W=720  CROP_Y=30
-NHL_X=2150  MOTOGP_X=2880  F1_X=3600
-```
-
-If widget positions change on the QA Mac desktop, these values must be recalibrated.
-
-### Dim/lit capture method
-
-- **Lit**: `osascript -e 'tell application "System Events" to set visible of every process whose visible is true to false'`
-- **Dim**: `osascript -e 'tell application "Terminal" to activate'`
-
-### Review
-
-Open `qa/review.html` in a browser to compare builds side-by-side. Newest build at top.
+- Script handles capture, crop, scale, save, and review.html regeneration.
+- Retains latest 10 builds, auto-prunes older.
+- Open `qa/review.html` in a browser to compare builds side-by-side.
+- Setup: 3 widgets on QA Mac desktop (NHL, MotoGP, F1) — one-time manual placement.
 
 ---
 
 ## Layer 3 — UI tests (XCUITest, real app process)
 
-> **Status: Not implemented.** High maintenance cost, low bug-catch rate for this project's
-> change patterns. Build these when a bug ships that only a UI test would have caught.
->
-> **Trigger to build:** If a bug is found where settings/favorites were lost across relaunch,
-> or onboarding broke silently, add the specific UI test that would have caught it and
-> note the incident below.
->
-> **Incidents that would have justified Layer 3:**
-> *(none yet)*
-
-### 3A. Onboarding flows
-- Onboarding shown after reset
-- Quick links route to correct Settings sections
-- Onboarding dismisses after favorite + streaming + refresh
-
-### 3B. App Group container correctness
-
-| Test | What it checks |
-|---|---|
-| App Group container URL available | Entitlements configured correctly |
-| `app_settings.json` written after onboarding | File exists and is valid JSON |
-| `favoriteTeamCompositeIDs` non-empty after adding a favorite | Widget picker will show teams |
-| `schedule_snapshot.json` written after refresh | Widget can render data |
-| `selectedStreamingServices` persists across app relaunch | Widget inherits filter |
-
-### 3C. Settings persistence
-
-| Test | Verifies |
-|---|---|
-| Add favorite → relaunch → favorite still listed | Favorites survive relaunch |
-| Reorder favorites → relaunch → order preserved | Order survives relaunch |
-| Remove favorite → relaunch → gone | Removal survives relaunch |
-| Toggle streaming service → relaunch → still toggled | Streaming survives relaunch |
+**Not implemented.** Build when a bug ships that only a UI test would have caught (settings/favorites lost across relaunch, onboarding broken silently). Candidates: onboarding flows, App Group JSON correctness, settings persistence across relaunch.
 
 ---
 
 ## Layer 4 — Network smoke tests (opt-in, CI nightly)
 
-> **Status: Not implemented.** Valuable for catching API schema drift and endpoint
-> deprecation, but only useful when running on a schedule (nightly CI). Build these
-> when CI infrastructure is set up, or when an API change breaks the app silently.
->
-> **Trigger to build:** If an API returns empty/changed data and the app silently shows
-> stale or missing content (e.g. ESPN MotoGP standings returning empty `children`,
-> Pulselive session endpoint changing schema), add the specific smoke test and note
-> the incident below.
->
-> **Incidents that would have justified Layer 4:**
-> - *2026-03-26: ESPN MotoGP standings endpoint returns empty `children` array — had to
->   switch to Pulselive standings API. A smoke test asserting `children.count >= 1` would
->   have flagged this before the widget showed missing stats.*
+**Not implemented.** Build when CI is set up, or when an API schema change silently breaks the app.
+
+**Past incident (2026-03-26):** ESPN MotoGP standings returned empty `children` — had to switch to Pulselive. A smoke test asserting `children.count >= 1` would have flagged it.
+
+Planned coverage: ESPN schedules (NHL, F1), MotoGP PulseLive events + sessions, NHL + MotoGP standings.
 
 Run with `HOMETEAM_RUN_NETWORK_TESTS=1`.
-
-| Test | Checks |
-|---|---|
-| ESPN NHL schedule returns ≥1 game | API contract stable |
-| ESPN F1 schedule returns ≥1 event | API contract stable |
-| MotoGP PulseLive returns ≥1 event | API contract stable |
-| MotoGP PulseLive sessions returns ≥1 session | Session timestamp API stable |
-| NHL standings returns record strings | Standings API stable |
-| MotoGP standings returns position + points | Pulselive standings API stable |
-| Decoding succeeds without throwing | No schema drift |
 
 ---
 
@@ -574,3 +442,4 @@ Pre-release:
 8. **All tests run on QA Mac** — never run XCTest or XCUITest on the dev machine. Sync code via rsync, build and test via SSH.
 9. **Pre-build screenshots are mandatory** — run `scripts/qa_screenshots.sh <version>` before every build to capture dim/lit widget baselines.
 10. **Snapshot baselines recorded on QA Mac** — `qa/baselines/` PNGs must be generated on the QA Mac (run `WidgetSnapshotTests` with `recordMode = true`). Never commit baselines recorded on the dev machine.
+11. **Data seeding via CLI flags** — seed real data into an installed build with `open HomeTeam.app --args --import-settings /path/to/app_settings.json --import-snapshot /path/to/schedule_snapshot.json`. See `HomeTeamApp.handleImportFlags`.
