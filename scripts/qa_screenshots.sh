@@ -164,6 +164,21 @@ else:
             html += f'    </div>\\n'
         html += '  </div>\\n'
 
+# Mockups (persist indefinitely — never purge). Each *.html file in qa/mockups/
+# is embedded as an iframe below the build screenshots.
+mockup_dir = qa_dir / "mockups"
+if mockup_dir.exists():
+    for mockup in sorted(mockup_dir.glob("*.html")):
+        name = mockup.stem.replace("-", " ").title()
+        html += f'''
+  <div class="build">
+    <div class="build-header">
+      <h2>Mockup: {name}</h2>
+    </div>
+    <iframe src="mockups/{mockup.name}" style="width:100%;height:700px;border:1px solid #333;border-radius:12px;background:#fff;"></iframe>
+  </div>
+'''
+
 html += """
 </body>
 </html>
