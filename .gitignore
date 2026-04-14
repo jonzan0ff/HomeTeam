@@ -4,3 +4,4 @@ macos/*.xcworkspace
 macos/**/DerivedData
 **/xcuserdata/
 **/UserInterfaceState.xcuserstate
+.claude/diagnosis.md
