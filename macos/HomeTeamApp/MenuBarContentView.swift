@@ -205,15 +205,14 @@ private struct FooterView: View {
         .help("Refresh now")
         .disabled(repository.isRefreshing)
 
-        Button {
+        Button("Quit HomeTeam") {
           let bundleID = Bundle.main.bundleIdentifier ?? ""
           NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .forEach { $0.terminate() }
-        } label: {
-          Image(systemName: "power")
         }
         .buttonStyle(.plain)
-        .help("Quit HomeTeam")
+        .font(.caption2)
+        .keyboardShortcut("q", modifiers: .command)
       }
       .padding(.horizontal, 12)
       .padding(.vertical, 6)

@@ -13,6 +13,7 @@ final class MenuBarController: NSObject {
   private var statusItem: NSStatusItem?
   private var popover: NSPopover?
   private var eventMonitor: Any?
+  private var escapeMonitor: Any?
   private var cancellables = Set<AnyCancellable>()
 
   private override init() {
@@ -33,6 +34,7 @@ final class MenuBarController: NSObject {
     // Create popover with SwiftUI content
     let popover = NSPopover()
     popover.behavior = .transient
+    popover.delegate = self
     popover.contentViewController = NSHostingController(
       rootView: MenuBarContentView()
         .environmentObject(AppSettingsStore.shared)
@@ -106,19 +108,54 @@ final class MenuBarController: NSObject {
   private func showContextMenu(_ sender: NSStatusBarButton) {
     let menu = NSMenu()
 
-    let settingsItem = NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ",")
+    let aboutItem = NSMenuItem(title: "About HomeTeam", action: #selector(showAbout), keyEquivalent: "")
+    aboutItem.target = self
+    menu.addItem(aboutItem)
+
+    let updateTitle: String
+    if AppState.shared.isInstallingUpdate {
+      updateTitle = "Installing update…"
+    } else if AppState.shared.availableUpdate != nil {
+      updateTitle = "Install Update…"
+    } else {
+      updateTitle = "Check for Updates…"
+    }
+    let updateItem = NSMenuItem(title: updateTitle, action: #selector(checkOrInstallUpdate), keyEquivalent: "")
+    updateItem.target = self
+    updateItem.isEnabled = !AppState.shared.isInstallingUpdate
+    menu.addItem(updateItem)
+
+    menu.addItem(NSMenuItem.separator())
+
+    let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+    settingsItem.keyEquivalentModifierMask = .command
     settingsItem.target = self
     menu.addItem(settingsItem)
 
     menu.addItem(NSMenuItem.separator())
 
     let quitItem = NSMenuItem(title: "Quit HomeTeam", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    quitItem.keyEquivalentModifierMask = .command
     menu.addItem(quitItem)
 
     statusItem?.menu = menu
     statusItem?.button?.performClick(nil)
     DispatchQueue.main.async { [weak self] in
       self?.statusItem?.menu = nil
+    }
+  }
+
+  @objc private func showAbout() {
+    NSApp.activate(ignoringOtherApps: true)
+    NSApp.orderFrontStandardAboutPanel(nil)
+  }
+
+  @objc private func checkOrInstallUpdate() {
+    if AppState.shared.isInstallingUpdate { return }
+    if AppState.shared.availableUpdate != nil {
+      AppState.shared.installUpdate()
+    } else {
+      Task { await AppState.shared.checkForUpdate() }
     }
   }
 
@@ -181,6 +218,38 @@ final class MenuBarController: NSObject {
       button.image = iconImage
       statusItem?.length = NSStatusItem.variableLength
     }
+  }
+
+  // MARK: - Escape dismissal
+
+  fileprivate func installEscapeMonitor() {
+    guard escapeMonitor == nil else { return }
+    escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+      if event.keyCode == 53 { // Escape
+        self?.popover?.performClose(nil)
+        return nil
+      }
+      return event
+    }
+  }
+
+  fileprivate func removeEscapeMonitor() {
+    if let monitor = escapeMonitor {
+      NSEvent.removeMonitor(monitor)
+      escapeMonitor = nil
+    }
+  }
+}
+
+// MARK: - NSPopoverDelegate
+
+extension MenuBarController: NSPopoverDelegate {
+  nonisolated func popoverDidShow(_ notification: Notification) {
+    Task { @MainActor in self.installEscapeMonitor() }
+  }
+
+  nonisolated func popoverDidClose(_ notification: Notification) {
+    Task { @MainActor in self.removeEscapeMonitor() }
   }
 }
 
