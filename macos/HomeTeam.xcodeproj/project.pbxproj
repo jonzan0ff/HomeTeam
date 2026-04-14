@@ -49,6 +49,7 @@
 		98BC126EBD9EEFAE87829990 /* WidgetGameFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9665CD096BC57306844545A /* WidgetGameFilter.swift */; };
 		A23FF94B899AD5C5738D4680 /* HomeTeamExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 203609129E7A5EC0F239169D /* HomeTeamExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A7635494CAB68F1774AEA756 /* ScheduleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1D10E20D1A5D989BD2997 /* ScheduleClient.swift */; };
+		B59B2D95E525373C684DEF87 /* MenuBarPopoverSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095104FDFFE7A8883CCBB00B /* MenuBarPopoverSnapshotTests.swift */; };
 		BD54858FF779EA562FD86DEA /* HomeTeamWidgetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F529B036AE17982484EF059 /* HomeTeamWidgetIntent.swift */; };
 		C491DD539631C48311151853 /* GameRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D71D37A9C0BF9713722618 /* GameRowView.swift */; };
 		C86B9D166D36F6BA39CA0A2E /* ScheduleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBBE0FD89061BA0BC3BF1497 /* ScheduleRepository.swift */; };
@@ -103,6 +104,7 @@
 		01D1D10E20D1A5D989BD2997 /* ScheduleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleClient.swift; sourceTree = "<group>"; };
 		0271F776280EA2E0A1EC7D81 /* HomeTeamEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTeamEntry.swift; sourceTree = "<group>"; };
 		06B3578A46D0824CCE87710A /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
+		095104FDFFE7A8883CCBB00B /* MenuBarPopoverSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverSnapshotTests.swift; sourceTree = "<group>"; };
 		09FDDB121E131EA8B46F2AA3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		15B92EF01DAD1037D8521DA3 /* HomeTeamWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTeamWidgetBundle.swift; sourceTree = "<group>"; };
 		1A14CCF32A5935EF232F5E7B /* ScheduleSnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleSnapshotStore.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				09FDDB121E131EA8B46F2AA3 /* Info.plist */,
+				095104FDFFE7A8883CCBB00B /* MenuBarPopoverSnapshotTests.swift */,
 				D7A91334C5597DB0A7D302BC /* StreamingFilterTests.swift */,
 				E0D9591852D5E924433F0AF3 /* WidgetSnapshotTests.swift */,
 			);
@@ -452,6 +455,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B59B2D95E525373C684DEF87 /* MenuBarPopoverSnapshotTests.swift in Sources */,
 				608212C96C64A4A87D9E8B20 /* StreamingFilterTests.swift in Sources */,
 				D638743825AB3F8EFB1658BD /* WidgetSnapshotTests.swift in Sources */,
 			);
