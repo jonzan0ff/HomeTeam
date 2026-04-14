@@ -29,7 +29,6 @@ final class MenuBarController: NSObject {
     button.image = NSImage(systemSymbolName: "sportscourt.fill", accessibilityDescription: "HomeTeam")
     button.target = self
     button.action = #selector(togglePopover(_:))
-    button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
     // Create popover with SwiftUI content
     let popover = NSPopover()
@@ -90,11 +89,7 @@ final class MenuBarController: NSObject {
   // MARK: - Popover
 
   @objc private func togglePopover(_ sender: NSStatusBarButton) {
-    guard let event = NSApp.currentEvent else { return }
-
-    if event.type == .rightMouseUp {
-      showContextMenu(sender)
-    } else if let popover, popover.isShown {
+    if let popover, popover.isShown {
       popover.performClose(sender)
     } else {
       popover?.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
@@ -103,65 +98,6 @@ final class MenuBarController: NSObject {
         self?.popover?.performClose(nil)
       }
     }
-  }
-
-  private func showContextMenu(_ sender: NSStatusBarButton) {
-    let menu = NSMenu()
-
-    let aboutItem = NSMenuItem(title: "About HomeTeam", action: #selector(showAbout), keyEquivalent: "")
-    aboutItem.target = self
-    menu.addItem(aboutItem)
-
-    let updateTitle: String
-    if AppState.shared.isInstallingUpdate {
-      updateTitle = "Installing update…"
-    } else if AppState.shared.availableUpdate != nil {
-      updateTitle = "Install Update…"
-    } else {
-      updateTitle = "Check for Updates…"
-    }
-    let updateItem = NSMenuItem(title: updateTitle, action: #selector(checkOrInstallUpdate), keyEquivalent: "")
-    updateItem.target = self
-    updateItem.isEnabled = !AppState.shared.isInstallingUpdate
-    menu.addItem(updateItem)
-
-    menu.addItem(NSMenuItem.separator())
-
-    let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
-    settingsItem.keyEquivalentModifierMask = .command
-    settingsItem.target = self
-    menu.addItem(settingsItem)
-
-    menu.addItem(NSMenuItem.separator())
-
-    let quitItem = NSMenuItem(title: "Quit HomeTeam", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-    quitItem.keyEquivalentModifierMask = .command
-    menu.addItem(quitItem)
-
-    statusItem?.menu = menu
-    statusItem?.button?.performClick(nil)
-    DispatchQueue.main.async { [weak self] in
-      self?.statusItem?.menu = nil
-    }
-  }
-
-  @objc private func showAbout() {
-    NSApp.activate(ignoringOtherApps: true)
-    NSApp.orderFrontStandardAboutPanel(nil)
-  }
-
-  @objc private func checkOrInstallUpdate() {
-    if AppState.shared.isInstallingUpdate { return }
-    if AppState.shared.availableUpdate != nil {
-      AppState.shared.installUpdate()
-    } else {
-      Task { await AppState.shared.checkForUpdate() }
-    }
-  }
-
-  @objc private func openSettings() {
-    NSApp.activate(ignoringOtherApps: true)
-    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
   }
 
   // MARK: - Indicators (matches What to Watch pattern)
