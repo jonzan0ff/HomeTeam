@@ -91,28 +91,22 @@ final class MenuBarPopoverSnapshotTests: XCTestCase {
       .environmentObject(AppSettingsStore.shared)
       .environmentObject(ScheduleRepository.shared)
       .environmentObject(AppState.shared)
-      .background(Color(nsColor: .windowBackgroundColor))
-      .environment(\.colorScheme, .light)
+      .frame(width: popoverWidth)
+      .background(Color(white: 0.18))
+      .environment(\.colorScheme, .dark)
 
-    let hostingView = NSHostingView(rootView: view)
+    // SwiftUI's ImageRenderer (macOS 13+) is the correct path for offscreen
+    // rendering — NSHostingView.cacheDisplay drops SwiftUI Text (CoreText/Metal,
+    // not legacy AppKit CGContext).
+    let renderer = ImageRenderer(content: view)
+    renderer.proposedSize = ProposedViewSize(width: popoverWidth, height: nil)
+    renderer.scale = 2.0
 
-    // MenuBarContentView sets its own width to 320 via `.frame(width: 320)`.
-    // Ask the hosting view for its intrinsic fitting size so the height
-    // matches whatever the current scenario produced.
-    let targetWidth = popoverWidth
-    let fittingSize = hostingView.fittingSize
-    let size = CGSize(
-      width: targetWidth,
-      height: max(fittingSize.height, 1)
-    )
-    hostingView.frame = NSRect(origin: .zero, size: size)
-    hostingView.layoutSubtreeIfNeeded()
-
-    guard let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
-      XCTFail("Failed to create bitmap rep for \(name)", file: file, line: line)
+    guard let cgImage = renderer.cgImage else {
+      XCTFail("ImageRenderer produced no CGImage for \(name)", file: file, line: line)
       return
     }
-    hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
+    let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
 
     guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
       XCTFail("Failed to encode PNG for \(name)", file: file, line: line)
