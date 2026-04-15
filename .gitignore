@@ -5,3 +5,4 @@ macos/**/DerivedData
 **/xcuserdata/
 **/UserInterfaceState.xcuserstate
 .claude/diagnosis.md
+.qa_passed
