@@ -27,6 +27,7 @@ final class MenuBarController: NSObject {
 
     guard let button = item.button else { return }
     button.image = NSImage(systemSymbolName: "sportscourt.fill", accessibilityDescription: "HomeTeam")
+    button.toolTip = "Last synced 00:00"
     button.target = self
     button.action = #selector(togglePopover(_:))
 
