@@ -1,0 +1,83 @@
+name: Work Item (code change)
+description: File a Work Item for the Orchestrator to execute. Fill in four fields and submit — the Orchestrator picks it up and handles everything.
+title: "[work item] "
+labels: ["queued"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The Orchestrator will pick up this Work Item within a few minutes, invoke Claude Code with the specific scope you describe below, open a PR when done, and auto-merge when CI passes. You don't need to touch anything else.
+
+        If the Orchestrator hits a wall it can't work around, it will label this Issue `needs-user` and tell you exactly what you need to do. Otherwise you don't hear from it until it's done.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What do you want changed?
+      description: Describe it in plain English. Be specific about the goal, not the implementation.
+      placeholder: |
+        Example: "Add a 'Last synced' timestamp to the menu bar icon tooltip showing when the app last pulled data."
+    validations:
+      required: true
+
+  - type: textarea
+    id: allowed_paths
+    attributes:
+      label: Which files is the agent allowed to touch?
+      description: |
+        List file patterns (one per line). Use `**` for recursive. The agent will NOT edit anything outside this list — if the work needs to go beyond it, the agent stops and asks you.
+
+        Leave blank for a READ-only task (no file edits permitted).
+      placeholder: |
+        macos/Sources/**
+        macos/Widget/**
+        README.md
+      value: |
+        macos/Sources/**
+        macos/Widget/**
+
+  - type: dropdown
+    id: timebox_minutes
+    attributes:
+      label: How long should this take before giving up?
+      description: Maximum wall-clock time the Orchestrator spends before raising `needs-user` with TIMEBOX_EXCEEDED.
+      options:
+        - "30"
+        - "60"
+        - "120"
+        - "240"
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: exit_conditions
+    attributes:
+      label: How will we know it's done?
+      description: |
+        List one or more exit conditions (one per line). Two forms are supported:
+        - `sh: <shell command>` — a shell command that must return exit 0 after the change. Runs locally before the PR is opened.
+        - `ci:green` — a PR must open and all required status checks must pass.
+
+        The Orchestrator runs every `sh:` condition first as a pre-flight. If any fail, it retries with the failure context. If `ci:green` is listed, the Orchestrator opens a PR and waits for the repo's required checks.
+      placeholder: |
+        sh: xcodebuild build -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination 'platform=macOS,arch=arm64' -allowProvisioningUpdates
+        sh: xcodebuild test -project macos/HomeTeam.xcodeproj -scheme HomeTeamTests -destination 'platform=macOS,arch=arm64' -allowProvisioningUpdates
+      value: |
+        sh: xcodebuild build -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination 'platform=macOS,arch=arm64' -allowProvisioningUpdates
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Orchestrator picks highest priority first when multiple Work Items are queued.
+      options:
+        - low
+        - normal
+        - high
+        - urgent
+      default: 1
+    validations:
+      required: true
