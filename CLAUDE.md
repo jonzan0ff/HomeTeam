@@ -75,6 +75,10 @@ Contents/PlugIns/HomeTeamExtension.appex/Contents/embedded.provisionprofile \
 
 F1 and MotoGP games have `homeTeamID = ""` and `awayTeamID = ""`. Use `sport == team.sport` to match racing events, not `homeTeamID == espnTeamID`. Use `SupportedSport.isRacing` to branch.
 
+## QA Routing — read this first
+
+Before running any QA: **read `.claude/surfaces.md`**. It lists every surface (widget, menu bar popover, app views, data layer, etc.) with the file globs that belong to it and the exact QA commands to run when any of those files change. Use it as the authoritative routing table — run only the commands for the surfaces your diff touched, nothing else. The change-to-test table below is kept as a quick human reference but `surfaces.md` is the source of truth.
+
 ## Change-to-Test Mapping
 
 | Changed files | Required tests |

@@ -1,0 +1,79 @@
+#!/bin/bash
+set -euo pipefail
+
+# Pre-push gate: blocks push unless QA has been run for HEAD and UAT has been
+# approved for HEAD. Applies to any Mac app project (detected by macos/project.yml
+# or app/project.yml). Doc-only diffs skip both gates; API-only diffs skip UAT.
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Marketing version from whichever project.yml exists (informational only).
+if [ -f "$PROJECT_DIR/macos/project.yml" ]; then
+    VERSION=$(grep 'MARKETING_VERSION:' "$PROJECT_DIR/macos/project.yml" | head -1 | sed 's/.*"\(.*\)"/\1/')
+elif [ -f "$PROJECT_DIR/app/project.yml" ]; then
+    VERSION=$(grep 'MARKETING_VERSION:' "$PROJECT_DIR/app/project.yml" | head -1 | sed 's/.*"\(.*\)"/\1/')
+else
+    VERSION="unknown"
+fi
+
+ERRORS=()
+HEAD=$(git rev-parse HEAD)
+
+# Determine change scope from this push.
+PUSH_CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+DOC_POLICY_ONLY=false
+API_ONLY=false
+if [ -n "$PUSH_CHANGED" ]; then
+    DOC_POLICY_ONLY=true
+    API_ONLY=true
+    while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        case "$f" in
+            *.md|.claude/*|docs/*|README*|LICENSE*|.gitignore|.gitattributes) ;;
+            *) DOC_POLICY_ONLY=false ;;
+        esac
+        case "$f" in
+            api/*) ;;
+            *) API_ONLY=false ;;
+        esac
+    done <<< "$PUSH_CHANGED"
+fi
+
+# Gate 1: QA pass for current HEAD (skipped for doc-only).
+if [ "$DOC_POLICY_ONLY" = false ]; then
+    if [ ! -f "$PROJECT_DIR/.qa_passed" ]; then
+        ERRORS+=("QA has not been run. Run your project's QA command first (e.g., 'make qa' or './scripts/qa_unit_gate.sh').")
+    elif [ "$(cat "$PROJECT_DIR/.qa_passed")" != "$HEAD" ]; then
+        ERRORS+=("QA passed for a different commit. Re-run QA.")
+    fi
+fi
+
+# Gate 2: UAT approval for current HEAD (skipped for doc-only and api-only).
+if [ "$DOC_POLICY_ONLY" = false ] && [ "$API_ONLY" = false ]; then
+    if [ ! -f "$PROJECT_DIR/.uat_approved" ]; then
+        ERRORS+=("UAT not approved. Run './scripts/uat.sh' to launch the app, then './scripts/uat_approve.sh' after the user confirms it works.")
+    elif [ "$(head -n 1 "$PROJECT_DIR/.uat_approved" | tr -d '[:space:]')" != "$HEAD" ]; then
+        ERRORS+=("UAT approved for a different commit. Re-run UAT for this commit.")
+    elif [ -f "$PROJECT_DIR/.qa_passed" ]; then
+        QA_TIME=$(stat -f %m "$PROJECT_DIR/.qa_passed")
+        UAT_TIME=$(stat -f %m "$PROJECT_DIR/.uat_approved")
+        if [ "$UAT_TIME" -lt "$QA_TIME" ]; then
+            ERRORS+=("UAT approval is older than last QA run. Re-run UAT and re-approve.")
+        fi
+    fi
+fi
+
+if [ ${#ERRORS[@]} -gt 0 ]; then
+    echo ""
+    echo "Push blocked — release requirements not met:"
+    echo ""
+    for err in "${ERRORS[@]}"; do
+        echo "  - $err"
+    done
+    echo ""
+    echo "Version: $VERSION | HEAD: ${HEAD:0:7}"
+    echo ""
+    exit 1
+fi
+
+echo "Pre-push checks passed (v${VERSION})"
