@@ -6,3 +6,5 @@ macos/**/DerivedData
 **/UserInterfaceState.xcuserstate
 .claude/diagnosis.md
 .qa_passed
+.uat_approved
+.claude/active-run.json
