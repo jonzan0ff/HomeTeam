@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# qa_unit_gate.sh — run all unit tests (no network, no signing required)
+# build_verification_unit_gate.sh — run all unit tests (no network, no signing required)
 # Used by: .github/workflows/unit-gate.yml
 set -euo pipefail
 

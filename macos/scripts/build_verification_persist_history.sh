@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# persist_test_history.sh <source_dir> <history_branch>
+# build_verification_persist_history.sh <source_dir> <history_branch>
 # Appends telemetry files from <source_dir> to <history_branch> as a new commit.
 # Creates the branch as an orphan if it doesn't exist yet.
 # Safe to call with an empty source_dir (produces a no-op commit).
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
-  echo "Usage: persist_test_history.sh <source_dir> <history_branch>" >&2
+  echo "Usage: build_verification_persist_history.sh <source_dir> <history_branch>" >&2
   exit 1
 fi
 

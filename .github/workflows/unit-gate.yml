@@ -18,5 +18,5 @@ jobs:
         env:
           CI: "true"
         run: |
-          chmod +x macos/scripts/qa_unit_gate.sh
-          macos/scripts/qa_unit_gate.sh
+          chmod +x macos/scripts/build_verification_unit_gate.sh
+          macos/scripts/build_verification_unit_gate.sh

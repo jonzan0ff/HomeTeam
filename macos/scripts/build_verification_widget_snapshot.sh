@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# capture_widget_screenshot.sh <output_dir>
+# build_verification_widget_snapshot.sh <output_dir>
 # Layer 2: widget snapshot QA. Runs WidgetSnapshotTests if implemented; produces
 # a status report regardless so CI can track coverage over time.
 #
