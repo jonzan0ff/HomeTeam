@@ -1,6 +1,6 @@
-# QA Plan: HomeTeam
+# Build Verification Plan: HomeTeam
 
-> Implements the strategy defined in the QA Master Standards. This file contains HomeTeam-specific test layers, fixtures, and engineering rules.
+> Implements the strategy defined in the QA Master Standards (`~/.claude/rules/qa-standards.md`). This file contains HomeTeam-specific test layers, fixtures, and engineering rules.
 
 > Goal: eliminate UAT guesswork. Every behavior that can be asserted in code should be. Manual UAT
 > should only cover what automation structurally cannot reach (visual pixel-polish, system UI surfaces).
@@ -47,7 +47,7 @@ All tests and screenshots run on the **QA Mac** (`qa@iMac.local`) via SSH. See `
          │   UAT (human)                │  ← OS widget picker, pixel polish
          ├──────────────────────────────┤
          │   Live Widget Screenshots    │  ← dim/lit on QA Mac, real data
-         │   (QA Mac, pre-build)        │     via scripts/qa_screenshots.sh
+         │   (QA Mac, pre-build)        │     via scripts/build_verification_screenshots.sh
          ├──────────────────────────────┤
          │   UI Tests (XCUITest)        │  ← app navigation, onboarding,
          │   (QA Mac)                   │     App Group JSON correctness
@@ -347,7 +347,7 @@ Implementation details live in `macos/Tests/WidgetSnapshotTests.swift`.
 
 ## Layer 2B — Live widget screenshots (QA Mac, real data)
 
-Run `scripts/qa_screenshots.sh <version>` **before every build**. Captures 6 images (3 sports × dim/lit) with real ESPN data on the QA Mac desktop. Catches what snapshot tests can't: logo loading, dim mode contrast, real-data edge cases, widget-OS integration.
+Run `scripts/build_verification_screenshots.sh <version>` **before every build**. Captures 6 images (3 sports × dim/lit) with real ESPN data on the QA Mac desktop. Catches what snapshot tests can't: logo loading, dim mode contrast, real-data edge cases, widget-OS integration.
 
 - Script handles capture, crop, scale, save, and review.html regeneration.
 - Retains latest 10 builds, auto-prunes older.
@@ -416,7 +416,7 @@ Run with `HOMETEAM_RUN_NETWORK_TESTS=1`.
 
 ```
 Every build (agent runs on QA Mac via SSH):
-  1. scripts/qa_screenshots.sh <version>             ← 6 live widget screenshots (pre-build baseline)
+  1. scripts/build_verification_screenshots.sh <version>             ← 6 live widget screenshots (pre-build baseline)
   2. xcodebuild test -only-testing HomeTeamTests      ← all unit tests + snapshot tests
   3. HomeTeamUITests                                  ← app + App Group correctness (when implemented)
 
@@ -430,7 +430,7 @@ Pre-release:
 
 ---
 
-## Engineering rules (QA-driven)
+## Engineering rules (build-verification-driven)
 
 1. **One normalization path** — all streaming names through `StreamingServiceMatcher.canonicalKey()`.
 2. **Injectable `now: Date`** — all date-sensitive filtering accepts `now` as a parameter.
@@ -440,6 +440,6 @@ Pre-release:
 6. **Racing uses sport-level matching** — `sport == team.sport`, not `homeTeamID` matching.
 7. **Circuit timezones are explicit** — Pulselive session timestamps are circuit-local; `MotoGPCalendarParser.circuitTimezones` maps legacy_id → IANA timezone.
 8. **All tests run on QA Mac** — never run XCTest or XCUITest on the dev machine. Sync code via rsync, build and test via SSH.
-9. **Pre-build screenshots are mandatory** — run `scripts/qa_screenshots.sh <version>` before every build to capture dim/lit widget baselines.
+9. **Pre-build screenshots are mandatory** — run `scripts/build_verification_screenshots.sh <version>` before every build to capture dim/lit widget baselines.
 10. **Snapshot baselines recorded on QA Mac** — `qa/baselines/` PNGs must be generated on the QA Mac (run `WidgetSnapshotTests` with `recordMode = true`). Never commit baselines recorded on the dev machine.
 11. **Data seeding via CLI flags** — seed real data into an installed build with `open HomeTeam.app --args --import-settings /path/to/app_settings.json --import-snapshot /path/to/schedule_snapshot.json`. See `HomeTeamApp.handleImportFlags`.

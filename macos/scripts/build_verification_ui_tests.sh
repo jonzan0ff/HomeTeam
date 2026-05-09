@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# qa_ui_tests.sh
+# build_verification_ui_tests.sh
 # Layer 3: XCUITest suite. Requires a real signed build and Accessibility permissions.
 # Only runs on workflow_dispatch (not on every PR push) — see ui-qa.yml.
 #

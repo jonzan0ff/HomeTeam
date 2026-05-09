@@ -1,9 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Pre-push gate: blocks push unless QA has been run for HEAD and UAT has been
-# approved for HEAD. Applies to any Mac app project (detected by macos/project.yml
-# or app/project.yml). Doc-only diffs skip both gates; API-only diffs skip UAT.
+# Pre-push gate: blocks push unless build verification has been run for HEAD and
+# UAT has been approved for HEAD. Applies to any Mac app project (detected by
+# macos/project.yml or app/project.yml). Doc-only diffs skip both gates;
+# API-only diffs skip UAT.
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -39,12 +40,12 @@ if [ -n "$PUSH_CHANGED" ]; then
     done <<< "$PUSH_CHANGED"
 fi
 
-# Gate 1: QA pass for current HEAD (skipped for doc-only).
+# Gate 1: build verification pass for current HEAD (skipped for doc-only).
 if [ "$DOC_POLICY_ONLY" = false ]; then
-    if [ ! -f "$PROJECT_DIR/.qa_passed" ]; then
-        ERRORS+=("QA has not been run. Run your project's QA command first (e.g., 'make qa' or './scripts/qa_unit_gate.sh').")
-    elif [ "$(cat "$PROJECT_DIR/.qa_passed")" != "$HEAD" ]; then
-        ERRORS+=("QA passed for a different commit. Re-run QA.")
+    if [ ! -f "$PROJECT_DIR/.build_verification_passed" ]; then
+        ERRORS+=("Build verification has not been run. Run your project's build-verification command first (e.g., 'make build-verification' or './scripts/build_verification_unit_gate.sh').")
+    elif [ "$(cat "$PROJECT_DIR/.build_verification_passed")" != "$HEAD" ]; then
+        ERRORS+=("Build verification passed for a different commit. Re-run build verification.")
     fi
 fi
 
@@ -54,11 +55,11 @@ if [ "$DOC_POLICY_ONLY" = false ] && [ "$API_ONLY" = false ]; then
         ERRORS+=("UAT not approved. Run './scripts/uat.sh' to launch the app, then './scripts/uat_approve.sh' after the user confirms it works.")
     elif [ "$(head -n 1 "$PROJECT_DIR/.uat_approved" | tr -d '[:space:]')" != "$HEAD" ]; then
         ERRORS+=("UAT approved for a different commit. Re-run UAT for this commit.")
-    elif [ -f "$PROJECT_DIR/.qa_passed" ]; then
-        QA_TIME=$(stat -f %m "$PROJECT_DIR/.qa_passed")
+    elif [ -f "$PROJECT_DIR/.build_verification_passed" ]; then
+        BV_TIME=$(stat -f %m "$PROJECT_DIR/.build_verification_passed")
         UAT_TIME=$(stat -f %m "$PROJECT_DIR/.uat_approved")
-        if [ "$UAT_TIME" -lt "$QA_TIME" ]; then
-            ERRORS+=("UAT approval is older than last QA run. Re-run UAT and re-approve.")
+        if [ "$UAT_TIME" -lt "$BV_TIME" ]; then
+            ERRORS+=("UAT approval is older than last build verification run. Re-run UAT and re-approve.")
         fi
     fi
 fi

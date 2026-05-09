@@ -3,8 +3,8 @@
 # Captures dim and lit mode for NHL, MotoGP, F1 widgets on the QA Mac.
 # Produces 6 images per build. Retains latest 10 builds.
 #
-# Usage: ./scripts/qa_screenshots.sh <version>
-# Example: ./scripts/qa_screenshots.sh v1.4.0
+# Usage: ./scripts/build_verification_screenshots.sh <version>
+# Example: ./scripts/build_verification_screenshots.sh v1.4.0
 #
 # Prerequisites:
 #   - QA Mac reachable at qa@iMac.local
@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VERSION="${1:?Usage: qa_screenshots.sh <version>}"
+VERSION="${1:?Usage: build_verification_screenshots.sh <version>}"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M")
 QA_HOST="qa@iMac.local"
 QA_DIR="$HOME/Documents/jonzan0ff/Projects/HomeTeam/qa"

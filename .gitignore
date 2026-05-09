@@ -5,6 +5,6 @@ macos/**/DerivedData
 **/xcuserdata/
 **/UserInterfaceState.xcuserstate
 .claude/diagnosis.md
-.qa_passed
+.build_verification_passed
 .uat_approved
 .claude/active-run.json

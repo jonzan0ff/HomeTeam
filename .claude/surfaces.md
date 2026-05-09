@@ -1,6 +1,6 @@
-# HomeTeam — Surfaces and QA Routing
+# HomeTeam — Surfaces and Build Verification Routing
 
-**Read this file at the start of any task that edits code in this project.** Match each changed file against the surface sections below. Run the QA commands listed for every surface that matched — and only those. Don't run widget QA for menu bar changes, don't skip snapshot tests when the widget is touched.
+**Read this file at the start of any task that edits code in this project.** Match each changed file against the surface sections below. Run the build-verification commands listed for every surface that matched — and only those. Don't run widget verification for menu bar changes, don't skip snapshot tests when the widget is touched.
 
 Surfaces are listed in roughly the order you're most likely to touch them. Each surface's `Files` list uses glob patterns; a surface is "changed" if any of those patterns matches a file in your diff.
 
@@ -16,9 +16,9 @@ The large widget that shows schedule + scores for the user's followed teams. Thr
 - `macos/Shared/Models/HomeTeamGame.swift`
 - `macos/Shared/Models/ScheduleSnapshot.swift`
 
-**QA when changed:**
+**Build Verification when changed:**
 - `xcodebuild test -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination "platform=macOS,arch=arm64" -only-testing HomeTeamTests` — unit + snapshot tests
-- `./macos/scripts/capture_widget_screenshot.sh` — captures live widget in both dim and lit modes, per sport (QA Mac only — pluginkit-loads the DerivedData extension so `/Applications/HomeTeam.app` is undisturbed)
+- `./macos/scripts/build_verification_widget_snapshot.sh` — captures live widget in both dim and lit modes, per sport (QA Mac only — pluginkit-loads the DerivedData extension so `/Applications/HomeTeam.app` is undisturbed)
 - Update `qa/review.html` widget section with new v{X.Y.Z} captures
 
 ---
@@ -32,9 +32,9 @@ The SwiftUI body that appears when the user clicks the status item. Mockups live
 - `macos/HomeTeamApp/MenuBarController.swift`
 - `macos/HomeTeamApp/AppState.swift`
 
-**QA when changed:**
+**Build Verification when changed:**
 - `xcodebuild test -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination "platform=macOS,arch=arm64" -only-testing HomeTeamTests/MenuBarPopoverSnapshotTests`
-- `./scripts/qa_menubar_screenshots.sh <version>` — refreshes `qa/mockups/popover/`
+- `./scripts/build_verification_menubar_screenshots.sh <version>` — refreshes `qa/mockups/popover/`
 - Update `qa/review.html` "Menu Bar Popover" section if scenarios changed
 
 ---
@@ -47,7 +47,7 @@ The `NSStatusItem` in the system menu bar — base icon + green dot when a game 
 - `macos/HomeTeamApp/MenuBarController.swift`
 - `macos/HomeTeamApp/Assets.xcassets/MenuBarIcon.imageset/**`
 
-**QA when changed:**
+**Build Verification when changed:**
 - **Gap:** no dedicated status-item capture script exists. If you change this surface, capture manually via `screencapture -x -R` per `~/.claude/rules/menu-bar-screenshots.md` (Finder activated first), or flag to the user that a capture script needs to be built.
 
 ---
@@ -60,10 +60,10 @@ The non-menu-bar SwiftUI that the user interacts with when they open HomeTeam pr
 - `macos/HomeTeamApp/Views/**` (excluding MenuBarPopoverView.swift which belongs to the popover surface above)
 - `macos/HomeTeamApp/**/*.swift` (top-level app files)
 
-**QA when changed:**
+**Build Verification when changed:**
 - `xcodebuild test -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination "platform=macOS,arch=arm64" -only-testing HomeTeamTests`
 - Visual verification via screenshot of the app window (manual / scripted — no standard script yet)
-- `./macos/scripts/qa_frontend_ui.sh` if it applies to your change
+- `./macos/scripts/build_verification_frontend_ui.sh` if it applies to your change
 
 ---
 
@@ -76,7 +76,7 @@ The models, services, persistence, and parsers that turn upstream API data into 
 - `macos/Shared/Services/**`
 - `macos/Shared/Persistence/**`
 
-**QA when changed:**
+**Build Verification when changed:**
 - `xcodebuild test -project macos/HomeTeam.xcodeproj -scheme HomeTeam -destination "platform=macOS,arch=arm64" -only-testing HomeTeamTests`
 - If persistence schema changed: also the `AppGroupSmokeTest/` project
 
@@ -95,7 +95,7 @@ Changes to the App Group, entitlements, or provisioning profile shape. This is t
 - `macos/project.yml`
 - Anything touching `group.com.hometeam.shared`
 
-**QA when changed:**
+**Build Verification when changed:**
 - Full build: `xcodebuild -project macos/HomeTeam.xcodeproj -scheme HomeTeam -configuration Debug -allowProvisioningUpdates build`
 - Verify widget profile has App Groups: `security cms -D -i <path-to-embedded.provisionprofile> | plutil -p - | grep -A5 application-groups`
 - `AppGroupSmokeTest/` project if major
@@ -112,23 +112,23 @@ GitHub Releases poller + install flow.
 - `scripts/release.sh`
 - `macos/project.yml` (when `MARKETING_VERSION` changes)
 
-**QA when changed:**
+**Build Verification when changed:**
 - Build + unit tests
 - A full `./scripts/release.sh` dry run is the only end-to-end test
 
 ---
 
-## Documentation / policy (no QA)
+## Documentation / policy (no build verification)
 
-Doc-only and policy-only changes that affect no user surface and need no QA run.
+Doc-only and policy-only changes that affect no user surface and need no build-verification run.
 
 **Files:**
-- `*.md` (anywhere — README, qa-plan, incident-log, surfaces, etc.)
-- `.claude/**` (project policy: rules, hooks, surfaces, incident-log, settings)
+- `*.md` (anywhere — README, build-verification-plan, surfaces, etc.)
+- `.claude/**` (project policy: rules, hooks, surfaces, settings)
 - `docs/**`
 - `README*`, `LICENSE*`, `.gitignore`, `.gitattributes`
 
-**QA when changed:** None. The global pre-push hook (`~/.claude/hooks/pre-push-check.sh`) recognizes this surface and bypasses the QA marker gate when *every* file in the diff matches it. If a single non-doc file is also in the diff, the normal surface routing applies and QA is required.
+**Build Verification when changed:** None. The global pre-push hook (`~/.claude/hooks/pre-push-check.sh`) recognizes this surface and bypasses the build-verification marker gate when *every* file in the diff matches it. If a single non-doc file is also in the diff, the normal surface routing applies and build verification is required.
 
 ---
 
@@ -136,6 +136,6 @@ Doc-only and policy-only changes that affect no user surface and need no QA run.
 
 1. Name it after the user-visible thing (e.g. "widget", "menu bar popover"), not the code module
 2. List every file whose edit would affect that user-visible thing — be generous
-3. List every QA command to run, in order
-4. If a surface has no QA yet, say so as a gap
+3. List every build-verification command to run, in order
+4. If a surface has no build verification yet, say so as a gap
 5. Add a section to `qa/review.html` for any surface with visual output

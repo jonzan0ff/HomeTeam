@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# collect_test_telemetry.sh <output_dir> [bundle1 bundle2 ...]
+# build_verification_collect_telemetry.sh <output_dir> [bundle1 bundle2 ...]
 # Extracts pass/fail/skip counts from xcresult bundles and writes a JSON summary.
 # Safe to run with zero bundles — produces an empty-run record.
 #
@@ -7,7 +7,7 @@
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
-  echo "Usage: collect_test_telemetry.sh <output_dir> [bundle...]" >&2
+  echo "Usage: build_verification_collect_telemetry.sh <output_dir> [bundle...]" >&2
   exit 1
 fi
 

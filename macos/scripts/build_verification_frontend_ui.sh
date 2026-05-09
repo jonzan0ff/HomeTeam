@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# qa_frontend_ui.sh
+# build_verification_frontend_ui.sh
 # Layer 2: frontend (menu bar app) snapshot QA. Runs FrontendSnapshotTests if
 # implemented; produces a status report so CI tracks coverage over time.
 #

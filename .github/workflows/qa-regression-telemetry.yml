@@ -18,10 +18,10 @@ jobs:
           fetch-depth: 0
 
       - name: Widget Snapshot QA
-        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/capture_widget_screenshot.sh qa/screenshots
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/build_verification_widget_snapshot.sh qa/screenshots
 
       - name: Frontend Snapshot QA
-        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/qa_frontend_ui.sh
+        run: HOMETEAM_QA_WIDGET_SNAPSHOT_MODE=coverage HOMETEAM_QA_STORAGE_MODE=isolated macos/scripts/build_verification_frontend_ui.sh
 
       - name: Collect Test Telemetry
         run: |
@@ -39,14 +39,14 @@ jobs:
             RESULT_BUNDLES+=("$bundle")
           done < "$RESULT_BUNDLE_LIST"
 
-          macos/scripts/collect_test_telemetry.sh qa/telemetry/current "${RESULT_BUNDLES[@]}"
+          macos/scripts/build_verification_collect_telemetry.sh qa/telemetry/current "${RESULT_BUNDLES[@]}"
 
       - name: Persist Telemetry History
         env:
           QA_HISTORY_COMMIT_MESSAGE: "qa: append telemetry run ${{ github.run_id }}"
         run: |
           set -euo pipefail
-          macos/scripts/persist_test_history.sh qa/telemetry/current qa-history
+          macos/scripts/build_verification_persist_history.sh qa/telemetry/current qa-history
 
       - name: Upload Run Artifacts
         uses: actions/upload-artifact@v4

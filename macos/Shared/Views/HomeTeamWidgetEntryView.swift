@@ -269,64 +269,93 @@ private struct GameCard: View {
       .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
   }
 
+  private var chipBackgroundColor: Color {
+    isDark ? Color.white.opacity(0.16) : Color.primary.opacity(0.1)
+  }
+
+  private var chipForegroundColor: Color {
+    isDark ? Color.white.opacity(0.9) : Color.primary
+  }
+
+  private var statusForegroundColor: Color {
+    if isLive { return Color.green }
+    return isDark ? Color.white.opacity(0.7) : Color.secondary
+  }
+
+  private var cardBackgroundColor: Color {
+    isDark ? Color.white.opacity(0.09) : Color.primary.opacity(0.06)
+  }
+
+  private var cardStrokeColor: Color {
+    if isLive { return Color.red.opacity(0.55) }
+    return isDark ? Color.white.opacity(0.14) : Color.primary.opacity(0.12)
+  }
+
+  private var headerView: some View {
+    HStack(spacing: 4) {
+      Text(chipLabel)
+        .font(.system(size: 9, weight: .bold))
+        .lineLimit(1)
+        .fixedSize()
+        .monospacedDigit()
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(
+          Capsule(style: .continuous).fill(chipBackgroundColor)
+        )
+        .foregroundStyle(chipForegroundColor)
+
+      Spacer(minLength: 0)
+
+      if !statusLabel.isEmpty {
+        Text(statusLabel)
+          .font(.system(size: 8, weight: .semibold))
+          .lineLimit(1)
+          .minimumScaleFactor(0.75)
+          .foregroundStyle(statusForegroundColor)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var contentView: some View {
+    if isRacing, let results = game.racingResults, !results.isEmpty {
+      raceNameText
+      RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
+    } else if isRacing {
+      raceNameText
+    } else {
+      teamRowsView
+    }
+  }
+
+  private var teamRowsView: some View {
+    VStack(spacing: 4) {
+      if !game.awayTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        TeamRow(
+          abbrev: game.awayTeamAbbrev,
+          trailing: trailingValue(score: game.awayScore, record: game.awayRecord),
+          isLeader: awayLeads,
+          logoImage: teamLogoImage(espnTeamID: game.awayTeamID),
+          isDark: isDark
+        )
+      }
+      if !game.homeTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        TeamRow(
+          abbrev: game.homeTeamAbbrev,
+          trailing: trailingValue(score: game.homeScore, record: game.homeRecord),
+          isLeader: homeLeads,
+          logoImage: teamLogoImage(espnTeamID: game.homeTeamID),
+          isDark: isDark
+        )
+      }
+    }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      // Header: date chip + status
-      HStack(spacing: 4) {
-        Text(chipLabel)
-          .font(.system(size: 9, weight: .bold))
-          .lineLimit(1)
-          .fixedSize()
-          .monospacedDigit()
-          .padding(.horizontal, 5)
-          .padding(.vertical, 2)
-          .background(
-            Capsule(style: .continuous)
-              .fill(isDark ? Color.white.opacity(0.16) : Color.primary.opacity(0.1))
-          )
-          .foregroundStyle(isDark ? Color.white.opacity(0.9) : Color.primary)
-
-        Spacer(minLength: 0)
-
-        if !statusLabel.isEmpty {
-          Text(statusLabel)
-            .font(.system(size: 8, weight: .semibold))
-            .lineLimit(1)
-            .minimumScaleFactor(0.75)
-            .foregroundStyle(isLive ? Color.green : (isDark ? Color.white.opacity(0.7) : Color.secondary))
-        }
-      }
-
-      // Body
-      if isRacing && !(game.racingResults?.isEmpty ?? true), let results = game.racingResults {
-        raceNameText
-        RacingResultsView(results: results, sport: game.sport, favoriteDriverNames: favoriteDriverNames, isDark: isDark)
-      } else if isRacing {
-        raceNameText
-      } else {
-        VStack(spacing: 4) {
-          if !game.awayTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            TeamRow(
-              abbrev: game.awayTeamAbbrev,
-              trailing: trailingValue(score: game.awayScore, record: game.awayRecord),
-              isLeader: awayLeads,
-              logoImage: teamLogoImage(espnTeamID: game.awayTeamID),
-              isDark: isDark
-            )
-          }
-          if !game.homeTeamAbbrev.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            TeamRow(
-              abbrev: game.homeTeamAbbrev,
-              trailing: trailingValue(score: game.homeScore, record: game.homeRecord),
-              isLeader: homeLeads,
-              logoImage: teamLogoImage(espnTeamID: game.homeTeamID),
-              isDark: isDark
-            )
-          }
-        }
-      }
-
-      // Streaming badge (upcoming only)
+      headerView
+      contentView
       if !isPrevious, let network = badgeNetwork {
         ServiceBadge(name: network, isDark: isDark)
       }
@@ -334,17 +363,11 @@ private struct GameCard: View {
     .padding(6)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(
-      RoundedRectangle(cornerRadius: 9, style: .continuous)
-        .fill(isDark ? Color.white.opacity(0.09) : Color.primary.opacity(0.06))
+      RoundedRectangle(cornerRadius: 9, style: .continuous).fill(cardBackgroundColor)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 9, style: .continuous)
-        .stroke(
-          isLive
-            ? Color.red.opacity(0.55)
-            : (isDark ? Color.white.opacity(0.14) : Color.primary.opacity(0.12)),
-          lineWidth: 1
-        )
+        .stroke(cardStrokeColor, lineWidth: 1)
     )
   }
 }

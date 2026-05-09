@@ -5,12 +5,12 @@
 # into qa/screenshots/v${VERSION}_menubar_${scenario}.png so the pre-push hook
 # is satisfied for menu bar changes.
 #
-# Usage: ./scripts/qa_menubar_screenshots.sh <version>
-# Example: ./scripts/qa_menubar_screenshots.sh 1.4.1
+# Usage: ./scripts/build_verification_menubar_screenshots.sh <version>
+# Example: ./scripts/build_verification_menubar_screenshots.sh 1.4.1
 
 set -euo pipefail
 
-VERSION="${1:?Usage: qa_menubar_screenshots.sh <version>}"
+VERSION="${1:?Usage: build_verification_menubar_screenshots.sh <version>}"
 VERSION="${VERSION#v}"
 QA_HOST="qa@iMac.local"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"

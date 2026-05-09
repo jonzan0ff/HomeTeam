@@ -90,4 +90,4 @@ Before running any QA: **read `.claude/surfaces.md`**. It lists every surface (w
 | `Tests/` only | Run the modified tests |
 | `logos/`, docs, README | No tests required |
 
-Full requirements in `.claude/rules/requirements.md`. QA plan in `.claude/rules/qa-plan.md`.
+Full requirements in `.claude/rules/requirements.md`. Build verification plan in `.claude/rules/build-verification-plan.md`.
