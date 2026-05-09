@@ -1,11 +1,12 @@
 name: HomeTeam UI QA
 
+# Manual-trigger only. Per qa-standards §8, snapshot/widget UI tests run on
+# claudesandbox where a real window server session exists. GitHub Actions
+# runners crash with `CGSConnectionByID` assertion when SwiftUI/AppKit code
+# tries to connect during xcodebuild test. The workflow is preserved here
+# for documented reproducibility but is gated to workflow_dispatch only.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "macos/**"
-      - ".github/workflows/ui-qa.yml"
 
 jobs:
   snapshot-qa:
