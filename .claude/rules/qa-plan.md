@@ -1,6 +1,11 @@
-# Build Verification Plan: HomeTeam
+# QA Plan: HomeTeam
 
-> Implements the strategy defined in the QA Master Standards (`~/.claude/rules/qa-standards.md`). This file contains HomeTeam-specific test layers, fixtures, and engineering rules.
+> Implements the portfolio-wide QA discipline defined in `~/.claude/rules/qa-standards.md`. This file is HomeTeam's test pyramid, fixtures, engineering rules, and UAT checklist.
+>
+> Companion docs (portfolio-wide 3-doc model):
+> - `~/.claude/rules/qa-standards.md` — portfolio-wide QA philosophy + definition of done
+> - `~/.claude/rules/build-verification-standards.md` — portfolio-wide visual build-verification pipeline contract (HomeTeam is NOT on the canonical pipeline today; this contract describes the shape it will adopt when migrated in Phase 7 of the portfolio cleanup plan)
+> - `.claude/surfaces.md` — HomeTeam's surface routing table
 
 > Goal: eliminate UAT guesswork. Every behavior that can be asserted in code should be. Manual UAT
 > should only cover what automation structurally cannot reach (visual pixel-polish, system UI surfaces).
