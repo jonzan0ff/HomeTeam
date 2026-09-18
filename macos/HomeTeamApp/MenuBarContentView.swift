@@ -179,16 +179,20 @@ private struct UpdateRow: View {
 }
 
 private struct SettingsRow: View {
+  @Environment(\.openSettings) private var openSettings
+
   var body: some View {
     ActionRow(
       icon: "gearshape",
       title: "Settings",
       action: {
         // Dismiss popover (NSPopover is transient — sending any action to nil
-        // while the popover is key will close it). Then open Settings.
+        // while the popover is key will close it). Then open the Settings scene
+        // via the public openSettings action (macOS 14+). The private
+        // showSettingsWindow: selector is accepted but silently ignored on macOS 26.
         NSApp.keyWindow?.performClose(nil)
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        openSettings()
       },
       trailing: { EmptyView() }
     )

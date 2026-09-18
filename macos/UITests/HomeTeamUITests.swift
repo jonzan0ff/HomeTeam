@@ -41,4 +41,23 @@ final class HomeTeamUITests: XCTestCase {
     }
     XCTAssertTrue(found, "schedule_snapshot.json should be written to the App Group container on launch")
   }
+
+  // MARK: - Settings
+
+  /// Regression guard: the popover's Settings row must open the Settings window.
+  /// On macOS 26 the private `showSettingsWindow:` selector the row used to send is
+  /// accepted but silently ignored, so the row appeared to do nothing. The row now
+  /// uses the public `openSettings` environment action.
+  func test_settingsRow_opensSettingsWindow() {
+    let statusItem = app.statusItems.firstMatch
+    XCTAssertTrue(statusItem.waitForExistence(timeout: 5), "Menu bar status item should exist")
+    statusItem.click()
+
+    let settingsRow = app.buttons["Settings"].firstMatch
+    XCTAssertTrue(settingsRow.waitForExistence(timeout: 5), "Popover should show the Settings row")
+    settingsRow.click()
+
+    let settingsWindow = app.windows.matching(NSPredicate(format: "title CONTAINS 'Settings'")).firstMatch
+    XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5), "Clicking Settings should open the Settings window")
+  }
 }
