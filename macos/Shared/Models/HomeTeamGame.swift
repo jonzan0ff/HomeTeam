@@ -30,8 +30,17 @@ struct HomeTeamGame: Codable, Identifiable, Equatable {
   let venueName: String?
   let broadcastNetworks: [String]
   let isPlayoff: Bool
+  // Optional so snapshots cached before this field existed still decode.
+  var isPreseason: Bool? = nil
   let seriesInfo: String?
   let racingResults: [RacingResultLine]?
+
+  /// "Preseason" / "Playoffs" tag shown next to the game; nil for regular-season games.
+  var stageLabel: String? {
+    if isPreseason == true { return "Preseason" }
+    if isPlayoff { return "Playoffs" }
+    return nil
+  }
 }
 
 // MARK: - Racing result line
@@ -120,7 +129,7 @@ extension HomeTeamGame {
       scheduledAt: scheduledAt, status: status,
       statusDetail: statusDetail,
       venueName: venueName, broadcastNetworks: broadcastNetworks,
-      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      isPlayoff: isPlayoff, isPreseason: isPreseason, seriesInfo: seriesInfo,
       racingResults: results
     )
   }
@@ -146,7 +155,7 @@ extension HomeTeamGame {
       scheduledAt: date, status: status,
       statusDetail: statusDetail,
       venueName: venueName, broadcastNetworks: broadcastNetworks,
-      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      isPlayoff: isPlayoff, isPreseason: isPreseason, seriesInfo: seriesInfo,
       racingResults: racingResults
     )
   }
@@ -163,7 +172,7 @@ extension HomeTeamGame {
       scheduledAt: scheduledAt, status: status,
       statusDetail: statusDetail ?? self.statusDetail,
       venueName: venueName, broadcastNetworks: broadcastNetworks,
-      isPlayoff: isPlayoff, seriesInfo: seriesInfo,
+      isPlayoff: isPlayoff, isPreseason: isPreseason, seriesInfo: seriesInfo,
       racingResults: racingResults
     )
   }

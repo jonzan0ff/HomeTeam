@@ -82,6 +82,27 @@ final class WidgetSnapshotTests: XCTestCase {
     assertWidgetSnapshot(entry: entry, named: "nhl_offseason")
   }
 
+  func test_nhl_season_stages() {
+    let entry = makeNHLEntry(
+      previous: [
+        makeGame(id: "p1", status: .final, at: date(-1), homeAbbrev: "PHI", awayAbbrev: "WSH",
+                 homeScore: 2, awayScore: 4, homeID: "44", awayID: "23", isPreseason: true),
+        makeGame(id: "p2", status: .final, at: date(-2), homeAbbrev: "WSH", awayAbbrev: "BOS",
+                 homeScore: 1, awayScore: 3, homeID: "23", awayID: "55", isPreseason: true),
+      ],
+      upcoming: [
+        makeGame(id: "u1", status: .scheduled, at: date(1), homeAbbrev: "WSH", awayAbbrev: "NYR",
+                 homeID: "23", awayID: "33", broadcasts: ["Paramount+"], isPreseason: true),
+        makeGame(id: "u2", status: .scheduled, at: date(6), homeAbbrev: "CAR", awayAbbrev: "WSH",
+                 homeID: "7", awayID: "23", broadcasts: ["ESPN+"]),
+        makeGame(id: "u3", status: .scheduled, at: date(9), homeAbbrev: "WSH", awayAbbrev: "PIT",
+                 homeID: "23", awayID: "66", broadcasts: ["MAX"], isPlayoff: true),
+      ],
+      summary: makeSummary(record: "0-0-0", place: "1st in Metro Div.", last10: "-", streak: "-")
+    )
+    assertWidgetSnapshot(entry: entry, named: "nhl_season_stages")
+  }
+
   // MARK: - F1
 
   func test_f1_typical() {
@@ -277,7 +298,8 @@ final class WidgetSnapshotTests: XCTestCase {
     homeScore: Int? = nil, awayScore: Int? = nil,
     homeID: String = "23", awayID: String = "99",
     statusDetail: String? = nil,
-    broadcasts: [String] = []
+    broadcasts: [String] = [],
+    isPreseason: Bool = false, isPlayoff: Bool = false
   ) -> HomeTeamGame {
     HomeTeamGame(
       id: id, sport: .nhl,
@@ -289,7 +311,7 @@ final class WidgetSnapshotTests: XCTestCase {
       scheduledAt: scheduledAt, status: status,
       statusDetail: statusDetail, venueName: nil,
       broadcastNetworks: broadcasts,
-      isPlayoff: false, seriesInfo: nil, racingResults: nil
+      isPlayoff: isPlayoff, isPreseason: isPreseason, seriesInfo: nil, racingResults: nil
     )
   }
 

@@ -62,6 +62,7 @@ struct ESPNScheduleParser {
       venueName: competition.venue?.fullName,
       broadcastNetworks: broadcasts,
       isPlayoff: event.seasonType?.type == 3,
+      isPreseason: event.seasonType?.type == 1,
       seriesInfo: nil,
       racingResults: nil
     )
