@@ -318,6 +318,22 @@ private struct GameCard: View {
   }
 
   @ViewBuilder
+  private var footerView: some View {
+    if let stage = game.stageLabel {
+      // Text, not color, so it survives dim mode
+      Text(stage)
+        .font(.system(size: 6.8, weight: .heavy))
+        .textCase(.uppercase)
+        .tracking(0.3)
+        .lineLimit(1)
+        .foregroundStyle(isDark ? Color.white.opacity(0.6) : Color.secondary)
+    }
+    if !isPrevious, let network = badgeNetwork {
+      ServiceBadge(name: network, isDark: isDark)
+    }
+  }
+
+  @ViewBuilder
   private var contentView: some View {
     if isRacing, let results = game.racingResults, !results.isEmpty {
       raceNameText
@@ -356,9 +372,7 @@ private struct GameCard: View {
     VStack(alignment: .leading, spacing: 4) {
       headerView
       contentView
-      if !isPrevious, let network = badgeNetwork {
-        ServiceBadge(name: network, isDark: isDark)
-      }
+      footerView
     }
     .padding(6)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

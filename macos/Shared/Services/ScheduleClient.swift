@@ -76,7 +76,7 @@ struct ScheduleClient {
           statusDetail: liveTiming?.statusDetail,
           venueName: game.venueName,
           broadcastNetworks: game.broadcastNetworks,
-          isPlayoff: game.isPlayoff, seriesInfo: game.seriesInfo,
+          isPlayoff: game.isPlayoff, isPreseason: game.isPreseason, seriesInfo: game.seriesInfo,
           racingResults: liveTiming?.results
         )
       }
@@ -137,7 +137,7 @@ struct ScheduleClient {
           scheduledAt: g.scheduledAt, status: .final,
           statusDetail: nil, venueName: g.venueName,
           broadcastNetworks: g.broadcastNetworks,
-          isPlayoff: g.isPlayoff, seriesInfo: g.seriesInfo,
+          isPlayoff: g.isPlayoff, isPreseason: g.isPreseason, seriesInfo: g.seriesInfo,
           racingResults: resultsByID[game.id]
         )
       } else {
@@ -286,10 +286,28 @@ struct ScheduleClient {
 
   // MARK: - Private
 
+  /// ESPN's unfiltered team schedule returns only one phase of the season (e.g. just the
+  /// finished preseason, hiding the posted regular season). Fetch preseason, regular season
+  /// and playoffs separately and merge. Soccer ignores the filter, so it dedupes to one set.
   private static func fetch(sport: String, league: String, teamID: String, sport sportEnum: SupportedSport) async throws -> [HomeTeamGame] {
-    let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(sport)/\(league)/teams/\(teamID)/schedule")!
-    let (data, _) = try await URLSession.shared.data(from: url)
-    return try ESPNScheduleParser.parse(data, sport: sportEnum, teamID: teamID)
+    let base = "https://site.api.espn.com/apis/site/v2/sports/\(sport)/\(league)/teams/\(teamID)/schedule"
+    let lists = await withTaskGroup(of: [HomeTeamGame]?.self) { group in
+      for seasonType in 1...3 {
+        group.addTask {
+          guard let (data, _) = try? await URLSession.shared.data(from: URL(string: "\(base)?seasontype=\(seasonType)")!) else { return nil }
+          return try? ESPNScheduleParser.parse(data, sport: sportEnum, teamID: teamID)
+        }
+      }
+      return await group.reduce(into: [[HomeTeamGame]]()) { if let games = $1 { $0.append(games) } }
+    }
+    if lists.isEmpty { throw URLError(.cannotLoadFromNetwork) }
+    return mergingSeasonTypes(lists)
+  }
+
+  /// Flattens per-season-type results, dropping duplicate events.
+  static func mergingSeasonTypes(_ lists: [[HomeTeamGame]]) -> [HomeTeamGame] {
+    var seen = Set<String>()
+    return lists.joined().filter { seen.insert($0.id).inserted }
   }
 }
 

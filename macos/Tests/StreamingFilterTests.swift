@@ -1325,3 +1325,106 @@ final class HomeTeamGamePatchingTests: XCTestCase {
     )
   }
 }
+
+// MARK: - Season stages (preseason / regular / playoffs)
+
+final class SeasonStageTests: XCTestCase {
+
+  private let now = Date()
+
+  // Parser
+
+  func test_parser_seasonType1_isPreseason() throws {
+    let game = try parseOne(seasonType: 1)
+    XCTAssertEqual(game.isPreseason, true)
+    XCTAssertFalse(game.isPlayoff)
+    XCTAssertEqual(game.stageLabel, "Preseason")
+  }
+
+  func test_parser_seasonType2_isRegularSeason() throws {
+    let game = try parseOne(seasonType: 2)
+    XCTAssertEqual(game.isPreseason, false)
+    XCTAssertFalse(game.isPlayoff)
+    XCTAssertNil(game.stageLabel)
+  }
+
+  func test_parser_seasonType3_isPlayoffs() throws {
+    let game = try parseOne(seasonType: 3)
+    XCTAssertTrue(game.isPlayoff)
+    XCTAssertEqual(game.stageLabel, "Playoffs")
+  }
+
+  func test_parser_soccerSeasonTypeID_isNotTagged() throws {
+    // Soccer leagues use large per-season IDs (e.g. 13846), never 1/2/3
+    let game = try parseOne(seasonType: 13846)
+    XCTAssertNil(game.stageLabel)
+  }
+
+  // Merge
+
+  func test_mergingSeasonTypes_combinesAndDedupes() {
+    let pre = [makeGame(id: "1", status: .final, at: now - 86400, isPreseason: true)]
+    let regular = [makeGame(id: "2", at: now + 6 * 86400), makeGame(id: "3", at: now + 8 * 86400)]
+    // Soccer ignores the season-type filter, so the same events come back more than once
+    let merged = ScheduleClient.mergingSeasonTypes([pre, regular, regular])
+    XCTAssertEqual(merged.map(\.id), ["1", "2", "3"])
+  }
+
+  func test_preseasonOver_regularSeasonPosted_isNotOffSeason() {
+    // Capitals, Sept 2026: preseason finished, regular season starts in 6 days
+    let merged = ScheduleClient.mergingSeasonTypes([
+      [makeGame(id: "pre", status: .final, at: now - 3600, isPreseason: true)],
+      [makeGame(id: "reg", at: now + 6 * 86400)],
+    ])
+    let team = TeamDefinition(
+      teamID: "test_1", sport: .nhl, city: "", name: "Test", displayName: "Test",
+      abbreviation: "TST", driverNames: [], espnTeamID: "1", driverDisplayName: nil
+    )
+    let result = WidgetGameFilter.filter(games: merged, for: team, streamingKeys: [], now: now)
+    XCTAssertFalse(result.isOffSeason)
+    XCTAssertEqual(result.upcoming.map(\.id), ["reg"])
+    XCTAssertEqual(result.previous.map(\.id), ["pre"])
+  }
+
+  // Cached snapshots written before the field existed must still load
+
+  func test_decoding_gameWithoutPreseasonField() throws {
+    let data = try JSONEncoder().encode(makeGame(id: "1", at: now))
+    var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    json.removeValue(forKey: "isPreseason")
+    let decoded = try JSONDecoder().decode(HomeTeamGame.self, from: JSONSerialization.data(withJSONObject: json))
+    XCTAssertNil(decoded.isPreseason)
+    XCTAssertNil(decoded.stageLabel)
+  }
+
+  // Helpers
+
+  private func parseOne(seasonType: Int) throws -> HomeTeamGame {
+    let json = """
+    {"events":[{"id":"401","date":"2026-10-02T23:00Z","seasonType":{"type":\(seasonType)},
+      "competitions":[{"status":{"type":{"state":"pre","completed":false,"detail":"Fri, October 2nd"}},
+        "competitors":[
+          {"homeAway":"home","team":{"id":"7","displayName":"Carolina Hurricanes","abbreviation":"CAR"}},
+          {"homeAway":"away","team":{"id":"23","displayName":"Washington Capitals","abbreviation":"WSH"}}]}]}]}
+    """
+    let games = try ESPNScheduleParser.parse(Data(json.utf8), sport: .nhl, teamID: "23")
+    return try XCTUnwrap(games.first)
+  }
+
+  private func makeGame(
+    id: String, status: GameStatus = .scheduled, at scheduledAt: Date, isPreseason: Bool = false
+  ) -> HomeTeamGame {
+    HomeTeamGame(
+      id: id, sport: .nhl,
+      homeTeamID: "1", awayTeamID: "2",
+      homeTeamName: "Home", awayTeamName: "Away",
+      homeTeamAbbrev: "HOM", awayTeamAbbrev: "AWY",
+      homeScore: status == .final ? 3 : nil, awayScore: status == .final ? 2 : nil,
+      homeRecord: nil, awayRecord: nil,
+      scheduledAt: scheduledAt, status: status,
+      statusDetail: nil, venueName: nil,
+      broadcastNetworks: [],
+      isPlayoff: false, isPreseason: isPreseason, seriesInfo: nil, racingResults: nil
+    )
+  }
+}
