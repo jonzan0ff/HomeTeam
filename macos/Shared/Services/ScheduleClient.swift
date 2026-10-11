@@ -304,6 +304,13 @@ struct ScheduleClient {
     return mergingSeasonTypes(lists)
   }
 
+  /// Seasons to ask ESPN standings for, in order. nil = ESPN's own current season, which must
+  /// come first: NHL/NBA seasons are labelled by their ending year (2026-27 is "2027"), so the
+  /// calendar year in October points at last season's final standings.
+  static func standingsSeasonAttempts(year: Int) -> [Int?] {
+    [nil, year, year - 1]
+  }
+
   /// Flattens per-season-type results, dropping duplicate events.
   static func mergingSeasonTypes(_ lists: [[HomeTeamGame]]) -> [HomeTeamGame] {
     var seen = Set<String>()
@@ -406,8 +413,7 @@ private enum StandingsClient {
   // MARK: Team sports — ESPN standings API
 
   static func fetchTeamSport(for team: TeamDefinition) async throws -> HomeTeamTeamSummary? {
-    let year = Calendar.current.component(.year, from: Date())
-    for season in [year, year - 1] {
+    for season in ScheduleClient.standingsSeasonAttempts(year: Calendar.current.component(.year, from: Date())) {
       if let summary = try await fetchESPN(for: team, season: season, seasonType: 2) { return summary }
       // Some sports/off-season periods return data without seasontype filter
       if let summary = try await fetchESPN(for: team, season: season, seasonType: nil) { return summary }
@@ -415,9 +421,9 @@ private enum StandingsClient {
     return nil
   }
 
-  private static func fetchESPN(for team: TeamDefinition, season: Int, seasonType: Int?) async throws -> HomeTeamTeamSummary? {
+  private static func fetchESPN(for team: TeamDefinition, season: Int?, seasonType: Int?) async throws -> HomeTeamTeamSummary? {
     guard var components = URLComponents(string: "https://site.api.espn.com/apis/v2/sports/\(team.sport.sportPath)/\(team.sport.leaguePath)/standings") else { return nil }
-    var queryItems = [URLQueryItem(name: "season", value: "\(season)")]
+    var queryItems = season.map { [URLQueryItem(name: "season", value: "\($0)")] } ?? []
     if let st = seasonType { queryItems.append(URLQueryItem(name: "seasontype", value: "\(st)")) }
     components.queryItems = queryItems
     guard let url = components.url else { return nil }

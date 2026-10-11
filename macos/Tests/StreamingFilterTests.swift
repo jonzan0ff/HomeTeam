@@ -1370,6 +1370,11 @@ final class SeasonStageTests: XCTestCase {
     XCTAssertEqual(merged.map(\.id), ["1", "2", "3"])
   }
 
+  func test_standings_askForCurrentSeasonBeforeCalendarYear() {
+    // Oct 2026: the NHL 2026-27 season is ESPN season 2027; asking for 2026 first shows last year's record.
+    XCTAssertEqual(ScheduleClient.standingsSeasonAttempts(year: 2026), [nil, 2026, 2025])
+  }
+
   func test_preseasonOver_regularSeasonPosted_isNotOffSeason() {
     // Capitals, Sept 2026: preseason finished, regular season starts in 6 days
     let merged = ScheduleClient.mergingSeasonTypes([
